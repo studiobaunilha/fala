@@ -1,0 +1,5 @@
+{
+  "batchModel": "large-v3-turbo",
+  "dictationModel": "large-v3-turbo",
+  "outputFormat": "txt"
+}

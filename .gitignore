@@ -26,5 +26,5 @@ Icon
 *.swp
 *~
 
-# User config (não versionado — fica em ~/.config/sussurro/)
-/config/
+# User runtime config (gerado em ~/.config/sussurro/ — não versionar)
+# /config/ é o config de exemplo e DEVE ser versionado
