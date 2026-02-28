@@ -2,6 +2,7 @@ XCODE   := /Applications/Xcode.app/Contents/Developer
 SWIFT   := DEVELOPER_DIR=$(XCODE) swift
 BUNDLE  := $(HOME)/Applications/Sussurro.app/Contents/MacOS/Sussurro
 APP     := $(HOME)/Applications/Sussurro.app
+HOOK    := .git/hooks/pre-commit
 
 # ── Cores ──────────────────────────────────────────────────────────────────────
 BOLD  := \033[1m
@@ -11,7 +12,7 @@ GREY  := \033[2m
 RESET := \033[0m
 
 .DEFAULT_GOAL := help
-.PHONY: help test lint hooks dev install kill logs clean
+.PHONY: help check lint test hooks dev install kill logs clean
 
 help: ## Mostra este menu
 	@printf "\n  $(BOLD)Sussurro$(RESET)\n\n"
@@ -22,6 +23,8 @@ help: ## Mostra este menu
 
 # ── Targets ────────────────────────────────────────────────────────────────────
 
+check: hooks lint test ## Preflight completo: hooks + lint + testes (roda antes de dev/install)
+
 lint: ## Roda SwiftLint (--strict)
 	@DEVELOPER_DIR=$(XCODE) swiftlint --strict
 
@@ -29,10 +32,10 @@ test: ## Roda os testes unitários
 	@printf "$(GREY)▶ swift test$(RESET)\n"
 	@$(SWIFT) test
 
-hooks: ## Instala git hooks locais (execute uma vez após clonar)
-	@bash scripts/install-hooks.sh
+hooks: ## Instala git hooks (auto — no-op se já estiverem instalados)
+	@[ -f "$(HOOK)" ] || bash scripts/install-hooks.sh
 
-dev: test ## test → build debug → relança o app
+dev: check ## check → build debug → relança o app
 	@printf "$(GREY)▶ swift build$(RESET)\n"
 	@$(SWIFT) build
 	@cp .build/debug/Sussurro $(BUNDLE)
@@ -41,7 +44,7 @@ dev: test ## test → build debug → relança o app
 	@open $(APP)
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
 
-install: test ## test → build release → instala
+install: check ## check → build release → instala
 	@printf "$(GREY)▶ swift build -c release$(RESET)\n"
 	@$(SWIFT) build -c release
 	@cp .build/release/Sussurro $(BUNDLE)
