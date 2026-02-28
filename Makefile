@@ -11,7 +11,7 @@ GREY  := \033[2m
 RESET := \033[0m
 
 .DEFAULT_GOAL := help
-.PHONY: help test dev install kill logs clean
+.PHONY: help test lint hooks dev install kill logs clean
 
 help: ## Mostra este menu
 	@printf "\n  $(BOLD)Sussurro$(RESET)\n\n"
@@ -22,9 +22,15 @@ help: ## Mostra este menu
 
 # ── Targets ────────────────────────────────────────────────────────────────────
 
-test: ## Roda os 15 testes unitários
+lint: ## Roda SwiftLint (--strict)
+	@DEVELOPER_DIR=$(XCODE) swiftlint --strict
+
+test: ## Roda os testes unitários
 	@printf "$(GREY)▶ swift test$(RESET)\n"
 	@$(SWIFT) test
+
+hooks: ## Instala git hooks locais (execute uma vez após clonar)
+	@bash scripts/install-hooks.sh
 
 dev: test ## test → build debug → relança o app
 	@printf "$(GREY)▶ swift build$(RESET)\n"

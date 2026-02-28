@@ -17,23 +17,7 @@ public enum BatchMode {
         }
 
         let config = AppConfig.load()
-        var outputFormat = config.outputFormat
-        var modelName = config.batchModel
-
-        var i = 1
-        while i < arguments.count {
-            switch arguments[i] {
-            case "--format":
-                i += 1
-                if i < arguments.count { outputFormat = arguments[i] }
-            case "--model":
-                i += 1
-                if i < arguments.count { modelName = arguments[i] }
-            default:
-                break
-            }
-            i += 1
-        }
+        let (outputFormat, modelName) = parseOptions(arguments, config: config)
 
         // Convert to 16 kHz WAV if not already WAV.
         let wavURL: URL
@@ -72,6 +56,27 @@ public enum BatchMode {
         }
 
         print("Done → \(outputURL.path)")
+    }
+
+    /// Parses `--format` and `--model` flags from CLI arguments.
+    private static func parseOptions(_ arguments: [String], config: AppConfig) -> (format: String, model: String) {
+        var outputFormat = config.outputFormat
+        var modelName = config.batchModel
+        var idx = 1
+        while idx < arguments.count {
+            switch arguments[idx] {
+            case "--format":
+                idx += 1
+                if idx < arguments.count { outputFormat = arguments[idx] }
+            case "--model":
+                idx += 1
+                if idx < arguments.count { modelName = arguments[idx] }
+            default:
+                break
+            }
+            idx += 1
+        }
+        return (outputFormat, modelName)
     }
 }
 

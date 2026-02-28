@@ -55,10 +55,13 @@ final class MockInserter: TextInserting, @unchecked Sendable {
 
 final class DictationModeTests: XCTestCase, @unchecked Sendable {
 
+    // swiftlint:disable implicitly_unwrapped_optional
+    // Standard XCTest pattern: always set in setUp before any test runs.
     private var recorder: MockRecorder!
     private var transcriber: MockTranscriber!
     private var inserter: MockInserter!
     private var mode: DictationMode!
+    // swiftlint:enable implicitly_unwrapped_optional
 
     override func setUp() {
         super.setUp()

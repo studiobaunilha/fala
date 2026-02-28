@@ -7,8 +7,8 @@ private final class AudioWriter: @unchecked Sendable {
     private let lock = NSLock()
 
     func open(url: URL, settings: [String: Any]) throws {
-        let f = try AVAudioFile(forWriting: url, settings: settings)
-        lock.withLock { file = f }
+        let audioFile = try AVAudioFile(forWriting: url, settings: settings)
+        lock.withLock { file = audioFile }
     }
 
     func write(_ buffer: AVAudioPCMBuffer) {

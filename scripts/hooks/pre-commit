@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Pre-commit hook — roda automaticamente antes de cada commit.
+# Instale com: make hooks  (ou scripts/install-hooks.sh)
+set -euo pipefail
+
+REPO_DIR="$(git rev-parse --show-toplevel)"
+# DEVELOPER_DIR garante o toolchain do Xcode (PreviewsMacros, etc.).
+# SDKROOT pode apontar para a CLT via VS Code / mise — unset força o swift
+# a derivar o SDK correto do DEVELOPER_DIR, em vez do SDK da CLT.
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+export DEVELOPER_DIR
+unset SDKROOT
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+fail() { printf "\n${RED}${BOLD}✗ Pre-commit falhou:${RESET} %s\n\n" "$1" >&2; exit 1; }
+pass() { printf "${GREEN}✓${RESET} %s\n" "$1"; }
+warn() { printf "${YELLOW}⚠${RESET}  %s\n" "$1"; }
+
+cd "$REPO_DIR"
+
+# ── 1. SwiftLint ─────────────────────────────────────────────────────────────
+printf "\n${BOLD}[1/2] SwiftLint${RESET}\n"
+if command -v swiftlint &>/dev/null; then
+    if swiftlint --strict 2>&1; then
+        pass "SwiftLint — sem violações"
+    else
+        fail "SwiftLint encontrou violações. Corrija antes de commitar."
+    fi
+else
+    warn "SwiftLint não encontrado — pulando (instale com: brew install swiftlint)"
+fi
+
+# ── 2. Testes ────────────────────────────────────────────────────────────────
+printf "\n${BOLD}[2/2] Testes${RESET}\n"
+if /usr/bin/swift test 2>&1; then
+    pass "Todos os testes passaram"
+else
+    fail "Testes falharam. Corrija antes de commitar."
+fi
+
+printf "\n${GREEN}${BOLD}✓ Pre-commit OK — pode commitar.${RESET}\n\n"

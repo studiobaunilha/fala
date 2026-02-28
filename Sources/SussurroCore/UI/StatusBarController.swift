@@ -53,18 +53,18 @@ public final class StatusBarController {
 
     public func setState(_ state: AppState) {
         let (name, description): (String, String) = switch state {
-        case .idle:         ("mic",           "Sussurro — idle")
-        case .loading:      ("arrow.down.circle", "Sussurro — loading model…")
-        case .recording:    ("mic.fill",      "Sussurro — recording")
-        case .transcribing: ("waveform",      "Sussurro — transcribing…")
+        case .idle: ("mic", "Sussurro — idle")
+        case .loading: ("arrow.down.circle", "Sussurro — loading model…")
+        case .recording: ("mic.fill", "Sussurro — recording")
+        case .transcribing: ("waveform", "Sussurro — transcribing…")
         }
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
     }
 
     @objc private func openAccessibilitySettings() {
-        NSWorkspace.shared.open(
-            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-        )
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     @objc private func quit() {
