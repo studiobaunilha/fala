@@ -84,7 +84,11 @@ public final class DictationMode {
                 let config = AppConfig.load()
                 let template = config.selectedDictationTemplate
                 
-                if template.requiresLLM, let prompt = template.systemPrompt {
+                if template.requiresLLM, let basePrompt = template.systemPrompt {
+                    let prompt = config.enableContextBuffer 
+                        ? ContextManager.shared.buildPrompt(basePrompt: basePrompt) 
+                        : basePrompt
+                    
                     do {
                         if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
                             finalText = try await TranscriptionJob.processWithGemini(
@@ -95,10 +99,22 @@ public final class DictationMode {
                                 text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
                             )
                         }
+                        
+                        // Update context buffer in background
+                        if config.enableContextBuffer {
+                            Task {
+                                await ContextManager.shared.updateSummary(newText: finalText, config: config)
+                            }
+                        }
                     } catch {
                         print("[Sussurro] LLM processing error: \(error.localizedDescription)")
                         // Falha silenciosa no LLM = insere o texto original raw
                     }
+                } else if config.enableContextBuffer {
+                     // Even if no LLM template is used (e.g. raw), we can still update context
+                     Task {
+                         await ContextManager.shared.updateSummary(newText: finalText, config: config)
+                     }
                 }
                 
                 inserter.insert(finalText)

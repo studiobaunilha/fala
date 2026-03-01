@@ -26,6 +26,7 @@ public final class AppSettings: ObservableObject {
     @Published public var enableDiarization: Bool
     
     @Published public var enableLLMPostProcessing: Bool
+    @Published public var enableContextBuffer: Bool
     @Published public var selectedDictationTemplate: DictationTemplate
     @Published public var llmProvider: String
     @Published public var llmPrompt: String
@@ -70,6 +71,7 @@ public final class AppSettings: ObservableObject {
         self.defaultExportPath = config.defaultExportPath
         self.enableDiarization = config.enableDiarization
         self.enableLLMPostProcessing = config.enableLLMPostProcessing
+        self.enableContextBuffer = config.enableContextBuffer
         self.selectedDictationTemplate = config.selectedDictationTemplate
         self.llmProvider = config.llmProvider
         self.llmPrompt = config.llmPrompt
@@ -93,6 +95,7 @@ public final class AppSettings: ObservableObject {
         config.defaultExportPath = defaultExportPath
         config.enableDiarization = enableDiarization
         config.enableLLMPostProcessing = enableLLMPostProcessing
+        config.enableContextBuffer = enableContextBuffer
         config.selectedDictationTemplate = selectedDictationTemplate
         config.llmProvider = llmProvider
         config.llmPrompt = llmPrompt
@@ -197,6 +200,7 @@ struct SettingsView: View {
         .onChange(of: settings.customDictionary) { settings.save() }
         .onChange(of: settings.enableDiarization) { settings.save() }
         .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
+        .onChange(of: settings.enableContextBuffer) { settings.save() }
         .onChange(of: settings.selectedDictationTemplate) { settings.save() }
         .onChange(of: settings.llmProvider) { settings.save() }
         .onChange(of: settings.llmPrompt) { settings.save() }

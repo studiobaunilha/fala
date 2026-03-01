@@ -149,9 +149,10 @@ extension SettingsView {
         Form {
             Section {
                 Toggle("Habilitar IA de Pós-processamento", isOn: $settings.enableLLMPostProcessing)
+                Toggle("Memória de Contexto Contínuo", isOn: $settings.enableContextBuffer)
             } footer: {
-                Text("Usa inteligência artificial para formatar, corrigir pontuação " +
-                     "e remover falhas após transcrever arquivos.")
+                Text("Usa inteligência artificial para formatar e processar transcrições. " +
+                     "A memória de contexto melhora a coesão baseando-se em transcrições anteriores.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -15,6 +15,7 @@ public struct AppConfig: Codable, Sendable {
         for: .downloadsDirectory, in: .userDomainMask
     ).first?.path ?? ""
     
+    public var enableContextBuffer: Bool = false
     public var enableLLMPostProcessing: Bool = false
     public var selectedDictationTemplate: DictationTemplate = .clean
     public var llmProvider: String = "gemini"
@@ -53,6 +54,7 @@ public struct AppConfig: Codable, Sendable {
         defaultExportPath = (try? container.decode(String.self, forKey: .defaultExportPath)) ??
             FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path ?? ""
         
+        enableContextBuffer = (try? container.decode(Bool.self, forKey: .enableContextBuffer)) ?? false
         enableLLMPostProcessing = (try? container.decode(Bool.self, forKey: .enableLLMPostProcessing)) ?? false
         
         let decodedTemplate = try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate)

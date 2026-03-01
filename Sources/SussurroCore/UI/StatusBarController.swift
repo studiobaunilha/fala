@@ -17,6 +17,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private let axItem: NSMenuItem
     private let axSeparator = NSMenuItem.separator()
     private let settingsItem: NSMenuItem
+    private let contextBufferItem: NSMenuItem
     
     private let settings: AppSettings
 
@@ -35,25 +36,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         self.onTranscribe = onTranscribe
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-
-        let title = NSMenuItem(title: "Sussurro", action: nil, keyEquivalent: "")
-        title.isEnabled = false
-        menu.addItem(title)
-        menu.addItem(.separator())
-
-        let shortcutItem = NSMenuItem(
-            title: "Atalho: ⌥Espaço (segure para gravar)",
-            action: nil,
+        
+        contextBufferItem = NSMenuItem(
+            title: "🧠 Memória de Contexto",
+            action: #selector(StatusBarController.toggleContextBuffer),
             keyEquivalent: ""
-        )
-        shortcutItem.isEnabled = false
-        menu.addItem(shortcutItem)
-        menu.addItem(.separator())
-
-        let transcribeItem = NSMenuItem(
-            title: "Transcrever Arquivo…",
-            action: #selector(StatusBarController.showTranscribe),
-            keyEquivalent: "o"
         )
 
         settingsItem = NSMenuItem(
@@ -70,9 +57,21 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
         super.init()
 
+        buildStaticMenuItems()
         buildModeItems()
-
+        
+        menu.addItem(contextBufferItem)
+        menu.addItem(.separator())
+        
+        let transcribeItem = NSMenuItem(
+            title: "Transcrever Arquivo…",
+            action: #selector(StatusBarController.showTranscribe),
+            keyEquivalent: "o"
+        )
+        transcribeItem.target = self
         menu.addItem(transcribeItem)
+        
+        settingsItem.target = self
         menu.addItem(settingsItem)
         menu.addItem(.separator())
 
@@ -81,17 +80,32 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             action: #selector(StatusBarController.quit),
             keyEquivalent: "q"
         )
+        quitItem.target = self
         menu.addItem(quitItem)
 
-        transcribeItem.target = self
-        settingsItem.target = self
+        contextBufferItem.target = self
         axItem.target = self
-        quitItem.target = self
         
         menu.delegate = self
         statusItem.menu = menu
 
         setState(.idle)
+    }
+
+    private func buildStaticMenuItems() {
+        let title = NSMenuItem(title: "Sussurro", action: nil, keyEquivalent: "")
+        title.isEnabled = false
+        menu.addItem(title)
+        menu.addItem(.separator())
+
+        let shortcutItem = NSMenuItem(
+            title: "Atalho: ⌥Espaço (segure para gravar)",
+            action: nil,
+            keyEquivalent: ""
+        )
+        shortcutItem.isEnabled = false
+        menu.addItem(shortcutItem)
+        menu.addItem(.separator())
     }
 
     private func buildModeItems() {
@@ -126,6 +140,8 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             }
         }
         
+        contextBufferItem.state = settings.enableContextBuffer ? .on : .off
+        
         // Accessibility check
         let axPresent = menu.item(withTitle: axItem.title) != nil
         if AXIsProcessTrusted() {
@@ -138,6 +154,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             menu.insertItem(axSeparator, at: quitIdx)
             menu.insertItem(axItem, at: quitIdx)
         }
+    }
+    
+    @objc private func toggleContextBuffer() {
+        settings.enableContextBuffer.toggle()
+        settings.save()
     }
     
     @objc private func selectMode(_ sender: NSMenuItem) {
