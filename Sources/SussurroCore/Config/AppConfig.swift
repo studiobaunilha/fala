@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AppConfig: Codable {
+public struct AppConfig: Codable, Sendable {
     public var dictationModel: String = "large-v3-turbo"
     public var batchModel: String     = "large-v3-turbo"
     public var outputFormat: String   = "txt"
@@ -16,6 +16,7 @@ public struct AppConfig: Codable {
     ).first?.path ?? ""
     
     public var enableLLMPostProcessing: Bool = false
+    public var selectedDictationTemplate: DictationTemplate = .clean
     public var llmProvider: String = "gemini"
     public var llmPrompt: String =
         "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
@@ -53,6 +54,10 @@ public struct AppConfig: Codable {
             FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path ?? ""
         
         enableLLMPostProcessing = (try? container.decode(Bool.self, forKey: .enableLLMPostProcessing)) ?? false
+        
+        let decodedTemplate = try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate)
+        selectedDictationTemplate = decodedTemplate ?? .clean
+        
         llmProvider = (try? container.decode(String.self, forKey: .llmProvider)) ?? "gemini"
         
         let defaultPrompt = "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
