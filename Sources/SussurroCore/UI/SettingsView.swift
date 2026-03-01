@@ -21,13 +21,15 @@ public final class AppSettings: ObservableObject {
     
     @Published public var dictationTemperature: Float
     @Published public var batchTemperature: Float
-    @Published public var customDictionary: String
+    @Published public var customDictionary: [String]
     @Published public var defaultExportPath: String
     @Published public var enableDiarization: Bool
     
     @Published public var enableLLMPostProcessing: Bool
+    @Published public var llmProvider: String
     @Published public var llmPrompt: String
     @Published public var openAIKey: String
+    @Published public var geminiKey: String
 
     public let modelManager: ModelManager
     private let transcriber: Transcriber
@@ -63,8 +65,10 @@ public final class AppSettings: ObservableObject {
         self.defaultExportPath = config.defaultExportPath
         self.enableDiarization = config.enableDiarization
         self.enableLLMPostProcessing = config.enableLLMPostProcessing
+        self.llmProvider = config.llmProvider
         self.llmPrompt = config.llmPrompt
         self.openAIKey = config.openAIKey
+        self.geminiKey = config.geminiKey
         
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -82,8 +86,10 @@ public final class AppSettings: ObservableObject {
         config.defaultExportPath = defaultExportPath
         config.enableDiarization = enableDiarization
         config.enableLLMPostProcessing = enableLLMPostProcessing
+        config.llmProvider = llmProvider
         config.llmPrompt = llmPrompt
         config.openAIKey = openAIKey
+        config.geminiKey = geminiKey
         config.save()
         
         Task { await transcriber.setModel(dictationModel) }
@@ -91,7 +97,7 @@ public final class AppSettings: ObservableObject {
             await transcriber.setConfig(
                 language: language,
                 temperature: dictationTemperature,
-                prompt: customDictionary
+                prompt: customDictionary.joined(separator: ", ")
             )
         }
     }
@@ -134,6 +140,7 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
     @State private var selection: SettingsPanel? = .general
+    @State var newWord: String = ""
 
     var body: some View {
         NavigationSplitView {
@@ -169,157 +176,16 @@ struct SettingsView: View {
         .onChange(of: settings.customDictionary) { settings.save() }
         .onChange(of: settings.enableDiarization) { settings.save() }
         .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
+        .onChange(of: settings.llmProvider) { settings.save() }
         .onChange(of: settings.llmPrompt) { settings.save() }
         .onChange(of: settings.openAIKey) { settings.save() }
-    }
-    
-    // MARK: - Painéis Nativos
-    
-    private var generalView: some View {
-        Form {
-            Section {
-                KeyboardShortcuts.Recorder("Atalho de Ditado", name: .startDictation)
-            } header: {
-                Text("Atalhos do Sistema")
-            } footer: {
-                Text("Pressione o atalho global para iniciar o ditado de qualquer lugar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Section("Idioma Padrão") {
-                Picker("Idioma", selection: $settings.language) {
-                    ForEach(AppSettings.languages) { lang in
-                        Text(lang.name).tag(lang.id)
-                    }
-                }
-                .pickerStyle(.menu)
-            }
-            
-            Section("Armazenamento") {
-                HStack {
-                    TextField("Salvar Transcrições", text: $settings.defaultExportPath)
-                        .disabled(true)
-                    Button("Alterar...") { settings.selectExportPath() }
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .navigationTitle("Ajustes Gerais")
-    }
-    
-    private var modelsView: some View {
-        Form {
-            Section {
-                downloadedModelPicker("Modelo de Ditado", selection: $settings.dictationModel)
-                downloadedModelPicker("Modelo Batch / Arquivo", selection: $settings.batchModel)
-            } header: {
-                Text("Modelos Ativos")
-            } footer: {
-                Text("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Downloads Disponíveis") {
-                ForEach(knownModels) { model in
-                    ModelRow(
-                        model: model,
-                        manager: modelManager,
-                        isDictation: settings.dictationModel == model.id,
-                        isBatch: settings.batchModel == model.id
-                    )
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .navigationTitle("Gerenciador de Modelos")
-    }
-    
-    private var advancedView: some View {
-        Form {
-            Section {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Temperatura Ditado (\(settings.dictationTemperature, specifier: "%.1f"))")
-                    Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
-                }
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Temperatura Batch (\(settings.batchTemperature, specifier: "%.1f"))")
-                    Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
-                }
-            } header: {
-                Text("Acurácia vs. Velocidade")
-            } footer: {
-                Text("Zero significa alta acurácia (Greedy Decoding).")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Section {
-                TextField("Palavras customizadas...", text: $settings.customDictionary, axis: .vertical)
-                    .lineLimit(3...6)
-                    .textFieldStyle(.roundedBorder)
-            } header: {
-                Text("Dicionário (Initial Prompt)")
-            } footer: {
-                Text("Termos específicos, siglas ou gírias para priorizar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Section("Diarization (Identificação de Vozes)") {
-                Toggle("Reconhecer múltiplos locutores", isOn: $settings.enableDiarization)
-            }
-        }
-        .formStyle(.grouped)
-        .navigationTitle("Avançado")
-    }
-    
-    private var llmView: some View {
-        Form {
-            Section {
-                Toggle("Habilitar Correção com LLM", isOn: $settings.enableLLMPostProcessing)
-            } footer: {
-                Text("Usa inteligência artificial (OpenAI) para corrigir pontuação e falhas.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            if settings.enableLLMPostProcessing {
-                Section("Credenciais") {
-                    SecureField("OpenAI API Key", text: $settings.openAIKey)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
-                Section("Instrução (Prompt)") {
-                    TextField("Como o LLM deve se comportar?", text: $settings.llmPrompt, axis: .vertical)
-                        .lineLimit(4...8)
-                        .textFieldStyle(.roundedBorder)
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .navigationTitle("Pós-processamento")
-    }
-
-    @ViewBuilder
-    private func downloadedModelPicker(
-        _ label: String,
-        selection: Binding<String>
-    ) -> some View {
-        let downloaded = knownModels.filter { modelManager.isDownloaded($0.id) }
-        Picker(label, selection: selection) {
-            ForEach(downloaded) { model in
-                Text("\(model.label)  \(model.estimatedSize)").tag(model.id)
-            }
-        }
-        .pickerStyle(.menu)
+        .onChange(of: settings.geminiKey) { settings.save() }
     }
 }
 
 // MARK: – Model Row
 
-private struct ModelRow: View {
+struct ModelRow: View {
     let model: ModelInfo
     @ObservedObject var manager: ModelManager
     let isDictation: Bool
