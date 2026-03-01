@@ -25,8 +25,8 @@ public final class SettingsWindowController {
         NSLog("[Sussurro] makeWindow() — creating SettingsView")
         let config = WindowConfig(
             title: "Ajustes",
-            width: WindowSize.settingsWidth,
-            height: WindowSize.settingsHeight,
+            width: WindowSize.settingsDefaultWidth,
+            height: WindowSize.settingsDefaultHeight,
             isResizable: true, // Crucial for NavigationSplitView
             minSize: NSSize(width: WindowSize.settingsMinWidth, height: WindowSize.settingsMinHeight),
             maxSize: NSSize(width: WindowSize.settingsMaxWidth, height: WindowSize.settingsMaxHeight),

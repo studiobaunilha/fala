@@ -48,16 +48,17 @@ public enum Typography {
 }
 
 public enum WindowSize {
-    public static let settingsHeight: CGFloat = 600
+    public static let settingsDefaultHeight: CGFloat = 600
     public static let settingsMinHeight: CGFloat = 600
     public static let settingsMaxHeight: CGFloat = 1000
 
-    public static let settingsWidth: CGFloat = 700
+    public static let settingsDefaultWidth: CGFloat = 700
     public static let settingsMinWidth: CGFloat = 700
     public static let settingsMaxWidth: CGFloat = 1000
 
     public static let transcribeDefaultHeight: CGFloat = 600
     public static let transcribeMinHeight: CGFloat = 600
+    public static let transcribeMaxHeight: CGFloat = 1000
 
     public static let transcribeDefaultWidth: CGFloat = 700
     public static let transcribeMinWidth: CGFloat = 700

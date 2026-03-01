@@ -154,6 +154,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
+    @ObservedObject var contextManager = ContextManager.shared
     @State private var selection: SettingsPanel? = .general
     @State var newWord: String = ""
     
@@ -191,7 +192,7 @@ struct SettingsView: View {
             }
         }
         .toolbar(removing: .sidebarToggle)
-        .frame(minWidth: WindowSize.settingsWidth, minHeight: WindowSize.settingsHeight)
+        .frame(minWidth: WindowSize.settingsDefaultWidth, minHeight: WindowSize.settingsDefaultHeight)
         .onChange(of: settings.dictationModel) { settings.save() }
         .onChange(of: settings.batchModel) { settings.save() }
         .onChange(of: settings.language) { settings.save() }
