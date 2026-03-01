@@ -14,7 +14,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         let config = AppConfig.load()
-        let transcriber = Transcriber(modelName: config.dictationModel, language: config.language)
+        let transcriber = Transcriber(
+            modelName: config.dictationModel,
+            language: config.language,
+            temperature: config.dictationTemperature,
+            prompt: config.customDictionary
+        )
         let modelManager = ModelManager()
         modelManager.scanLocal()
         let appSettings = AppSettings(

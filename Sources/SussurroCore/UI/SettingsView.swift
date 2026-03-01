@@ -18,6 +18,16 @@ public final class AppSettings: ObservableObject {
     @Published public var dictationModel: String
     @Published public var batchModel: String
     @Published public var language: String
+    
+    @Published public var dictationTemperature: Float
+    @Published public var batchTemperature: Float
+    @Published public var customDictionary: String
+    @Published public var defaultExportPath: String
+    @Published public var enableDiarization: Bool
+    
+    @Published public var enableLLMPostProcessing: Bool
+    @Published public var llmPrompt: String
+    @Published public var openAIKey: String
 
     public let modelManager: ModelManager
     private let transcriber: Transcriber
@@ -47,6 +57,15 @@ public final class AppSettings: ObservableObject {
         self.dictationModel = config.dictationModel
         self.batchModel = config.batchModel
         self.language = config.language
+        self.dictationTemperature = config.dictationTemperature
+        self.batchTemperature = config.batchTemperature
+        self.customDictionary = config.customDictionary
+        self.defaultExportPath = config.defaultExportPath
+        self.enableDiarization = config.enableDiarization
+        self.enableLLMPostProcessing = config.enableLLMPostProcessing
+        self.llmPrompt = config.llmPrompt
+        self.openAIKey = config.openAIKey
+        
         self.transcriber = transcriber
         self.modelManager = modelManager
     }
@@ -57,9 +76,35 @@ public final class AppSettings: ObservableObject {
         config.dictationModel = dictationModel
         config.batchModel = batchModel
         config.language = language
+        config.dictationTemperature = dictationTemperature
+        config.batchTemperature = batchTemperature
+        config.customDictionary = customDictionary
+        config.defaultExportPath = defaultExportPath
+        config.enableDiarization = enableDiarization
+        config.enableLLMPostProcessing = enableLLMPostProcessing
+        config.llmPrompt = llmPrompt
+        config.openAIKey = openAIKey
         config.save()
+        
         Task { await transcriber.setModel(dictationModel) }
-        Task { await transcriber.setLanguage(language) }
+        Task {
+            await transcriber.setConfig(
+                language: language,
+                temperature: dictationTemperature,
+                prompt: customDictionary
+            )
+        }
+    }
+    
+    public func selectExportPath() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        if panel.runModal() == .OK, let url = panel.url {
+            defaultExportPath = url.path
+            save()
+        }
     }
 }
 
@@ -89,13 +134,46 @@ struct SettingsView: View {
             Section("Modelo Ativo") {
                 downloadedModelPicker("Ditado", selection: $settings.dictationModel)
                 downloadedModelPicker("Batch / CLI", selection: $settings.batchModel)
-            }
-
-            Section("Idioma de Transcrição") {
                 Picker("Idioma", selection: $settings.language) {
                     ForEach(AppSettings.languages) { lang in
                         Text(lang.name).tag(lang.id)
                     }
+                }
+            }
+            
+            Section("Avançado (Transcriber)") {
+                VStack(alignment: .leading) {
+                    Text("Temperatura (Ditado: \(settings.dictationTemperature, specifier: "%.1f"))")
+                    Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
+                    Text("Temperatura (Batch: \(settings.batchTemperature, specifier: "%.1f"))")
+                    Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
+                }
+                
+                TextField(
+                    "Dicionário Customizado (Prompt)",
+                    text: $settings.customDictionary
+                )
+                .textFieldStyle(.roundedBorder)
+                .help("Palavras ou termos específicos para priorizar no reconhecimento.")
+                
+                Toggle("Reconhecer Locutores (Diarization)", isOn: $settings.enableDiarization)
+                    .help("Reconhece múltiplos locutores (Apenas Batch). Pode ser mais lento.")
+                
+                HStack {
+                    TextField("Salvar em", text: $settings.defaultExportPath)
+                        .disabled(true)
+                    Button("Alterar...") { settings.selectExportPath() }
+                }
+            }
+            
+            Section("Pós-Processamento LLM") {
+                Toggle("Habilitar Correção com LLM", isOn: $settings.enableLLMPostProcessing)
+                if settings.enableLLMPostProcessing {
+                    SecureField("OpenAI API Key", text: $settings.openAIKey)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("Prompt do LLM", text: $settings.llmPrompt, axis: .vertical)
+                        .lineLimit(3...6)
+                        .textFieldStyle(.roundedBorder)
                 }
             }
         }
@@ -104,6 +182,13 @@ struct SettingsView: View {
         .onChange(of: settings.dictationModel) { settings.save() }
         .onChange(of: settings.batchModel) { settings.save() }
         .onChange(of: settings.language) { settings.save() }
+        .onChange(of: settings.dictationTemperature) { settings.save() }
+        .onChange(of: settings.batchTemperature) { settings.save() }
+        .onChange(of: settings.customDictionary) { settings.save() }
+        .onChange(of: settings.enableDiarization) { settings.save() }
+        .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
+        .onChange(of: settings.llmPrompt) { settings.save() }
+        .onChange(of: settings.openAIKey) { settings.save() }
     }
 
     @ViewBuilder
@@ -172,7 +257,7 @@ private struct ModelRow: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(isActive)
-                .help(isActive ? "Não é possível apagar o modelo ativo" : "Apagar modelo")
+                .help(isActive ? "Não pode apagar modelo ativo" : "Apagar modelo")
             } else {
                 Button {
                     manager.download(model.id)
