@@ -36,6 +36,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         transcribeController = transcribeCtrl
 
         let bar = StatusBarController(
+            settings: appSettings,
             onSettings: { settingsCtrl.show() },
             onTranscribe: { transcribeCtrl.show() }
         )
