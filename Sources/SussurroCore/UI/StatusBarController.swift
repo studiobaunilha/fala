@@ -9,19 +9,31 @@ public enum AppState {
 }
 
 @MainActor
-public final class StatusBarController {
+public final class StatusBarController: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
+    private let menu = NSMenu()
 
-    public init() {
+    // Items inserted/removed dynamically in menuWillOpen.
+    private let axItem: NSMenuItem
+    private let axSeparator = NSMenuItem.separator()
+    private let settingsItem: NSMenuItem
+
+    private var onSettings: (() -> Void)?
+    private var onTranscribe: (() -> Void)?
+
+    public init(
+        onSettings: @escaping () -> Void,
+        onTranscribe: @escaping () -> Void
+    ) {
+        self.onSettings = onSettings
+        self.onTranscribe = onTranscribe
+
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        setState(.idle)
-
-        let menu = NSMenu()
 
         let title = NSMenuItem(title: "Sussurro", action: nil, keyEquivalent: "")
         title.isEnabled = false
-        menu.addItem(title)
-        menu.addItem(.separator())
+        menu.addItem(title)          // 0
+        menu.addItem(.separator())   // 1
 
         let shortcutItem = NSMenuItem(
             title: "Shortcut: ⌥Space (hold to record)",
@@ -29,26 +41,63 @@ public final class StatusBarController {
             keyEquivalent: ""
         )
         shortcutItem.isEnabled = false
-        menu.addItem(shortcutItem)
+        menu.addItem(shortcutItem)   // 2
+        menu.addItem(.separator())   // 3
 
-        menu.addItem(.separator())
+        let transcribeItem = NSMenuItem(
+            title: "Transcrever Arquivo…",
+            action: #selector(StatusBarController.showTranscribe),
+            keyEquivalent: "o"
+        )
+        menu.addItem(transcribeItem) // 4
 
-        if !AXIsProcessTrusted() {
-            let axItem = NSMenuItem(
-                title: "⚠️ Habilitar Acessibilidade…",
-                action: #selector(openAccessibilitySettings),
-                keyEquivalent: ""
-            )
-            axItem.target = self
-            menu.addItem(axItem)
-            menu.addItem(.separator())
-        }
+        settingsItem = NSMenuItem(
+            title: "Ajustes…",
+            action: #selector(StatusBarController.showSettings),
+            keyEquivalent: ","
+        )
+        menu.addItem(settingsItem)   // 5
 
-        let quitItem = NSMenuItem(title: "Quit Sussurro", action: #selector(quit), keyEquivalent: "q")
+        menu.addItem(.separator())   // 6
+
+        axItem = NSMenuItem(
+            title: "⚠️ Habilitar Acessibilidade…",
+            action: #selector(StatusBarController.openAccessibilitySettings),
+            keyEquivalent: ""
+        )
+
+        let quitItem = NSMenuItem(
+            title: "Sair do Sussurro",
+            action: #selector(StatusBarController.quit),
+            keyEquivalent: "q"
+        )
+        menu.addItem(quitItem)       // 7
+
+        super.init()
+
+        transcribeItem.target = self
+        settingsItem.target = self
+        axItem.target = self
         quitItem.target = self
-        menu.addItem(quitItem)
-
+        menu.delegate = self
         statusItem.menu = menu
+
+        setState(.idle)
+    }
+
+    // Re-evaluate Accessibility trust every time the menu opens.
+    public func menuWillOpen(_ menu: NSMenu) {
+        let axPresent = menu.item(withTitle: axItem.title) != nil
+        if AXIsProcessTrusted() {
+            if axPresent {
+                menu.removeItem(axItem)
+                menu.removeItem(axSeparator)
+            }
+        } else if !axPresent {
+            let quitIdx = menu.numberOfItems - 1
+            menu.insertItem(axSeparator, at: quitIdx)
+            menu.insertItem(axItem, at: quitIdx)
+        }
     }
 
     public func setState(_ state: AppState) {
@@ -59,6 +108,14 @@ public final class StatusBarController {
         case .transcribing: ("waveform", "Sussurro — transcribing…")
         }
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+    }
+
+    @objc private func showSettings() {
+        onSettings?()
+    }
+
+    @objc private func showTranscribe() {
+        onTranscribe?()
     }
 
     @objc private func openAccessibilitySettings() {
