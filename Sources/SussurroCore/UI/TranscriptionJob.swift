@@ -111,8 +111,6 @@ public final class TranscriptionJob: ObservableObject {
         // Initialize Output File
         try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
         
-        let fileQueue = DispatchQueue(label: "com.sussurro.filewriter")
-        
         let effectiveModel = overrideModel ?? config.batchModel
         let effectiveLanguage = overrideLanguage ?? config.language
 

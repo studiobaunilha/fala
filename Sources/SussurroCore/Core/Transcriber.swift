@@ -1,7 +1,6 @@
 import WhisperKit
 import Foundation
 
-// WhisperKit is an open class with no Sendable annotation.
 // We own this project and know all calls are serialized through the actor,
 // so this is safe.
 extension WhisperKit: @unchecked @retroactive Sendable {}
@@ -73,7 +72,10 @@ public actor Transcriber: AudioTranscribing {
     }
 
     /// Transcribes a WAV/audio file by path. Returns text with newline-joined segments.
-    public func transcribe(audioPath: String, progress: (@Sendable (String) -> Void)? = nil) async throws -> String {
+    public func transcribe(
+        audioPath: String,
+        progress: (@Sendable (String) -> Void)? = nil
+    ) async throws -> String {
         try await loadIfNeeded()
         guard let wk = pipe else { throw TranscriberError.notLoaded }
         let isAuto = language == "auto"

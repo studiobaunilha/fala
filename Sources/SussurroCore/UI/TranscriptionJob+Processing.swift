@@ -79,14 +79,14 @@ extension TranscriptionJob {
         )
     }
 
-    func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
+    nonisolated func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
         let content = format == "md"
             ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n"
             : ""
         try content.write(to: url, atomically: true, encoding: .utf8)
     }
 
-    func appendToFile(url: URL, text: String) {
+    nonisolated func appendToFile(url: URL, text: String) {
         if let handle = try? FileHandle(forWritingTo: url) {
             handle.seekToEndOfFile()
             if let data = (text + "\n").data(using: .utf8) {
