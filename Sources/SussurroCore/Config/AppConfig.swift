@@ -5,6 +5,23 @@ public struct AppConfig: Codable {
     public var batchModel: String     = "large-v3-turbo"
     public var outputFormat: String   = "txt"     // "txt" or "md"
     public var language: String       = "auto"    // "auto" or BCP-47 code, e.g. "pt", "en"
+    
+    // Advanced Transcription Settings
+    public var dictationTemperature: Float = 0.0
+    public var batchTemperature: Float = 0.0
+    public var customDictionary: String = "" // Used as initial_prompt
+    public var enableDiarization: Bool = false // Toggle for speaker recognition
+    
+    // Default Export Location
+    public var defaultExportPath: String = FileManager.default.urls(
+        for: .downloadsDirectory, in: .userDomainMask
+    ).first?.path ?? ""
+    
+    // LLM Post-Processing
+    public var enableLLMPostProcessing: Bool = false
+    public var llmPrompt: String =
+        "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
+    public var openAIKey: String = ""
 
     public init() {}
 
@@ -16,6 +33,19 @@ public struct AppConfig: Codable {
         batchModel     = (try? container.decode(String.self, forKey: .batchModel))     ?? "large-v3-turbo"
         outputFormat   = (try? container.decode(String.self, forKey: .outputFormat))   ?? "txt"
         language       = (try? container.decode(String.self, forKey: .language))       ?? "auto"
+        
+        dictationTemperature = (try? container.decode(Float.self, forKey: .dictationTemperature)) ?? 0.0
+        batchTemperature     = (try? container.decode(Float.self, forKey: .batchTemperature)) ?? 0.0
+        customDictionary     = (try? container.decode(String.self, forKey: .customDictionary)) ?? ""
+        enableDiarization    = (try? container.decode(Bool.self, forKey: .enableDiarization)) ?? false
+        
+        defaultExportPath    = (try? container.decode(String.self, forKey: .defaultExportPath)) ??
+            FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path ?? ""
+        
+        enableLLMPostProcessing = (try? container.decode(Bool.self, forKey: .enableLLMPostProcessing)) ?? false
+        let defaultPrompt = "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
+        llmPrompt = (try? container.decode(String.self, forKey: .llmPrompt)) ?? defaultPrompt
+        openAIKey = (try? container.decode(String.self, forKey: .openAIKey)) ?? ""
     }
 
     // MARK: – Persistence
