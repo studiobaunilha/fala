@@ -39,6 +39,8 @@ dev: check ## check → build debug → relança o app
 	@printf "$(GREY)▶ swift build$(RESET)\n"
 	@$(SWIFT) build
 	@cp .build/debug/Sussurro $(BUNDLE)
+	@mkdir -p $(APP)/Contents/Resources
+	@cp Sources/Sussurro/Resources/AppIcon.icns $(APP)/Contents/Resources/
 	@codesign --force --deep --sign - $(APP)
 	@pkill Sussurro 2>/dev/null || true
 	@sleep 0.3
@@ -49,6 +51,8 @@ install: check ## check → build release → instala
 	@printf "$(GREY)▶ swift build -c release$(RESET)\n"
 	@$(SWIFT) build -c release
 	@cp .build/release/Sussurro $(BUNDLE)
+	@mkdir -p $(APP)/Contents/Resources
+	@cp Sources/Sussurro/Resources/AppIcon.icns $(APP)/Contents/Resources/
 	@codesign --force --deep --sign - $(APP)
 	@pkill Sussurro 2>/dev/null || true
 	@sleep 0.3

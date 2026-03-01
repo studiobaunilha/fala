@@ -16,5 +16,7 @@
     <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>Sussurro needs microphone access to transcribe speech to text.</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 </dict>
 </plist>
