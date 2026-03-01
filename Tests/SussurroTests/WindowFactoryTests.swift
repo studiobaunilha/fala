@@ -16,7 +16,7 @@ final class WindowFactoryTests: XCTestCase {
         XCTAssertEqual(window.title, "Test")
         XCTAssertEqual(window.styleMask.contains(.titled), true)
         XCTAssertEqual(window.styleMask.contains(.closable), true)
-        XCTAssertEqual(window.appearance?.name, .darkAqua)
+        XCTAssertNil(window.appearance) // Respeita a aparencia do SO
         XCTAssertFalse(window.isReleasedWhenClosed)
     }
 

@@ -7,6 +7,8 @@ public struct WindowConfig {
     public var styleMask: NSWindow.StyleMask
     public var isResizable: Bool
     public var minSize: NSSize?
+    public var fullSizeContentView: Bool
+    public var transparentTitlebar: Bool
     
     public init(
         title: String,
@@ -14,7 +16,9 @@ public struct WindowConfig {
         height: CGFloat,
         styleMask: NSWindow.StyleMask = [.titled, .closable],
         isResizable: Bool = false,
-        minSize: NSSize? = nil
+        minSize: NSSize? = nil,
+        fullSizeContentView: Bool = false,
+        transparentTitlebar: Bool = false
     ) {
         self.title = title
         self.width = width
@@ -22,6 +26,8 @@ public struct WindowConfig {
         self.styleMask = styleMask
         self.isResizable = isResizable
         self.minSize = minSize
+        self.fullSizeContentView = fullSizeContentView
+        self.transparentTitlebar = transparentTitlebar
     }
 }
 
@@ -31,6 +37,9 @@ public enum WindowFactory {
         var styleMask = config.styleMask
         if config.isResizable {
             styleMask.insert(.resizable)
+        }
+        if config.fullSizeContentView {
+            styleMask.insert(.fullSizeContentView)
         }
         
         let window = NSWindow(
@@ -48,8 +57,13 @@ public enum WindowFactory {
             window.minSize = minSize
         }
         
-        // Mantém a identidade escura do app, mas deixa o macOS desenhar o fundo padrão da janela e form
-        window.appearance = NSAppearance(named: .darkAqua)
+        if config.transparentTitlebar {
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+        }
+        
+        // Remove forced dark mode to respect macOS Light/Dark system preferences
+        window.appearance = nil
         
         window.contentView = NSHostingView(rootView: content)
         

@@ -24,9 +24,13 @@ public final class SettingsWindowController {
     private func makeWindow() {
         NSLog("[Sussurro] makeWindow() — creating SettingsView")
         let config = WindowConfig(
-            title: "Ajustes — Sussurro",
+            title: "Ajustes",
             width: WindowSize.settingsWidth,
-            height: WindowSize.settingsHeight
+            height: WindowSize.settingsHeight,
+            isResizable: true, // Crucial for NavigationSplitView
+            minSize: NSSize(width: 600, height: 400),
+            fullSizeContentView: true,
+            transparentTitlebar: true
         )
         
         let win = WindowFactory.makeWindow(config: config, content: SettingsView(

@@ -167,6 +167,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             }
         }
+        .toolbar(removing: .sidebarToggle)
         .frame(minWidth: WindowSize.settingsWidth, minHeight: WindowSize.settingsHeight)
         .onChange(of: settings.dictationModel) { settings.save() }
         .onChange(of: settings.batchModel) { settings.save() }
