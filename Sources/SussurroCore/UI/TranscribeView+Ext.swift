@@ -137,12 +137,14 @@ extension TranscribeView {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     StatusBanner(message: "Transcrevendo…")
                     if !progressText.isEmpty {
-                        Text(progressText)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(3)
-                            .truncationMode(.tail)
-                            .padding(.horizontal, Spacing.sm)
+                        ScrollView {
+                            Text(progressText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, Spacing.sm)
+                        }
+                        .frame(maxHeight: 200)
                     }
                 }
                 Spacer()
