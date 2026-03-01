@@ -64,7 +64,7 @@ public actor Transcriber: AudioTranscribing {
             withoutTimestamps: false
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
-            let tokens = try? await tokenizer.encode(text: prompt)
+            let tokens = tokenizer.encode(text: prompt)
                 .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = tokens
         }
@@ -97,7 +97,7 @@ public actor Transcriber: AudioTranscribing {
             withoutTimestamps: false
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
-            let tokens = try? await tokenizer.encode(text: prompt)
+            let tokens = tokenizer.encode(text: prompt)
                 .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = tokens
         }

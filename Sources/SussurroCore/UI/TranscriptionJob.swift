@@ -128,7 +128,7 @@ public final class TranscriptionJob: ObservableObject {
             inputURL: inputURL
         )
         
-        let rawFinalText = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in
+        _ = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in
             continuation.yield(progressUpdate)
         }
         continuation.finish()
