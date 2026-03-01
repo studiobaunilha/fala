@@ -149,31 +149,27 @@ extension TranscriptionJob {
     ) -> Task<String, Never> {
         Task {
             var fullConfirmedText = ""
-            var currentWindowStartToken = ""
+            var currentWindowId = 0
             var currentWindowRawText = ""
             
             for await progress in stream {
-                let startToken = self.extractStartTimestamp(progress.text)
-                
-                if let start = startToken, !currentWindowStartToken.isEmpty, start != currentWindowStartToken {
-                    // Window shifted! Process and append the PREVIOUS window.
+                // If the window ID increases, the previous window is finalized.
+                if progress.windowId > currentWindowId {
                     let cleanedLast = self.cleanText(currentWindowRawText)
                     if !cleanedLast.isEmpty {
                         let processed = await Self.applyLLM(to: cleanedLast, config: config)
                         fullConfirmedText += processed + "\n"
                         self.appendToFile(url: outputURL, text: processed)
                     }
-                    currentWindowStartToken = start
+                    currentWindowId = progress.windowId
                     currentWindowRawText = progress.text
                 } else {
-                    if currentWindowStartToken.isEmpty, let start = startToken {
-                        currentWindowStartToken = start
-                    }
                     if !progress.text.isEmpty {
                         currentWindowRawText = progress.text
                     }
                 }
                 
+                // UI update (words appearing incrementally in the app)
                 let cleanedCurrent = self.cleanText(progress.text)
                 await MainActor.run {
                     if case .transcribing = self.state {
@@ -182,6 +178,7 @@ extension TranscriptionJob {
                 }
             }
             
+            // Stream ended. Process the very last window.
             let cleanedLast = self.cleanText(currentWindowRawText)
             if !cleanedLast.isEmpty {
                 let processed = await Self.applyLLM(to: cleanedLast, config: config)

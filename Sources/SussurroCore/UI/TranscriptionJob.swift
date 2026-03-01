@@ -133,20 +133,12 @@ public final class TranscriptionJob: ObservableObject {
         }
         continuation.finish()
         
-        let finalProcessedText = await processingTask.value
+        _ = await processingTask.value
         try Task.checkCancellation()
         
-        var finalConfig = config
-        finalConfig.enableLLMPostProcessing = false
-        
-        let finalOutput = finalProcessedText.isEmpty ? self.cleanText(rawFinalText) : finalProcessedText
-        try await processOutput(
-            text: finalOutput,
-            inputURL: inputURL,
-            config: finalConfig,
-            format: format,
-            outputURL: outputURL
-        )
+        await MainActor.run {
+            withAnimation(AnimationConfig.standard) { state = .done(outputURL.path) }
+        }
     }
     
     private func createTranscriber(config: AppConfig) -> Transcriber {
@@ -161,60 +153,6 @@ public final class TranscriptionJob: ObservableObject {
     public func cancel() {
         currentTask?.cancel()
         currentTask = nil
-    }
-
-    private func processOutput(
-        text: String,
-        inputURL: URL,
-        config: AppConfig,
-        format: String,
-        outputURL: URL
-    ) async throws {
-        var finalText = text
-        
-        if config.enableLLMPostProcessing {
-            try Task.checkCancellation()
-            if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
-                await MainActor.run {
-                    withAnimation(AnimationConfig.standard) { state = .processingLLM }
-                }
-                finalText = try await Self.processWithGemini(
-                    text: finalText, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
-                )
-            } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
-                await MainActor.run {
-                    withAnimation(AnimationConfig.standard) { state = .processingLLM }
-                }
-                finalText = try await Self.processWithOpenAI(
-                    text: finalText, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
-                )
-            } else if config.llmProvider == "apple" {
-                await MainActor.run {
-                    withAnimation(AnimationConfig.standard) { state = .processingLLM }
-                }
-                finalText = try await Self.processWithAppleNative(
-                    text: finalText, prompt: config.llmPrompt
-                )
-            }
-            
-            // Only overwrite if LLM processing succeeded
-            let content = format == "md"
-                ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n\(finalText)\n"
-                : finalText + "\n"
-
-            try content.write(to: outputURL, atomically: true, encoding: .utf8)
-        }
-        
-        if !config.enableLLMPostProcessing {
-             let content = format == "md"
-                ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n\(finalText)\n"
-                : finalText + "\n"
-             try content.write(to: outputURL, atomically: true, encoding: .utf8)
-        }
-        
-        await MainActor.run {
-            withAnimation(AnimationConfig.standard) { state = .done(outputURL.path) }
-        }
     }
 
     func revealInFinder() {
