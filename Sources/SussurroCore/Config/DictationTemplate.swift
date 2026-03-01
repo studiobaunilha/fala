@@ -30,13 +30,11 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     
     public var systemPrompt: String? {
         switch self {
-        case .raw: 
+        case .raw, .translate: 
             return nil
         case .clean: 
             return "Formate o texto transcrito, corrigindo pontuação, gramática e capitalização, " +
                    "mantendo o idioma original. Não altere o sentido."
-        case .translate: 
-            return "Traduza o texto transcrito para o Inglês. Retorne apenas a tradução."
         case .bullets: 
             return "Transforme o texto transcrito em uma lista de tópicos (bullet points) " +
                    "concisa e formatada em Markdown."
@@ -58,6 +56,6 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     }
     
     public var requiresLLM: Bool {
-        return self != .raw
+        return self != .raw && self != .translate
     }
 }

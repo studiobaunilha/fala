@@ -27,13 +27,14 @@ actor MockTranscriber: AudioTranscribing {
     var transcribeResult: String = "Hello world"
     private(set) var sampleCallCount = 0
 
-    func transcribe(samples: [Float]) async throws -> String {
+    func transcribe(samples: [Float], task: String) async throws -> String {
         sampleCallCount += 1
         return transcribeResult
     }
 
     func transcribe(
         audioPath: String,
+        task: String,
         progress: (@Sendable (TranscriberProgress) -> Void)? = nil
     ) async throws -> String {
         if let progress { progress(TranscriberProgress(text: transcribeResult, windowId: 0)) }

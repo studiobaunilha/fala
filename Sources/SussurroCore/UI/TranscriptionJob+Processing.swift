@@ -79,6 +79,12 @@ extension TranscriptionJob {
         )
     }
 
+    static func processWithAppleNative(text: String, prompt: String) async throws -> String {
+        // Future: Implement macOS 15+ Translation/WritingTools or MLX-Swift integration
+        print("[Sussurro] Apple Native AI is a placeholder. Returning original text.")
+        return text
+    }
+
     nonisolated func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
         let content = format == "md"
             ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n"
@@ -122,6 +128,10 @@ extension TranscriptionJob {
             } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
                 return try await processWithOpenAI(
                     text: text, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
+                )
+            } else if config.llmProvider == "apple" {
+                return try await processWithAppleNative(
+                    text: text, prompt: config.llmPrompt
                 )
             }
         } catch {

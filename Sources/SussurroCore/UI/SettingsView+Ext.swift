@@ -162,6 +162,7 @@ extension SettingsView {
                     Picker("Provedor", selection: $settings.llmProvider) {
                         Text("Google Gemini (Gratuito)").tag("gemini")
                         Text("OpenAI").tag("openai")
+                        Text("Apple Intelligence / Local").tag("apple")
                     }
                     .pickerStyle(.menu)
                 }
@@ -218,21 +219,23 @@ extension SettingsView {
                                 .help("Selecionar modelo disponível")
                             }
                         }
-                    } else {
-                        HStack {
-                            SecureField("OpenAI API Key", text: $settings.openAIKey)
-                                .textFieldStyle(.roundedBorder)
+                    } else if settings.llmProvider == "openai" {
+                        LabeledContent("Chave API") {
+                            HStack(spacing: Spacing.sm) {
+                                SecureField("Cole sua chave aqui", text: $settings.openAIKey)
+                                    .textFieldStyle(.roundedBorder)
                                 
-                            Button(action: {
-                                Task { await testKey(provider: "openai", key: settings.openAIKey) }
-                            }, label: {
-                                if isTestingKey {
-                                    ProgressView().controlSize(.small)
-                                } else {
-                                    Text("Testar")
-                                }
-                            })
-                            .disabled(settings.openAIKey.isEmpty || isTestingKey)
+                                Button(action: {
+                                    Task { await testKey(provider: "openai", key: settings.openAIKey) }
+                                }, label: {
+                                    if isTestingKey {
+                                        ProgressView().controlSize(.small)
+                                    } else {
+                                        Text("Testar")
+                                    }
+                                })
+                                .disabled(settings.openAIKey.isEmpty || isTestingKey)
+                            }
                         }
 
                         HStack {

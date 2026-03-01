@@ -50,11 +50,13 @@ public actor Transcriber: AudioTranscribing {
     }
 
     /// Transcribes a [Float] array at 16 kHz mono. Returns trimmed text.
-    public func transcribe(samples: [Float]) async throws -> String {
+    public func transcribe(samples: [Float], task: String = "transcribe") async throws -> String {
         try await loadIfNeeded()
         guard let wk = pipe else { throw TranscriberError.notLoaded }
+        let decodeTask: DecodingTask = task == "translate" ? .translate : .transcribe
         let isAuto = language == "auto"
         var options = DecodingOptions(
+            task: decodeTask,
             language: isAuto ? nil : language,
             temperature: temperature,
             detectLanguage: isAuto,
@@ -68,20 +70,26 @@ public actor Transcriber: AudioTranscribing {
         }
         let results = try await wk.transcribe(audioArray: samples, decodeOptions: options)
         let rawText = results.compactMap { $0.text }.joined(separator: " ")
-        let cleanText = rawText.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanText = rawText.replacingOccurrences(
+            of: "<\\|.*?\\|>",
+            with: "",
+            options: NSString.CompareOptions.regularExpression
+        ).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         return cleanText
     }
 
     /// Transcribes a WAV/audio file by path. Returns text with newline-joined segments.
     public func transcribe(
         audioPath: String,
+        task: String = "transcribe",
         progress: (@Sendable (TranscriberProgress) -> Void)? = nil
     ) async throws -> String {
         try await loadIfNeeded()
         guard let wk = pipe else { throw TranscriberError.notLoaded }
+        let decodeTask: DecodingTask = task == "translate" ? .translate : .transcribe
         let isAuto = language == "auto"
         var options = DecodingOptions(
+            task: decodeTask,
             language: isAuto ? nil : language,
             temperature: temperature,
             detectLanguage: isAuto,
@@ -105,8 +113,11 @@ public actor Transcriber: AudioTranscribing {
         
         let results = try await wk.transcribe(audioPath: audioPath, decodeOptions: options, callback: callback)
         let rawText = results.compactMap { $0.text }.joined(separator: "\n")
-        let cleanText = rawText.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanText = rawText.replacingOccurrences(
+            of: "<\\|.*?\\|>",
+            with: "",
+            options: NSString.CompareOptions.regularExpression
+        ).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         return cleanText
     }
 }

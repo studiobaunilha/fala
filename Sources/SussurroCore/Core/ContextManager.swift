@@ -62,6 +62,11 @@ public final class ContextManager {
                     apiKey: config.openAIKey,
                     model: config.openAIModel
                 )
+            } else if config.llmProvider == "apple" {
+                updatedSummary = try await TranscriptionJob.processWithAppleNative(
+                    text: newText,
+                    prompt: prompt
+                )
             } else {
                 return
             }

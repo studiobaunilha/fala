@@ -188,6 +188,13 @@ public final class TranscriptionJob: ObservableObject {
                 finalText = try await Self.processWithOpenAI(
                     text: finalText, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
                 )
+            } else if config.llmProvider == "apple" {
+                await MainActor.run {
+                    withAnimation(AnimationConfig.standard) { state = .processingLLM }
+                }
+                finalText = try await Self.processWithAppleNative(
+                    text: finalText, prompt: config.llmPrompt
+                )
             }
             
             // Only overwrite if LLM processing succeeded

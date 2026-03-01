@@ -78,11 +78,14 @@ public final class DictationMode {
                 return
             }
 
-            let text = try await transcriber.transcribe(samples: samples)
+            let config = AppConfig.load()
+            let template = config.selectedDictationTemplate
+            
+            let task = template == .translate ? "translate" : "transcribe"
+            let text = try await transcriber.transcribe(samples: samples, task: task)
+            
             if !text.isEmpty {
                 var finalText = text
-                let config = AppConfig.load()
-                let template = config.selectedDictationTemplate
                 
                 if template.requiresLLM, let basePrompt = template.systemPrompt {
                     let prompt = config.enableContextBuffer 
@@ -98,23 +101,21 @@ public final class DictationMode {
                             finalText = try await TranscriptionJob.processWithOpenAI(
                                 text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
                             )
-                        }
-                        
-                        // Update context buffer in background
-                        if config.enableContextBuffer {
-                            Task {
-                                await ContextManager.shared.updateSummary(newText: finalText, config: config)
-                            }
+                        } else if config.llmProvider == "apple" {
+                            finalText = try await TranscriptionJob.processWithAppleNative(
+                                text: text, prompt: prompt
+                            )
                         }
                     } catch {
                         print("[Sussurro] LLM processing error: \(error.localizedDescription)")
-                        // Falha silenciosa no LLM = insere o texto original raw
                     }
-                } else if config.enableContextBuffer {
-                     // Even if no LLM template is used (e.g. raw), we can still update context
-                     Task {
-                         await ContextManager.shared.updateSummary(newText: finalText, config: config)
-                     }
+                }
+                
+                // Update context buffer in background, ONLY if not raw
+                if config.enableContextBuffer && template != .raw {
+                    Task {
+                        await ContextManager.shared.updateSummary(newText: finalText, config: config)
+                    }
                 }
                 
                 inserter.insert(finalText)
