@@ -58,7 +58,9 @@ public actor Transcriber: AudioTranscribing {
         var options = DecodingOptions(
             language: isAuto ? nil : language,
             temperature: temperature,
-            detectLanguage: isAuto
+            detectLanguage: isAuto,
+            skipSpecialTokens: true,
+            withoutTimestamps: true
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
             let tokens = try? await tokenizer.encode(text: prompt)
@@ -78,7 +80,9 @@ public actor Transcriber: AudioTranscribing {
         var options = DecodingOptions(
             language: isAuto ? nil : language,
             temperature: temperature,
-            detectLanguage: isAuto
+            detectLanguage: isAuto,
+            skipSpecialTokens: true,
+            withoutTimestamps: true
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
             let tokens = try? await tokenizer.encode(text: prompt)
