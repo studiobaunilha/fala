@@ -33,6 +33,7 @@ public final class AppSettings: ObservableObject {
 
     public let modelManager: ModelManager
     private let transcriber: Transcriber
+    private var config: AppConfig
 
     // swiftlint:disable trailing_comma
     static let languages: [LanguageOption] = [
@@ -56,6 +57,7 @@ public final class AppSettings: ObservableObject {
         transcriber: Transcriber,
         modelManager: ModelManager
     ) {
+        self.config = config
         self.dictationModel = config.dictationModel
         self.batchModel = config.batchModel
         self.language = config.language
@@ -76,7 +78,6 @@ public final class AppSettings: ObservableObject {
 
     /// Persists current values and updates the Transcriber without requiring a restart.
     public func save() {
-        var config = AppConfig.load()
         config.dictationModel = dictationModel
         config.batchModel = batchModel
         config.language = language
@@ -90,6 +91,8 @@ public final class AppSettings: ObservableObject {
         config.llmPrompt = llmPrompt
         config.openAIKey = openAIKey
         config.geminiKey = geminiKey
+        
+        // Native macOS persistence via UserDefaults
         config.save()
         
         Task { await transcriber.setModel(dictationModel) }

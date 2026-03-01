@@ -18,7 +18,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             modelName: config.dictationModel,
             language: config.language,
             temperature: config.dictationTemperature,
-            prompt: config.customDictionary
+            prompt: config.customDictionary.joined(separator: ", ")
         )
         let modelManager = ModelManager()
         modelManager.scanLocal()
