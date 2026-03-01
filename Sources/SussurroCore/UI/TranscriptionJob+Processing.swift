@@ -111,6 +111,90 @@ extension TranscriptionJob {
         }
         return nil
     }
+    
+    static func applyLLM(to text: String, config: AppConfig) async -> String {
+        guard config.enableLLMPostProcessing else { return text }
+        do {
+            if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+                return try await processWithGemini(
+                    text: text, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
+                )
+            } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+                return try await processWithOpenAI(
+                    text: text, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
+                )
+            }
+        } catch {
+            print("[Sussurro] LLM Error: \(error)")
+        }
+        return text
+    }
+
+    func createProcessingTask(
+        stream: AsyncStream<TranscriberProgress>,
+        config: AppConfig,
+        format: String,
+        outputURL: URL,
+        inputURL: URL
+    ) -> Task<String, Never> {
+        Task {
+            var fullConfirmedText = ""
+            var lastCleanedText = ""
+            var currentWindowId = 0
+            
+            for await progress in stream {
+                let cleanedCurrent = self.cleanText(progress.text)
+                var isNewWindow = false
+                
+                if !lastCleanedText.isEmpty && !cleanedCurrent.isEmpty {
+                    if cleanedCurrent.count <= lastCleanedText.count / 2 {
+                        isNewWindow = true
+                    } else {
+                        let prefixLen = min(10, min(cleanedCurrent.count, lastCleanedText.count))
+                        let currPrefix = cleanedCurrent.prefix(prefixLen).lowercased()
+                        let lastPrefix = lastCleanedText.prefix(prefixLen).lowercased()
+                        if currPrefix != lastPrefix {
+                            isNewWindow = true
+                        }
+                    }
+                }
+                
+                if progress.windowId > 0 && progress.windowId > currentWindowId {
+                    isNewWindow = true
+                }
+                
+                if isNewWindow {
+                    if !lastCleanedText.isEmpty {
+                        let processed = await Self.applyLLM(to: lastCleanedText, config: config)
+                        fullConfirmedText += processed + "\n"
+                    }
+                    currentWindowId = max(currentWindowId, progress.windowId)
+                }
+                
+                if !progress.text.isEmpty {
+                    lastCleanedText = cleanedCurrent
+                }
+                
+                let header = format == "md" ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
+                let content = header + fullConfirmedText + cleanedCurrent
+                self.overwriteFile(url: outputURL, text: content)
+                
+                await MainActor.run {
+                    if case .transcribing = self.state {
+                        self.state = .transcribing(cleanedCurrent)
+                    }
+                }
+            }
+            
+            if !lastCleanedText.isEmpty {
+                let processed = await Self.applyLLM(to: lastCleanedText, config: config)
+                fullConfirmedText += processed + "\n"
+                let header = format == "md" ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
+                self.overwriteFile(url: outputURL, text: header + fullConfirmedText)
+            }
+            return fullConfirmedText
+        }
+    }
 }
 
 actor SegmentProcessor {

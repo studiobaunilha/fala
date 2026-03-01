@@ -76,7 +76,7 @@ public actor Transcriber: AudioTranscribing {
     /// Transcribes a WAV/audio file by path. Returns text with newline-joined segments.
     public func transcribe(
         audioPath: String,
-        progress: (@Sendable (String) -> Void)? = nil
+        progress: (@Sendable (TranscriberProgress) -> Void)? = nil
     ) async throws -> String {
         try await loadIfNeeded()
         guard let wk = pipe else { throw TranscriberError.notLoaded }
@@ -95,7 +95,11 @@ public actor Transcriber: AudioTranscribing {
         }
         
         let callback: TranscriptionCallback = { progressData in
-            progress?(progressData.text)
+            let update = TranscriberProgress(
+                text: progressData.text,
+                windowId: progressData.windowId
+            )
+            progress?(update)
             return true
         }
         

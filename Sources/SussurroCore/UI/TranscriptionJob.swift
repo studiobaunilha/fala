@@ -102,57 +102,46 @@ public final class TranscriptionJob: ObservableObject {
         let config = AppConfig.load()
         let format = outputFormat
         
-        // Calculate Output URL early
         let baseDir = outputDirectory ?? inputURL.deletingLastPathComponent()
         let outputURL = baseDir
             .appendingPathComponent(inputURL.deletingPathExtension().lastPathComponent)
             .appendingPathExtension(format)
         
-        // Initialize Output File
         try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
         
-        let fileQueue = DispatchQueue(label: "com.sussurro.filewriter")
-        let state = IncrementalState()
-        let processor = SegmentProcessor(outputURL: outputURL, config: config)
-        let transcriber = createTranscriber(config: config)
+        let effectiveModel = overrideModel ?? config.batchModel
+        let effectiveLanguage = overrideLanguage ?? config.language
+
+        let transcriber = Transcriber(
+            modelName: effectiveModel,
+            language: effectiveLanguage,
+            temperature: config.batchTemperature,
+            prompt: "Keywords: " + config.customDictionary.joined(separator: ", ") + "."
+        )
         
-        _ = try await transcriber.transcribe(audioPath: wavURL.path) { partialText in
-            fileQueue.async {
-                let cleanedCurrent = self.cleanText(partialText)
-                
-                if let startToken = self.extractStartTimestamp(partialText) {
-                    if !state.lastStartToken.isEmpty && startToken != state.lastStartToken {
-                        let cleanedLast = self.cleanText(state.lastWindowRawText)
-                        if !cleanedLast.isEmpty {
-                            Task {
-                                await processor.processAndAppend(text: cleanedLast, currentPending: cleanedCurrent)
-                            }
-                        }
-                    }
-                    state.lastStartToken = startToken
-                }
-                state.lastWindowRawText = partialText
-                Task { await processor.updatePending(text: cleanedCurrent) }
-            }
-            
-            Task { @MainActor in
-                if case .transcribing = self.state {
-                    self.state = .transcribing(self.cleanText(partialText))
-                }
-            }
+        let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
+        let processingTask = createProcessingTask(
+            stream: stream,
+            config: config,
+            format: format,
+            outputURL: outputURL,
+            inputURL: inputURL
+        )
+        
+        let rawFinalText = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in
+            continuation.yield(progressUpdate)
         }
+        continuation.finish()
         
-        fileQueue.sync { }
-        
-        let cleanedLast = self.cleanText(state.lastWindowRawText)
-        if !cleanedLast.isEmpty { await processor.processAndAppend(text: cleanedLast) }
-        
+        let finalProcessedText = await processingTask.value
         try Task.checkCancellation()
+        
         var finalConfig = config
         finalConfig.enableLLMPostProcessing = false
         
+        let finalOutput = finalProcessedText.isEmpty ? self.cleanText(rawFinalText) : finalProcessedText
         try await processOutput(
-            text: await processor.getFullText(),
+            text: finalOutput,
             inputURL: inputURL,
             config: finalConfig,
             format: format,
@@ -233,11 +222,4 @@ public final class TranscriptionJob: ObservableObject {
         overrideLanguage = nil
         state = .idle
     }
-}
-
-// MARK: - Helper Types
-
-private final class IncrementalState: @unchecked Sendable {
-    var lastWindowRawText: String = ""
-    var lastStartToken: String = ""
 }
