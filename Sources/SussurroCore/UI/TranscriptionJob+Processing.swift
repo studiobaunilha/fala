@@ -155,7 +155,15 @@ extension TranscriptionJob {
             for await progress in stream {
                 // If the window ID increases, the previous window is finalized.
                 if progress.windowId > currentWindowId {
-                    let cleanedLast = self.cleanText(currentWindowRawText)
+                    var cleanedLast = self.cleanText(currentWindowRawText)
+                    
+                    // Apply replacements
+                    for (incorrect, correct) in config.replacements {
+                        cleanedLast = cleanedLast.replacingOccurrences(
+                            of: incorrect, with: correct, options: .caseInsensitive
+                        )
+                    }
+                    
                     if !cleanedLast.isEmpty {
                         let processed = await Self.applyLLM(to: cleanedLast, config: config)
                         fullConfirmedText += processed + "\n"
@@ -170,7 +178,13 @@ extension TranscriptionJob {
                 }
                 
                 // UI update (words appearing incrementally in the app)
-                let cleanedCurrent = self.cleanText(progress.text)
+                var cleanedCurrent = self.cleanText(progress.text)
+                for (incorrect, correct) in config.replacements {
+                    cleanedCurrent = cleanedCurrent.replacingOccurrences(
+                        of: incorrect, with: correct, options: .caseInsensitive
+                    )
+                }
+                
                 await MainActor.run {
                     if case .transcribing = self.state {
                         self.state = .transcribing(cleanedCurrent)
@@ -179,7 +193,15 @@ extension TranscriptionJob {
             }
             
             // Stream ended. Process the very last window.
-            let cleanedLast = self.cleanText(currentWindowRawText)
+            var cleanedLast = self.cleanText(currentWindowRawText)
+            
+            // Apply replacements
+            for (incorrect, correct) in config.replacements {
+                cleanedLast = cleanedLast.replacingOccurrences(
+                    of: incorrect, with: correct, options: .caseInsensitive
+                )
+            }
+            
             if !cleanedLast.isEmpty {
                 let processed = await Self.applyLLM(to: cleanedLast, config: config)
                 fullConfirmedText += processed + "\n"

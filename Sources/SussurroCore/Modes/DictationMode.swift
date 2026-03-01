@@ -85,39 +85,7 @@ public final class DictationMode {
             let text = try await transcriber.transcribe(samples: samples, task: task)
             
             if !text.isEmpty {
-                var finalText = text
-                
-                if template.requiresLLM, let basePrompt = template.systemPrompt {
-                    let prompt = config.enableContextBuffer 
-                        ? ContextManager.shared.buildPrompt(basePrompt: basePrompt) 
-                        : basePrompt
-                    
-                    do {
-                        if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
-                            finalText = try await TranscriptionJob.processWithGemini(
-                                text: text, prompt: prompt, apiKey: config.geminiKey, model: config.geminiModel
-                            )
-                        } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
-                            finalText = try await TranscriptionJob.processWithOpenAI(
-                                text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
-                            )
-                        } else if config.llmProvider == "apple" {
-                            finalText = try await TranscriptionJob.processWithAppleNative(
-                                text: text, prompt: prompt
-                            )
-                        }
-                    } catch {
-                        print("[Sussurro] LLM processing error: \(error.localizedDescription)")
-                    }
-                }
-                
-                // Update context buffer in background, ONLY if not raw
-                if config.enableContextBuffer && template != .raw {
-                    Task {
-                        await ContextManager.shared.updateSummary(newText: finalText, config: config)
-                    }
-                }
-                
+                let finalText = await processText(text, config: config, template: template)
                 inserter.insert(finalText)
             }
         } catch {
@@ -125,5 +93,54 @@ public final class DictationMode {
         }
 
         statusBar?.setState(.idle)
+    }
+
+    private func processText(
+        _ text: String,
+        config: AppConfig,
+        template: DictationTemplate
+    ) async -> String {
+        var finalText = text
+        
+        // Apply simple replacements first
+        for (incorrect, correct) in config.replacements {
+            finalText = finalText.replacingOccurrences(
+                of: incorrect, with: correct, options: .caseInsensitive
+            )
+        }
+        
+        // Apply LLM post-processing
+        if template.requiresLLM, let basePrompt = template.systemPrompt {
+            let prompt = config.enableContextBuffer 
+                ? ContextManager.shared.buildPrompt(basePrompt: basePrompt) 
+                : basePrompt
+            
+            do {
+                if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+                    finalText = try await TranscriptionJob.processWithGemini(
+                        text: text, prompt: prompt, apiKey: config.geminiKey, model: config.geminiModel
+                    )
+                } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+                    finalText = try await TranscriptionJob.processWithOpenAI(
+                        text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
+                    )
+                } else if config.llmProvider == "apple" {
+                    finalText = try await TranscriptionJob.processWithAppleNative(
+                        text: text, prompt: prompt
+                    )
+                }
+            } catch {
+                print("[Sussurro] LLM processing error: \(error.localizedDescription)")
+            }
+        }
+        
+        // Update context buffer in background
+        if config.enableContextBuffer && template != .raw {
+            Task {
+                await ContextManager.shared.updateSummary(newText: finalText, config: config)
+            }
+        }
+        
+        return finalText
     }
 }

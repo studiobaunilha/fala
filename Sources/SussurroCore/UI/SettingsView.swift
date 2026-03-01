@@ -22,6 +22,7 @@ public final class AppSettings: ObservableObject {
     @Published public var dictationTemperature: Float
     @Published public var batchTemperature: Float
     @Published public var customDictionary: [String]
+    @Published public var replacements: [String: String]
     @Published public var defaultExportPath: String
     @Published public var enableDiarization: Bool
     
@@ -68,6 +69,7 @@ public final class AppSettings: ObservableObject {
         self.dictationTemperature = config.dictationTemperature
         self.batchTemperature = config.batchTemperature
         self.customDictionary = config.customDictionary
+        self.replacements = config.replacements
         self.defaultExportPath = config.defaultExportPath
         self.enableDiarization = config.enableDiarization
         self.enableLLMPostProcessing = config.enableLLMPostProcessing
@@ -92,6 +94,7 @@ public final class AppSettings: ObservableObject {
         config.dictationTemperature = dictationTemperature
         config.batchTemperature = batchTemperature
         config.customDictionary = customDictionary
+        config.replacements = replacements
         config.defaultExportPath = defaultExportPath
         config.enableDiarization = enableDiarization
         config.enableLLMPostProcessing = enableLLMPostProcessing
@@ -157,6 +160,8 @@ struct SettingsView: View {
     @ObservedObject var contextManager = ContextManager.shared
     @State private var selection: SettingsPanel? = .general
     @State var newWord: String = ""
+    @State var newIncorrect: String = ""
+    @State var newCorrect: String = ""
     
     // Key testing state
     @State var isTestingKey = false
@@ -193,22 +198,40 @@ struct SettingsView: View {
         }
         .toolbar(removing: .sidebarToggle)
         .frame(minWidth: WindowSize.settingsDefaultWidth, minHeight: WindowSize.settingsDefaultHeight)
-        .onChange(of: settings.dictationModel) { settings.save() }
-        .onChange(of: settings.batchModel) { settings.save() }
-        .onChange(of: settings.language) { settings.save() }
-        .onChange(of: settings.dictationTemperature) { settings.save() }
-        .onChange(of: settings.batchTemperature) { settings.save() }
-        .onChange(of: settings.customDictionary) { settings.save() }
-        .onChange(of: settings.enableDiarization) { settings.save() }
-        .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
-        .onChange(of: settings.enableContextBuffer) { settings.save() }
-        .onChange(of: settings.selectedDictationTemplate) { settings.save() }
-        .onChange(of: settings.llmProvider) { settings.save() }
-        .onChange(of: settings.llmPrompt) { settings.save() }
-        .onChange(of: settings.openAIKey) { settings.save() }
-        .onChange(of: settings.geminiKey) { settings.save() }
-        .onChange(of: settings.geminiModel) { settings.save() }
-        .onChange(of: settings.openAIModel) { settings.save() }
+        .observeSettingsChanges(settings)
+    }
+}
+
+extension View {
+    func observeSettingsChanges(_ settings: AppSettings) -> some View {
+        self
+            .onChange(of: settings.dictationModel) { settings.save() }
+            .onChange(of: settings.batchModel) { settings.save() }
+            .onChange(of: settings.language) { settings.save() }
+            .onChange(of: settings.dictationTemperature) { settings.save() }
+            .onChange(of: settings.batchTemperature) { settings.save() }
+            .onChange(of: settings.customDictionary) { settings.save() }
+            .onChange(of: settings.replacements) { settings.save() }
+            .observeMoreSettingsChanges(settings)
+    }
+    
+    func observeMoreSettingsChanges(_ settings: AppSettings) -> some View {
+        self
+            .onChange(of: settings.enableDiarization) { settings.save() }
+            .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
+            .onChange(of: settings.enableContextBuffer) { settings.save() }
+            .onChange(of: settings.selectedDictationTemplate) { settings.save() }
+            .onChange(of: settings.llmProvider) { settings.save() }
+            .onChange(of: settings.llmPrompt) { settings.save() }
+            .observeCredentialsChanges(settings)
+    }
+    
+    func observeCredentialsChanges(_ settings: AppSettings) -> some View {
+        self
+            .onChange(of: settings.openAIKey) { settings.save() }
+            .onChange(of: settings.geminiKey) { settings.save() }
+            .onChange(of: settings.geminiModel) { settings.save() }
+            .onChange(of: settings.openAIModel) { settings.save() }
     }
 }
 

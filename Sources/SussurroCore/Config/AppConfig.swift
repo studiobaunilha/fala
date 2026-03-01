@@ -25,6 +25,8 @@ public struct AppConfig: Codable, Sendable {
     public var geminiKey: String = ""
     public var geminiModel: String = "gemini-2.5-flash"
     public var openAIModel: String = "gpt-4o-mini"
+    
+    public var replacements: [String: String] = [:]
 
     private static let storageKey = "dev.sussurro.config"
 
@@ -48,6 +50,8 @@ public struct AppConfig: Codable, Sendable {
         } else {
             customDictionary = (try? container.decode([String].self, forKey: .customDictionary)) ?? []
         }
+        
+        replacements = (try? container.decode([String: String].self, forKey: .replacements)) ?? [:]
         
         enableDiarization = (try? container.decode(Bool.self, forKey: .enableDiarization)) ?? false
         

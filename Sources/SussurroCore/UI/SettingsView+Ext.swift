@@ -128,6 +128,54 @@ extension SettingsView {
             Section("Diarization (Identificação de Vozes)") {
                 Toggle("Reconhecer múltiplos locutores", isOn: $settings.enableDiarization)
             }
+            
+            Section {
+                HStack(spacing: Spacing.sm) {
+                    TextField("Errado (ex: flitu)", text: $newIncorrect)
+                        .textFieldStyle(.roundedBorder)
+                    Image(systemName: "arrow.right")
+                        .foregroundStyle(.secondary)
+                    TextField("Correto (ex: Fleetu)", text: $newCorrect)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit { addReplacement() }
+                    
+                    Button {
+                        addReplacement()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                    .buttonStyle(.plain)
+                    .font(.title2)
+                    .disabled(newIncorrect.isEmpty || newCorrect.isEmpty)
+                }
+                
+                if !settings.replacements.isEmpty {
+                    List {
+                        ForEach(settings.replacements.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                            HStack {
+                                Text(key).foregroundStyle(.secondary).strikethrough()
+                                Image(systemName: "arrow.right").font(.caption).foregroundStyle(.secondary)
+                                Text(value).fontWeight(.medium)
+                                Spacer()
+                                Button {
+                                    removeReplacement(key)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .frame(minHeight: 100)
+                }
+            } header: {
+                Text("Substituição de Texto (Pós-processamento)")
+            } footer: {
+                Text("Corrige automaticamente palavras que o modelo erra com frequência.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .navigationTitle("Avançado")
@@ -143,6 +191,20 @@ extension SettingsView {
     
     func removeWord(_ word: String) {
         settings.customDictionary.removeAll { $0 == word }
+    }
+    
+    func addReplacement() {
+        let key = newIncorrect.trimmingCharacters(in: .whitespacesAndNewlines)
+        let value = newCorrect.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !key.isEmpty, !value.isEmpty else { return }
+        settings.replacements[key] = value
+        newIncorrect = ""
+        newCorrect = ""
+    }
+    
+    func removeReplacement(_ key: String) {
+        settings.replacements.removeValue(forKey: key)
     }
 
     @ViewBuilder
