@@ -14,15 +14,17 @@ public struct TextInserter: TextInserting {
     public init() {}
 
     public func insert(_ text: String) {
-        guard AXIsProcessTrusted() else {
-            // Accessibility not granted: copy to clipboard so text is not lost.
+        // AXIsProcessTrustedWithOptions(prompt:true) both checks the permission AND
+        // triggers the system dialog asking the user to grant Accessibility access.
+        // On subsequent calls (after permission is granted) it returns true immediately.
+        // "AXTrustedCheckOptionPrompt" is the raw value of kAXTrustedCheckOptionPrompt.
+        // Using the string literal avoids a Swift 6 concurrency error on the C global.
+        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        let trusted = AXIsProcessTrustedWithOptions(options)
+        guard trusted else {
+            // Accessibility not granted yet: copy to clipboard so text is not lost.
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
-            print("""
-            [Sussurro] Texto copiado para o clipboard (Acessibilidade não habilitada).
-            → Abra: Ajustes do Sistema → Privacidade e Segurança → Acessibilidade
-            → Habilite Sussurro na lista.
-            """)
             return
         }
 
