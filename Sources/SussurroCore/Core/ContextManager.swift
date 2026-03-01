@@ -20,20 +20,37 @@ public final class ContextManager: ObservableObject {
     }
     
     /// Constrói o prompt final combinando o prompt do template com as notas de contexto.
+    /// - Memória vazia: prompt base + instruções de qualidade (primeira interação da sessão)
+    /// - Memória preenchida: prompt base + notas da sessão para refinamento contextual
     public func buildPrompt(basePrompt: String) -> String {
-        guard !contextNotes.isEmpty else { return basePrompt }
-        
-        return """
-        \(basePrompt)
-        
-        ---
-        [INFORMACÃO DE CONTEXTO & MEMÓRIA]
-        Use as notas abaixo para refinar a transcrição (estilo, vocabulário, contexto do projeto).
-        NÃO inclua estas notas na saída, apenas use-as para guiar a transformação.
-        
-        Notas Atuais:
-        \(contextNotes)
-        """
+        if contextNotes.isEmpty {
+            return """
+            \(basePrompt)
+
+            ---
+            [INSTRUÇÕES DE QUALIDADE]
+            Esta é a primeira transcrição da sessão. Aplique o máximo cuidado com:
+            - Pontuação, gramática e capitalização
+            - Nomes próprios e termos técnicos (preserve a grafia correta)
+            - Tom e registro adequado ao contexto
+            - Coerência e clareza geral
+            Retorne APENAS o texto processado, sem explicações ou comentários.
+            """
+        } else {
+            return """
+            \(basePrompt)
+
+            ---
+            [CONTEXTO DA SESSÃO — NOTAS DA IA]
+            As notas abaixo foram coletadas de interações anteriores nesta sessão.
+            Use-as para refinar a transcrição: vocabulário preferido, tom, termos recorrentes,
+            contexto do projeto/assunto em andamento.
+            NÃO inclua estas notas na saída. Apenas use-as para produzir uma transcrição
+            mais polida e contextualizada.
+
+            \(contextNotes)
+            """
+        }
     }
     
     /// Atualiza as notas de contexto com base na nova entrada.
@@ -41,11 +58,16 @@ public final class ContextManager: ObservableObject {
         guard config.enableContextBuffer else { return }
         
         let systemPrompt = """
-        Atue como um Assistente de Memória (AI Memory Manager).
-        Sua tarefa é manter um conjunto de notas concisas sobre a sessão atual.
-        Atualize as notas para refletir o estado atual, intenção, tom e entidades chave (nomes, projetos, tecnologias).
-        Remova informações obsoletas. Mantenha o formato de tópicos curtos.
-        Não responda ao usuário. Apenas retorne as notas atualizadas.
+        Atue como um Assistente de Memória para Transcrição (AI Memory Manager).
+        Sua tarefa é manter notas concisas que MELHOREM futuras transcrições.
+        Organize as notas nas seguintes categorias (use apenas as relevantes):
+        - TOM: (ex: formal, casual, técnico, animado)
+        - ASSUNTO: (tópico atual sendo discutido)
+        - ENTIDADES: (nomes, projetos, tecnologias, termos específicos mencionados)
+        - VOCABULÁRIO: (palavras/jargões preferidos, correções recorrentes)
+        - INTENÇÃO: (o que o usuário está fazendo — email, código, notas, apresentação)
+        Mantenha tópicos curtos e objetivos. Remova informações obsoletas ou redundantes.
+        Não responda ao usuário. Retorne APENAS as notas atualizadas.
         """
         
         let userMessage = """
