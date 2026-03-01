@@ -179,6 +179,19 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
     }
 
+    public func showTemporaryWarning(_ message: String) {
+        statusItem.button?.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle",
+            accessibilityDescription: message
+        )
+        statusItem.button?.toolTip = message
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(4))
+            self.statusItem.button?.toolTip = nil
+            self.setState(.idle)
+        }
+    }
+
     @objc private func showSettings() {
         onSettings?()
     }

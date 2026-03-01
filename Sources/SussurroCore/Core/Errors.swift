@@ -30,6 +30,20 @@ public enum TranscriberError: Error, LocalizedError {
     }
 }
 
+public enum LLMError: Error, LocalizedError {
+    case noAPIKey(provider: String)
+    case providerNotConfigured(String)
+    case appleIntelligenceUnavailable
+
+    public var errorDescription: String? {
+        switch self {
+        case .noAPIKey(let provider): "Chave API não configurada para \(provider)"
+        case .providerNotConfigured(let provider): "Provedor '\(provider)' não reconhecido"
+        case .appleIntelligenceUnavailable: "Apple Intelligence ainda não disponível"
+        }
+    }
+}
+
 public enum BatchError: Error, LocalizedError {
     case noInputFile
     case unsupportedFormat(String)

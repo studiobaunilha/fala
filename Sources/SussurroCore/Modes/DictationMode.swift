@@ -102,12 +102,8 @@ public final class DictationMode {
     ) async -> String {
         var finalText = text
         
-        // Apply simple replacements first
-        for (incorrect, correct) in config.replacements {
-            finalText = finalText.replacingOccurrences(
-                of: incorrect, with: correct, options: .caseInsensitive
-            )
-        }
+        // Apply replacement rules (multi-variant → single correct word)
+        finalText = ReplacementRule.applyAll(finalText, rules: config.replacementRules)
         
         // Resolve effective configuration for this mode
         let modeConfig = config.getEffectiveConfig(for: template)
@@ -115,18 +111,24 @@ public final class DictationMode {
         let model = modeConfig.model
         let basePrompt = modeConfig.prompt
         
-        // Apply LLM post-processing if we have a prompt (either default or custom)
-        if !basePrompt.isEmpty {
-            let prompt = config.enableContextBuffer 
-                ? ContextManager.shared.buildPrompt(basePrompt: basePrompt) 
+        // Apply LLM post-processing if this mode requires it and we have a prompt
+        if template.requiresLLM, !basePrompt.isEmpty {
+            let prompt = config.enableContextBuffer
+                ? ContextManager.shared.buildPrompt(basePrompt: basePrompt)
                 : basePrompt
-            
+
             do {
-                if provider == "gemini", !config.geminiKey.isEmpty {
+                if provider == "gemini" {
+                    guard !config.geminiKey.isEmpty else {
+                        throw LLMError.noAPIKey(provider: "Gemini")
+                    }
                     finalText = try await TranscriptionJob.processWithGemini(
                         text: text, prompt: prompt, apiKey: config.geminiKey, model: model
                     )
-                } else if provider == "openai", !config.openAIKey.isEmpty {
+                } else if provider == "openai" {
+                    guard !config.openAIKey.isEmpty else {
+                        throw LLMError.noAPIKey(provider: "OpenAI")
+                    }
                     finalText = try await TranscriptionJob.processWithOpenAI(
                         text: text, prompt: prompt, apiKey: config.openAIKey, model: model
                     )
@@ -134,7 +136,12 @@ public final class DictationMode {
                     finalText = try await TranscriptionJob.processWithAppleNative(
                         text: text, prompt: prompt
                     )
+                } else {
+                    throw LLMError.providerNotConfigured(provider)
                 }
+            } catch let error as LLMError {
+                print("[Sussurro] ⚠️ \(error.localizedDescription) — modo '\(template.rawValue)' requer LLM.")
+                statusBar?.showTemporaryWarning(error.localizedDescription)
             } catch {
                 print("[Sussurro] LLM processing error: \(error.localizedDescription)")
             }
