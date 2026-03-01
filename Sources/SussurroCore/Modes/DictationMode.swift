@@ -80,7 +80,28 @@ public final class DictationMode {
 
             let text = try await transcriber.transcribe(samples: samples)
             if !text.isEmpty {
-                inserter.insert(text)
+                var finalText = text
+                let config = AppConfig.load()
+                let template = config.selectedDictationTemplate
+                
+                if template.requiresLLM, let prompt = template.systemPrompt {
+                    do {
+                        if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+                            finalText = try await TranscriptionJob.processWithGemini(
+                                text: text, prompt: prompt, apiKey: config.geminiKey, model: config.geminiModel
+                            )
+                        } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+                            finalText = try await TranscriptionJob.processWithOpenAI(
+                                text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
+                            )
+                        }
+                    } catch {
+                        print("[Sussurro] LLM processing error: \(error.localizedDescription)")
+                        // Falha silenciosa no LLM = insere o texto original raw
+                    }
+                }
+                
+                inserter.insert(finalText)
             }
         } catch {
             print("[Sussurro] Transcription error: \(error.localizedDescription)")

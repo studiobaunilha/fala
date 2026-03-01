@@ -12,8 +12,8 @@ extension TranscriptionJob {
         return (wavURL, true)
     }
 
-    func processWithGemini(text: String, prompt: String, apiKey: String) async throws -> String {
-        let baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    static func processWithGemini(text: String, prompt: String, apiKey: String, model: String) async throws -> String {
+        let baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent"
         let endpoint = "\(baseUrl)?key=\(apiKey)"
         guard let url = URL(string: endpoint) else {
             throw NSError(domain: "LLM", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL"])
@@ -47,7 +47,7 @@ extension TranscriptionJob {
         )
     }
 
-    func processWithOpenAI(text: String, prompt: String, apiKey: String) async throws -> String {
+    static func processWithOpenAI(text: String, prompt: String, apiKey: String, model: String) async throws -> String {
         guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
             throw NSError(domain: "LLM", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL"])
         }
@@ -57,7 +57,7 @@ extension TranscriptionJob {
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body: [String: Any] = [
-            "model": "gpt-4o-mini",
+            "model": model,
             "messages": [
                 ["role": "system", "content": prompt],
                 ["role": "user", "content": text]
@@ -94,5 +94,69 @@ extension TranscriptionJob {
             }
             try? handle.close()
         }
+    }
+    
+    nonisolated func overwriteFile(url: URL, text: String) {
+        try? text.write(to: url, atomically: true, encoding: .utf8)
+    }
+    
+    nonisolated func cleanText(_ text: String) -> String {
+        return text.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    nonisolated func extractStartTimestamp(_ text: String) -> String? {
+        if let range = text.range(of: "<\\|([\\d\\.]+)\\|>", options: .regularExpression) {
+            return String(text[range])
+        }
+        return nil
+    }
+}
+
+actor SegmentProcessor {
+    private var fullConfirmedText: String = ""
+    private let outputURL: URL
+    private let config: AppConfig
+    
+    init(outputURL: URL, config: AppConfig) {
+        self.outputURL = outputURL
+        self.config = config
+    }
+    
+    func processAndAppend(text: String, currentPending: String = "") async {
+        // Run LLM on the finalized segment
+        var processed = text
+        if config.enableLLMPostProcessing {
+            do {
+                if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+                    processed = try await TranscriptionJob.processWithGemini(
+                        text: text, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
+                    )
+                } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+                    processed = try await TranscriptionJob.processWithOpenAI(
+                        text: text, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
+                    )
+                }
+            } catch {
+                print("LLM Error: \(error)")
+                // Fallback to raw if LLM fails
+            }
+        }
+        
+        fullConfirmedText += processed + "\n"
+        
+        let header = config.outputFormat == "md" ? "# \(outputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
+        let content = header + fullConfirmedText + currentPending
+        try? content.write(to: outputURL, atomically: true, encoding: .utf8)
+    }
+    
+    func updatePending(text: String) async {
+        let header = config.outputFormat == "md" ? "# \(outputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
+        let content = header + fullConfirmedText + text
+        try? content.write(to: outputURL, atomically: true, encoding: .utf8)
+    }
+    
+    func getFullText() -> String {
+        return fullConfirmedText
     }
 }

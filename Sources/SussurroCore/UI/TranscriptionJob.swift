@@ -111,31 +111,59 @@ public final class TranscriptionJob: ObservableObject {
         // Initialize Output File
         try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
         
-        let effectiveModel = overrideModel ?? config.batchModel
-        let effectiveLanguage = overrideLanguage ?? config.language
-
-        let transcriber = Transcriber(
-            modelName: effectiveModel,
-            language: effectiveLanguage,
-            temperature: config.batchTemperature,
-            prompt: config.customDictionary.joined(separator: ", ")
-        )
+        let fileQueue = DispatchQueue(label: "com.sussurro.filewriter")
+        let state = IncrementalState()
+        let processor = SegmentProcessor(outputURL: outputURL, config: config)
+        let transcriber = createTranscriber(config: config)
         
-        let text = try await transcriber.transcribe(audioPath: wavURL.path) { partialText in
+        _ = try await transcriber.transcribe(audioPath: wavURL.path) { partialText in
+            fileQueue.async {
+                let cleanedCurrent = self.cleanText(partialText)
+                
+                if let startToken = self.extractStartTimestamp(partialText) {
+                    if !state.lastStartToken.isEmpty && startToken != state.lastStartToken {
+                        let cleanedLast = self.cleanText(state.lastWindowRawText)
+                        if !cleanedLast.isEmpty {
+                            Task {
+                                await processor.processAndAppend(text: cleanedLast, currentPending: cleanedCurrent)
+                            }
+                        }
+                    }
+                    state.lastStartToken = startToken
+                }
+                state.lastWindowRawText = partialText
+                Task { await processor.updatePending(text: cleanedCurrent) }
+            }
+            
             Task { @MainActor in
                 if case .transcribing = self.state {
-                    self.state = .transcribing(partialText)
+                    self.state = .transcribing(self.cleanText(partialText))
                 }
             }
         }
         
+        let cleanedLast = self.cleanText(state.lastWindowRawText)
+        if !cleanedLast.isEmpty { await processor.processAndAppend(text: cleanedLast) }
+        
         try Task.checkCancellation()
+        var finalConfig = config
+        finalConfig.enableLLMPostProcessing = false
+        
         try await processOutput(
-            text: text,
+            text: await processor.getFullText(),
             inputURL: inputURL,
-            config: config,
+            config: finalConfig,
             format: format,
             outputURL: outputURL
+        )
+    }
+    
+    private func createTranscriber(config: AppConfig) -> Transcriber {
+        Transcriber(
+            modelName: overrideModel ?? config.batchModel,
+            language: overrideLanguage ?? config.language,
+            temperature: config.batchTemperature,
+            prompt: "Keywords: " + config.customDictionary.joined(separator: ", ") + "."
         )
     }
     
@@ -159,15 +187,15 @@ public final class TranscriptionJob: ObservableObject {
                 await MainActor.run {
                     withAnimation(AnimationConfig.standard) { state = .processingLLM }
                 }
-                finalText = try await processWithGemini(
-                    text: finalText, prompt: config.llmPrompt, apiKey: config.geminiKey
+                finalText = try await Self.processWithGemini(
+                    text: finalText, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
                 )
             } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
                 await MainActor.run {
                     withAnimation(AnimationConfig.standard) { state = .processingLLM }
                 }
-                finalText = try await processWithOpenAI(
-                    text: finalText, prompt: config.llmPrompt, apiKey: config.openAIKey
+                finalText = try await Self.processWithOpenAI(
+                    text: finalText, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
                 )
             }
             
@@ -203,4 +231,11 @@ public final class TranscriptionJob: ObservableObject {
         overrideLanguage = nil
         state = .idle
     }
+}
+
+// MARK: - Helper Types
+
+private final class IncrementalState: @unchecked Sendable {
+    var lastWindowRawText: String = ""
+    var lastStartToken: String = ""
 }
