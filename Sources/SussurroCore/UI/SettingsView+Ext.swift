@@ -131,14 +131,14 @@ extension SettingsView {
             
             Section {
                 HStack(spacing: Spacing.sm) {
-                    TextField("Errado (ex: flitu)", text: $newIncorrect)
+                    TextField("Variante (ex: flitu)", text: $newIncorrect)
                         .textFieldStyle(.roundedBorder)
                     Image(systemName: "arrow.right")
                         .foregroundStyle(.secondary)
                     TextField("Correto (ex: Fleetu)", text: $newCorrect)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit { addReplacement() }
-                    
+
                     Button {
                         addReplacement()
                     } label: {
@@ -148,31 +148,56 @@ extension SettingsView {
                     .font(.title2)
                     .disabled(newIncorrect.isEmpty || newCorrect.isEmpty)
                 }
-                
-                if !settings.replacements.isEmpty {
-                    List {
-                        ForEach(settings.replacements.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-                            HStack {
-                                Text(key).foregroundStyle(.secondary).strikethrough()
-                                Image(systemName: "arrow.right").font(.caption).foregroundStyle(.secondary)
-                                Text(value).fontWeight(.medium)
-                                Spacer()
-                                Button {
-                                    removeReplacement(key)
-                                } label: {
-                                    Image(systemName: "trash")
-                                        .foregroundStyle(.red)
+
+                ForEach($settings.replacementRules) { $rule in
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        HStack {
+                            Text(rule.replacement)
+                                .fontWeight(.medium)
+                            Spacer()
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    settings.replacementRules.removeAll { $0.id == rule.id }
                                 }
-                                .buttonStyle(.plain)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                        HStack(spacing: Spacing.xs) {
+                            ForEach(rule.variants, id: \.self) { variant in
+                                HStack(spacing: 2) {
+                                    Text(variant)
+                                        .font(.caption)
+                                        .strikethrough()
+                                        .foregroundStyle(.secondary)
+                                    Button {
+                                        withAnimation {
+                                            rule.variants.removeAll { $0 == variant }
+                                            if rule.variants.isEmpty {
+                                                settings.replacementRules.removeAll { $0.id == rule.id }
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(nsColor: .quaternaryLabelColor).opacity(0.3))
+                                .clipShape(Capsule())
                             }
                         }
                     }
-                    .frame(minHeight: 100)
+                    .padding(.vertical, Spacing.xxs)
                 }
             } header: {
                 Text("Substituição de Texto (Pós-processamento)")
             } footer: {
-                Text("Corrige automaticamente palavras que o modelo erra com frequência.")
+                Text("Cada regra pode ter várias variantes. Se o correto já existir, a variante é adicionada à regra.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -194,17 +219,27 @@ extension SettingsView {
     }
     
     func addReplacement() {
-        let key = newIncorrect.trimmingCharacters(in: .whitespacesAndNewlines)
-        let value = newCorrect.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard !key.isEmpty, !value.isEmpty else { return }
-        settings.replacements[key] = value
+        let variant = newIncorrect.trimmingCharacters(in: .whitespacesAndNewlines)
+        let correct = newCorrect.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !variant.isEmpty, !correct.isEmpty else { return }
+
+        // If a rule for this replacement word already exists, add the variant to it
+        if let idx = settings.replacementRules.firstIndex(where: {
+            $0.replacement.caseInsensitiveCompare(correct) == .orderedSame
+        }) {
+            if !settings.replacementRules[idx].variants.contains(where: {
+                $0.caseInsensitiveCompare(variant) == .orderedSame
+            }) {
+                settings.replacementRules[idx].variants.append(variant)
+            }
+        } else {
+            settings.replacementRules.append(
+                ReplacementRule(variants: [variant], replacement: correct)
+            )
+        }
         newIncorrect = ""
         newCorrect = ""
-    }
-    
-    func removeReplacement(_ key: String) {
-        settings.replacements.removeValue(forKey: key)
     }
 
     @ViewBuilder

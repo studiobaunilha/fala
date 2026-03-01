@@ -16,7 +16,6 @@ public struct AppConfig: Codable, Sendable {
     ).first?.path ?? ""
     
     public var enableContextBuffer: Bool = false
-    public var enableLLMPostProcessing: Bool = false
     public var selectedDictationTemplate: DictationTemplate = .clean
     public var llmProvider: String = "gemini"
     public var llmPrompt: String =
@@ -27,6 +26,7 @@ public struct AppConfig: Codable, Sendable {
     public var openAIModel: String = "gpt-4o-mini"
     
     public var replacements: [String: String] = [:]
+    public var replacementRules: [ReplacementRule] = []
     public var modeConfigs: [String: ModeConfig] = [:]
 
     private static let storageKey = "dev.sussurro.config"
@@ -53,7 +53,16 @@ public struct AppConfig: Codable, Sendable {
         }
         
         replacements = (try? container.decode([String: String].self, forKey: .replacements)) ?? [:]
+        replacementRules = (try? container.decode([ReplacementRule].self, forKey: .replacementRules)) ?? []
         modeConfigs = (try? container.decode([String: ModeConfig].self, forKey: .modeConfigs)) ?? [:]
+
+        // Migrate legacy replacements dict → ReplacementRule array
+        if replacementRules.isEmpty && !replacements.isEmpty {
+            replacementRules = replacements.map { key, value in
+                ReplacementRule(variants: [key], replacement: value)
+            }
+            replacements = [:]
+        }
         
         enableDiarization = (try? container.decode(Bool.self, forKey: .enableDiarization)) ?? false
         
@@ -61,7 +70,6 @@ public struct AppConfig: Codable, Sendable {
             FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path ?? ""
         
         enableContextBuffer = (try? container.decode(Bool.self, forKey: .enableContextBuffer)) ?? false
-        enableLLMPostProcessing = (try? container.decode(Bool.self, forKey: .enableLLMPostProcessing)) ?? false
         
         let decodedTemplate = try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate)
         selectedDictationTemplate = decodedTemplate ?? .clean
@@ -127,10 +135,34 @@ public struct ModeConfig: Codable, Sendable, Equatable {
     public var provider: String? // "openai", "gemini", "apple", or nil (use global)
     public var model: String?    // Specific model or nil (use global)
     public var prompt: String?   // Custom system prompt or nil (use default)
-    
+
     public init(provider: String? = nil, model: String? = nil, prompt: String? = nil) {
         self.provider = provider
         self.model = model
         self.prompt = prompt
+    }
+}
+
+public struct ReplacementRule: Codable, Sendable, Equatable, Identifiable {
+    public var id: UUID
+    public var variants: [String]
+    public var replacement: String
+
+    public init(variants: [String], replacement: String) {
+        self.id = UUID()
+        self.variants = variants
+        self.replacement = replacement
+    }
+
+    public static func applyAll(_ text: String, rules: [ReplacementRule]) -> String {
+        var result = text
+        for rule in rules {
+            for variant in rule.variants where !variant.isEmpty {
+                result = result.replacingOccurrences(
+                    of: variant, with: rule.replacement, options: .caseInsensitive
+                )
+            }
+        }
+        return result
     }
 }
