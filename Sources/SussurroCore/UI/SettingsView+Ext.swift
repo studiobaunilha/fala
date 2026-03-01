@@ -167,24 +167,27 @@ extension SettingsView {
                 
                 Section("Credenciais") {
                     if settings.llmProvider == "gemini" {
-                        HStack {
-                            SecureField("Gemini API Key", text: $settings.geminiKey)
-                                .textFieldStyle(.roundedBorder)
-                            
-                            Button(action: {
-                                Task { await testKey(provider: "gemini", key: settings.geminiKey) }
-                            }, label: {
-                                if isTestingKey {
-                                    ProgressView().controlSize(.small)
-                                } else {
-                                    Text("Testar")
-                                }
-                            })
-                            .disabled(settings.geminiKey.isEmpty || isTestingKey)
+                        LabeledContent("Chave API") {
+                            HStack(spacing: Spacing.sm) {
+                                SecureField("Cole sua chave aqui", text: $settings.geminiKey)
+                                    .textFieldStyle(.roundedBorder)
+                                
+                                Button(action: {
+                                    Task { await testKey(provider: "gemini", key: settings.geminiKey) }
+                                }, label: {
+                                    if isTestingKey {
+                                        ProgressView().controlSize(.small)
+                                    } else {
+                                        Text("Testar")
+                                    }
+                                })
+                                .disabled(settings.geminiKey.isEmpty || isTestingKey)
+                            }
                         }
+                        .help("Sua chave do Google AI Studio")
 
                         HStack {
-                            Text("A API do Gemini é rápida e possui um nível gratuito generoso.")
+                            Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()
@@ -194,20 +197,25 @@ extension SettingsView {
                             }
                         }
                         
-                        HStack {
-                            TextField("Modelo:", text: $settings.geminiModel)
-                                .textFieldStyle(.roundedBorder)
-                            
-                            Menu {
-                                ForEach(availableGeminiModels, id: \.self) { model in
-                                    Button(model) {
-                                        settings.geminiModel = model
+                        LabeledContent("Modelo:") {
+                            HStack(spacing: Spacing.xs) {
+                                TextField("", text: $settings.geminiModel)
+                                    .textFieldStyle(.roundedBorder)
+                                
+                                Menu {
+                                    ForEach(availableGeminiModels, id: \.self) { model in
+                                        Button(model) {
+                                            settings.geminiModel = model
+                                        }
                                     }
+                                } label: {
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.caption)
                                 }
-                            } label: {
-                                Image(systemName: "chevron.down")
+                                .frame(width: 16)
+                                .disabled(availableGeminiModels.isEmpty)
+                                .help("Selecionar modelo disponível")
                             }
-                            .disabled(availableGeminiModels.isEmpty)
                         }
                     } else {
                         HStack {

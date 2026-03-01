@@ -142,6 +142,8 @@ public final class TranscriptionJob: ObservableObject {
             }
         }
         
+        fileQueue.sync { }
+        
         let cleanedLast = self.cleanText(state.lastWindowRawText)
         if !cleanedLast.isEmpty { await processor.processAndAppend(text: cleanedLast) }
         

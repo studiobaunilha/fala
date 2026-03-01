@@ -58,17 +58,19 @@ public actor Transcriber: AudioTranscribing {
             language: isAuto ? nil : language,
             temperature: temperature,
             detectLanguage: isAuto,
-            skipSpecialTokens: true,
-            withoutTimestamps: true
+            skipSpecialTokens: false,
+            withoutTimestamps: false
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
             let tokens = try? await tokenizer.encode(text: prompt)
+                .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = tokens
         }
         let results = try await wk.transcribe(audioArray: samples, decodeOptions: options)
-        let text = results.compactMap { $0.text }.joined(separator: " ")
-            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        return text
+        let rawText = results.compactMap { $0.text }.joined(separator: " ")
+        let cleanText = rawText.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleanText
     }
 
     /// Transcribes a WAV/audio file by path. Returns text with newline-joined segments.
@@ -83,11 +85,12 @@ public actor Transcriber: AudioTranscribing {
             language: isAuto ? nil : language,
             temperature: temperature,
             detectLanguage: isAuto,
-            skipSpecialTokens: true,
-            withoutTimestamps: true
+            skipSpecialTokens: false,
+            withoutTimestamps: false
         )
         if !prompt.isEmpty, let tokenizer = wk.tokenizer {
             let tokens = try? await tokenizer.encode(text: prompt)
+                .filter { $0 < tokenizer.specialTokens.specialTokenBegin }
             options.promptTokens = tokens
         }
         
@@ -97,7 +100,9 @@ public actor Transcriber: AudioTranscribing {
         }
         
         let results = try await wk.transcribe(audioPath: audioPath, decodeOptions: options, callback: callback)
-        return results.compactMap { $0.text }.joined(separator: "\n")
-            .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        let rawText = results.compactMap { $0.text }.joined(separator: "\n")
+        let cleanText = rawText.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleanText
     }
 }
