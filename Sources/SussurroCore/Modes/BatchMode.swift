@@ -27,8 +27,8 @@ public enum BatchMode {
             wavURL = inputURL
             needsCleanup = false
         } else {
-            wavURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("sus_\(UUID().uuidString).wav")
+            let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
+            wavURL = tempDir.appendingPathComponent("sus_\(UUID().uuidString).wav")
             try await FFmpegConverter.convert(input: inputURL, output: wavURL)
             needsCleanup = true
         }
@@ -37,15 +37,29 @@ public enum BatchMode {
             if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
         }
 
+        try await performTranscription(
+            wavURL: wavURL,
+            inputURL: inputURL,
+            modelName: modelName,
+            outputFormat: outputFormat
+        )
+    }
+
+    private static func performTranscription(
+        wavURL: URL,
+        inputURL: URL,
+        modelName: String,
+        outputFormat: String
+    ) async throws {
         print("Model: \(modelName)")
         print("Transcribing \(inputURL.lastPathComponent)…")
-
-        let transcriber = Transcriber(modelName: modelName)
-        let text = try await transcriber.transcribe(audioPath: wavURL.path)
-
+        
         let outputURL = inputURL
             .deletingPathExtension()
             .appendingPathExtension(outputFormat)
+
+        let transcriber = Transcriber(modelName: modelName)
+        let text = try await transcriber.transcribe(audioPath: wavURL.path)
 
         let content = outputFormat == "md"
             ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n\(text)\n"
