@@ -28,7 +28,7 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
         }
     }
     
-    public var systemPrompt: String? {
+    public var defaultSystemPrompt: String? {
         switch self {
         case .raw, .translate: 
             return nil
@@ -37,7 +37,7 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
                    "mantendo o idioma original. Não altere o sentido."
         case .bullets: 
             return "Transforme o texto transcrito em uma lista de tópicos (bullet points) " +
-                   "concisa e formatada em Markdown."
+                   "concisa e formatada em Markdown. Use hierarquia se necessário."
         case .summary: 
             return "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
         case .promptDev: 

@@ -35,6 +35,7 @@ public final class AppSettings: ObservableObject {
     @Published public var geminiKey: String
     @Published public var geminiModel: String
     @Published public var openAIModel: String
+    @Published public var modeConfigs: [String: ModeConfig]
 
     public let modelManager: ModelManager
     private let transcriber: Transcriber
@@ -81,6 +82,7 @@ public final class AppSettings: ObservableObject {
         self.geminiKey = config.geminiKey
         self.geminiModel = config.geminiModel
         self.openAIModel = config.openAIModel
+        self.modeConfigs = config.modeConfigs
         
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -106,6 +108,7 @@ public final class AppSettings: ObservableObject {
         config.geminiKey = geminiKey
         config.geminiModel = geminiModel
         config.openAIModel = openAIModel
+        config.modeConfigs = modeConfigs
         
         // Native macOS persistence via UserDefaults
         config.save()
@@ -139,6 +142,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
     case models = "Modelos"
     case advanced = "Avançado"
     case llm = "IA & LLM"
+    case modes = "Modos"
     
     var id: String { self.rawValue }
     
@@ -148,6 +152,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
         case .models: return "cpu"
         case .advanced: return "slider.horizontal.3"
         case .llm: return "wand.and.stars"
+        case .modes: return "list.bullet.rectangle"
         }
     }
 }
@@ -191,6 +196,8 @@ struct SettingsView: View {
                 advancedView
             case .llm:
                 llmView
+            case .modes:
+                modesView
             case .none:
                 Text("Selecione um painel à esquerda")
                     .foregroundColor(.secondary)
@@ -232,6 +239,9 @@ extension View {
             .onChange(of: settings.geminiKey) { settings.save() }
             .onChange(of: settings.geminiModel) { settings.save() }
             .onChange(of: settings.openAIModel) { settings.save() }
+            // No need to observe modeConfigs specifically as changes are saved inside ModeDetailView via direct assignment + save call
+            // But if we want reactivity across views, we might need it. 
+            // However, ModeDetailView calls settings.save() explicitly.
     }
 }
 

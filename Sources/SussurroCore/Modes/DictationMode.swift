@@ -109,22 +109,28 @@ public final class DictationMode {
             )
         }
         
-        // Apply LLM post-processing
-        if template.requiresLLM, let basePrompt = template.systemPrompt {
+        // Resolve effective configuration for this mode
+        let modeConfig = config.getEffectiveConfig(for: template)
+        let provider = modeConfig.provider
+        let model = modeConfig.model
+        let basePrompt = modeConfig.prompt
+        
+        // Apply LLM post-processing if we have a prompt (either default or custom)
+        if !basePrompt.isEmpty {
             let prompt = config.enableContextBuffer 
                 ? ContextManager.shared.buildPrompt(basePrompt: basePrompt) 
                 : basePrompt
             
             do {
-                if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+                if provider == "gemini", !config.geminiKey.isEmpty {
                     finalText = try await TranscriptionJob.processWithGemini(
-                        text: text, prompt: prompt, apiKey: config.geminiKey, model: config.geminiModel
+                        text: text, prompt: prompt, apiKey: config.geminiKey, model: model
                     )
-                } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+                } else if provider == "openai", !config.openAIKey.isEmpty {
                     finalText = try await TranscriptionJob.processWithOpenAI(
-                        text: text, prompt: prompt, apiKey: config.openAIKey, model: config.openAIModel
+                        text: text, prompt: prompt, apiKey: config.openAIKey, model: model
                     )
-                } else if config.llmProvider == "apple" {
+                } else if provider == "apple" {
                     finalText = try await TranscriptionJob.processWithAppleNative(
                         text: text, prompt: prompt
                     )
@@ -134,10 +140,10 @@ public final class DictationMode {
             }
         }
         
-        // Update context buffer in background
+        // Update context buffer in background (using global config for memory updates as defined in ContextManager)
         if config.enableContextBuffer && template != .raw {
             Task {
-                await ContextManager.shared.updateSummary(newText: finalText, config: config)
+                await ContextManager.shared.updateContext(newInput: finalText, config: config)
             }
         }
         

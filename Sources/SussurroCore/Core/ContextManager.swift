@@ -5,77 +5,92 @@ import Combine
 public final class ContextManager: ObservableObject {
     public static let shared = ContextManager()
     
-    @Published public var summary: String = ""
+    @Published public var contextNotes: String = ""
+    
+    // Legacy alias for compatibility if needed, but we should update call sites
+    public var summary: String {
+        get { contextNotes }
+        set { contextNotes = newValue }
+    }
     
     private init() {}
     
     public func clear() {
-        summary = ""
+        contextNotes = ""
     }
     
+    /// Constrói o prompt final combinando o prompt do template com as notas de contexto.
     public func buildPrompt(basePrompt: String) -> String {
-        guard !summary.isEmpty else { return basePrompt }
+        guard !contextNotes.isEmpty else { return basePrompt }
         
         return """
         \(basePrompt)
         
         ---
-        ATENÇÃO - CONTEXTO ANTERIOR:
-        Abaixo está um resumo do contexto recente da nossa conversa/trabalho. 
-        Use as informações deste resumo APENAS para resolver ambiguidades 
-        (ex: pronomes, siglas, jargões, nomes) na nova entrada.
-        Não inclua este resumo na sua resposta final.
-        Você deve retornar APENAS a nova entrada processada.
+        [INFORMACÃO DE CONTEXTO & MEMÓRIA]
+        Use as notas abaixo para refinar a transcrição (estilo, vocabulário, contexto do projeto).
+        NÃO inclua estas notas na saída, apenas use-as para guiar a transformação.
         
-        [Resumo do Contexto]
-        \(summary)
+        Notas Atuais:
+        \(contextNotes)
         """
     }
     
-    public func updateSummary(newText: String, config: AppConfig) async {
+    /// Atualiza as notas de contexto com base na nova entrada.
+    public func updateContext(newInput: String, config: AppConfig) async {
         guard config.enableContextBuffer else { return }
         
-        let prompt = """
-        Atue como um assistente de memória. Sua tarefa é atualizar o resumo do 
-        contexto de uma sessão de ditado com base na nova entrada do usuário.
-        Mantenha o resumo conciso (máximo 2 parágrafos), focando em capturar: 
-        nomes próprios, tópicos principais, jargões técnicos e contexto geral.
-        Não responda a perguntas, apenas crie/atualize o resumo.
-        Se o resumo atual for "Nenhum", apenas resuma a nova entrada.
+        let systemPrompt = """
+        Atue como um Assistente de Memória (AI Memory Manager).
+        Sua tarefa é manter um conjunto de notas concisas sobre a sessão atual.
+        Atualize as notas para refletir o estado atual, intenção, tom e entidades chave (nomes, projetos, tecnologias).
+        Remova informações obsoletas. Mantenha o formato de tópicos curtos.
+        Não responda ao usuário. Apenas retorne as notas atualizadas.
+        """
         
-        Resumo Atual:
-        \(summary.isEmpty ? "Nenhum" : summary)
+        let userMessage = """
+        [Notas Atuais]:
+        \(contextNotes.isEmpty ? "Nenhuma" : contextNotes)
+        
+        [Nova Entrada do Usuário]:
+        "\(newInput)"
         """
         
         do {
-            let updatedSummary: String
+            let updatedNotes: String
+            // Use the global LLM provider for context updates
             if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
-                updatedSummary = try await TranscriptionJob.processWithGemini(
-                    text: newText,
-                    prompt: prompt,
+                updatedNotes = try await TranscriptionJob.processWithGemini(
+                    text: userMessage,
+                    prompt: systemPrompt,
                     apiKey: config.geminiKey,
                     model: config.geminiModel
                 )
             } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
-                updatedSummary = try await TranscriptionJob.processWithOpenAI(
-                    text: newText,
-                    prompt: prompt,
+                updatedNotes = try await TranscriptionJob.processWithOpenAI(
+                    text: userMessage,
+                    prompt: systemPrompt,
                     apiKey: config.openAIKey,
                     model: config.openAIModel
                 )
             } else if config.llmProvider == "apple" {
-                updatedSummary = try await TranscriptionJob.processWithAppleNative(
-                    text: newText,
-                    prompt: prompt
+                updatedNotes = try await TranscriptionJob.processWithAppleNative(
+                    text: userMessage,
+                    prompt: systemPrompt
                 )
             } else {
                 return
             }
             
-            self.summary = updatedSummary
-            print("[Sussurro] Contexto atualizado.")
+            self.contextNotes = updatedNotes
+            print("[Sussurro] Memória de contexto atualizada.")
         } catch {
-            print("[Sussurro] Falha ao atualizar contexto: \(error.localizedDescription)")
+            print("[Sussurro] Falha ao atualizar memória: \(error.localizedDescription)")
         }
+    }
+    
+    // Legacy support wrapper
+    public func updateSummary(newText: String, config: AppConfig) async {
+        await updateContext(newInput: newText, config: config)
     }
 }

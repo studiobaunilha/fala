@@ -133,15 +133,20 @@ extension SettingsView {
                 }
                 
                 Section {
-                    TextField("Como a IA deve formatar o texto?", text: $settings.llmPrompt, axis: .vertical)
-                        .lineLimit(4...8)
-                        .textFieldStyle(.roundedBorder)
-                } header: {
-                    Text("Instrução (System Prompt)")
-                } footer: {
-                    Text("Deixe em branco para usar o prompt padrão do sistema.")
+                    Text("Para configurar os prompts de sistema (instruções) para cada modo (Limpar, Tópicos, etc.), " +
+                         "acesse a aba 'Modos' na barra lateral.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    
+                    NavigationLink("Ir para Configuração de Modos") {
+                        // This navigation link pushes a view, but we are in a split view detail.
+                        // Ideally we switch selection. But we can't easily switch selection from here without binding.
+                        // Just showing text is enough.
+                        Text("Selecione 'Modos' na barra lateral.")
+                    }
+                    .hidden() // Hack to just keep the section valid? No, just remove NavLink
+                } header: {
+                    Text("Instruções de Prompt")
                 }
             }
         }

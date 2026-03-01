@@ -27,6 +27,7 @@ public struct AppConfig: Codable, Sendable {
     public var openAIModel: String = "gpt-4o-mini"
     
     public var replacements: [String: String] = [:]
+    public var modeConfigs: [String: ModeConfig] = [:]
 
     private static let storageKey = "dev.sussurro.config"
 
@@ -52,6 +53,7 @@ public struct AppConfig: Codable, Sendable {
         }
         
         replacements = (try? container.decode([String: String].self, forKey: .replacements)) ?? [:]
+        modeConfigs = (try? container.decode([String: ModeConfig].self, forKey: .modeConfigs)) ?? [:]
         
         enableDiarization = (try? container.decode(Bool.self, forKey: .enableDiarization)) ?? false
         
@@ -73,6 +75,35 @@ public struct AppConfig: Codable, Sendable {
         geminiModel = (try? container.decode(String.self, forKey: .geminiModel)) ?? "gemini-2.5-flash"
         openAIModel = (try? container.decode(String.self, forKey: .openAIModel)) ?? "gpt-4o-mini"
     }
+    
+    // MARK: – Helper Methods for Mode Config
+    
+    public struct EffectiveConfig {
+        public let provider: String
+        public let model: String
+        public let prompt: String
+    }
+    
+    public func getEffectiveConfig(for template: DictationTemplate) -> EffectiveConfig {
+        let modeConfig = modeConfigs[template.rawValue]
+        
+        let provider = modeConfig?.provider ?? llmProvider
+        
+        // 1. Custom prompt from mode config
+        // 2. Default prompt from template definition
+        // 3. Fallback to empty string (prevents forcing LLM on raw/translate)
+        let prompt = modeConfig?.prompt ?? template.defaultSystemPrompt ?? ""
+        
+        let model: String
+        if let modeModel = modeConfig?.model, !modeModel.isEmpty {
+            model = modeModel
+        } else {
+            // Fallback to global model based on provider
+            model = (provider == "gemini") ? geminiModel : (provider == "openai" ? openAIModel : "")
+        }
+        
+        return EffectiveConfig(provider: provider, model: model, prompt: prompt)
+    }
 
     // MARK: – Persistence (UserDefaults)
 
@@ -89,5 +120,17 @@ public struct AppConfig: Codable, Sendable {
             UserDefaults.standard.set(data, forKey: Self.storageKey)
             UserDefaults.standard.synchronize()
         }
+    }
+}
+
+public struct ModeConfig: Codable, Sendable, Equatable {
+    public var provider: String? // "openai", "gemini", "apple", or nil (use global)
+    public var model: String?    // Specific model or nil (use global)
+    public var prompt: String?   // Custom system prompt or nil (use default)
+    
+    public init(provider: String? = nil, model: String? = nil, prompt: String? = nil) {
+        self.provider = provider
+        self.model = model
+        self.prompt = prompt
     }
 }
