@@ -20,7 +20,8 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var state: TranscriptionState = .idle
     @Published public var outputFormat: String
     @Published public var outputDirectory: URL?
-    
+    @Published public var selectedTemplate: DictationTemplate = .clean
+
     // Per-job overrides
     @Published public var overrideModel: String?
     @Published public var overrideLanguage: String?
@@ -123,6 +124,7 @@ public final class TranscriptionJob: ObservableObject {
         let processingTask = createProcessingTask(
             stream: stream,
             config: config,
+            template: selectedTemplate,
             format: format,
             outputURL: outputURL,
             inputURL: inputURL

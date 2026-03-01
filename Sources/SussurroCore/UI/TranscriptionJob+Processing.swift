@@ -1,5 +1,13 @@
 import Foundation
 
+struct ProcessingContext {
+    let config: AppConfig
+    let template: DictationTemplate
+    let format: String
+    let outputURL: URL
+    let inputURL: URL
+}
+
 extension TranscriptionJob {
 
     func prepareAudio(from inputURL: URL, ext: String) async throws -> (URL, Bool) {
@@ -80,9 +88,7 @@ extension TranscriptionJob {
     }
 
     static func processWithAppleNative(text: String, prompt: String) async throws -> String {
-        // Future: Implement macOS 15+ Translation/WritingTools or MLX-Swift integration
-        print("[Sussurro] Apple Native AI is a placeholder. Returning original text.")
-        return text
+        throw LLMError.appleIntelligenceUnavailable
     }
 
     nonisolated func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
@@ -118,21 +124,25 @@ extension TranscriptionJob {
         return nil
     }
     
-    static func applyLLM(to text: String, config: AppConfig) async -> String {
-        guard config.enableLLMPostProcessing else { return text }
+    static func applyLLM(to text: String, config: AppConfig, template: DictationTemplate) async -> String {
+        guard template.requiresLLM else { return text }
+        let effective = config.getEffectiveConfig(for: template)
+        let prompt = effective.prompt
+        guard !prompt.isEmpty else { return text }
+        let provider = effective.provider
+        let model = effective.model
+
         do {
-            if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
+            if provider == "gemini", !config.geminiKey.isEmpty {
                 return try await processWithGemini(
-                    text: text, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
+                    text: text, prompt: prompt, apiKey: config.geminiKey, model: model
                 )
-            } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
+            } else if provider == "openai", !config.openAIKey.isEmpty {
                 return try await processWithOpenAI(
-                    text: text, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
+                    text: text, prompt: prompt, apiKey: config.openAIKey, model: model
                 )
-            } else if config.llmProvider == "apple" {
-                return try await processWithAppleNative(
-                    text: text, prompt: config.llmPrompt
-                )
+            } else if provider == "apple" {
+                return try await processWithAppleNative(text: text, prompt: prompt)
             }
         } catch {
             print("[Sussurro] LLM Error: \(error)")
@@ -140,9 +150,11 @@ extension TranscriptionJob {
         return text
     }
 
+    // swiftlint:disable:next function_parameter_count
     func createProcessingTask(
         stream: AsyncStream<TranscriberProgress>,
         config: AppConfig,
+        template: DictationTemplate,
         format: String,
         outputURL: URL,
         inputURL: URL
@@ -151,21 +163,15 @@ extension TranscriptionJob {
             var fullConfirmedText = ""
             var currentWindowId = 0
             var currentWindowRawText = ""
-            
+
             for await progress in stream {
                 // If the window ID increases, the previous window is finalized.
                 if progress.windowId > currentWindowId {
                     var cleanedLast = self.cleanText(currentWindowRawText)
-                    
-                    // Apply replacements
-                    for (incorrect, correct) in config.replacements {
-                        cleanedLast = cleanedLast.replacingOccurrences(
-                            of: incorrect, with: correct, options: .caseInsensitive
-                        )
-                    }
-                    
+                    cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
+
                     if !cleanedLast.isEmpty {
-                        let processed = await Self.applyLLM(to: cleanedLast, config: config)
+                        let processed = await Self.applyLLM(to: cleanedLast, config: config, template: template)
                         fullConfirmedText += processed + "\n"
                         self.appendToFile(url: outputURL, text: processed)
                     }
@@ -176,38 +182,29 @@ extension TranscriptionJob {
                         currentWindowRawText = progress.text
                     }
                 }
-                
+
                 // UI update (words appearing incrementally in the app)
-                var cleanedCurrent = self.cleanText(progress.text)
-                for (incorrect, correct) in config.replacements {
-                    cleanedCurrent = cleanedCurrent.replacingOccurrences(
-                        of: incorrect, with: correct, options: .caseInsensitive
-                    )
-                }
-                
+                let cleanedCurrent = ReplacementRule.applyAll(
+                    self.cleanText(progress.text), rules: config.replacementRules
+                )
+
                 await MainActor.run {
                     if case .transcribing = self.state {
                         self.state = .transcribing(cleanedCurrent)
                     }
                 }
             }
-            
+
             // Stream ended. Process the very last window.
             var cleanedLast = self.cleanText(currentWindowRawText)
-            
-            // Apply replacements
-            for (incorrect, correct) in config.replacements {
-                cleanedLast = cleanedLast.replacingOccurrences(
-                    of: incorrect, with: correct, options: .caseInsensitive
-                )
-            }
-            
+            cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
+
             if !cleanedLast.isEmpty {
-                let processed = await Self.applyLLM(to: cleanedLast, config: config)
+                let processed = await Self.applyLLM(to: cleanedLast, config: config, template: template)
                 fullConfirmedText += processed + "\n"
                 self.appendToFile(url: outputURL, text: processed)
             }
-            
+
             return fullConfirmedText
         }
     }
@@ -217,45 +214,30 @@ actor SegmentProcessor {
     private var fullConfirmedText: String = ""
     private let outputURL: URL
     private let config: AppConfig
-    
-    init(outputURL: URL, config: AppConfig) {
+    private let template: DictationTemplate
+
+    init(outputURL: URL, config: AppConfig, template: DictationTemplate) {
         self.outputURL = outputURL
         self.config = config
+        self.template = template
     }
-    
+
     func processAndAppend(text: String, currentPending: String = "") async {
-        // Run LLM on the finalized segment
-        var processed = text
-        if config.enableLLMPostProcessing {
-            do {
-                if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
-                    processed = try await TranscriptionJob.processWithGemini(
-                        text: text, prompt: config.llmPrompt, apiKey: config.geminiKey, model: config.geminiModel
-                    )
-                } else if config.llmProvider == "openai", !config.openAIKey.isEmpty {
-                    processed = try await TranscriptionJob.processWithOpenAI(
-                        text: text, prompt: config.llmPrompt, apiKey: config.openAIKey, model: config.openAIModel
-                    )
-                }
-            } catch {
-                print("LLM Error: \(error)")
-                // Fallback to raw if LLM fails
-            }
-        }
-        
+        let processed = await TranscriptionJob.applyLLM(to: text, config: config, template: template)
+
         fullConfirmedText += processed + "\n"
-        
+
         let header = config.outputFormat == "md" ? "# \(outputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
         let content = header + fullConfirmedText + currentPending
         try? content.write(to: outputURL, atomically: true, encoding: .utf8)
     }
-    
+
     func updatePending(text: String) async {
         let header = config.outputFormat == "md" ? "# \(outputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
         let content = header + fullConfirmedText + text
         try? content.write(to: outputURL, atomically: true, encoding: .utf8)
     }
-    
+
     func getFullText() -> String {
         return fullConfirmedText
     }

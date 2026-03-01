@@ -28,6 +28,7 @@ final class IncrementalSavingTests: XCTestCase {
         let processingTask = job.createProcessingTask(
             stream: stream,
             config: config,
+            template: .raw,
             format: "txt",
             outputURL: outputURL,
             inputURL: inputURL

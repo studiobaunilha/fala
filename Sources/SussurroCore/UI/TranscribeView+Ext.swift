@@ -62,6 +62,16 @@ extension TranscribeView {
                 .padding(.vertical, Spacing.xs)
             }
 
+            Section("Modo de Processamento") {
+                Picker("Modo", selection: $job.selectedTemplate) {
+                    ForEach(DictationTemplate.allCases, id: \.self) { template in
+                        Label(template.rawValue, systemImage: template.icon)
+                            .tag(template)
+                    }
+                }
+                .disabled(isWorking)
+            }
+
             Section("Modelo & Qualidade") {
                 Picker("Modelo", selection: $job.overrideModel) {
                     Text("Usar Padrão do Sistema").tag(nil as String?)

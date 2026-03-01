@@ -17,7 +17,7 @@ public enum BatchMode {
         }
 
         let config = AppConfig.load()
-        let (outputFormat, modelName) = parseOptions(arguments, config: config)
+        let opts = parseOptions(arguments, config: config)
 
         // Convert to 16 kHz WAV if not already WAV.
         let wavURL: URL
@@ -40,8 +40,8 @@ public enum BatchMode {
         try await performTranscription(
             wavURL: wavURL,
             inputURL: inputURL,
-            modelName: modelName,
-            outputFormat: outputFormat
+            modelName: opts.model,
+            outputFormat: opts.format
         )
     }
 
@@ -72,25 +72,40 @@ public enum BatchMode {
         print("Done → \(outputURL.path)")
     }
 
-    /// Parses `--format` and `--model` flags from CLI arguments.
-    private static func parseOptions(_ arguments: [String], config: AppConfig) -> (format: String, model: String) {
-        var outputFormat = config.outputFormat
-        var modelName = config.batchModel
+    struct BatchOptions {
+        var format: String
+        var model: String
+        var template: DictationTemplate
+    }
+
+    /// Parses `--format`, `--model`, and `--mode` flags from CLI arguments.
+    private static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
+        var opts = BatchOptions(
+            format: config.outputFormat,
+            model: config.batchModel,
+            template: config.selectedDictationTemplate
+        )
         var idx = 1
         while idx < arguments.count {
             switch arguments[idx] {
             case "--format":
                 idx += 1
-                if idx < arguments.count { outputFormat = arguments[idx] }
+                if idx < arguments.count { opts.format = arguments[idx] }
             case "--model":
                 idx += 1
-                if idx < arguments.count { modelName = arguments[idx] }
+                if idx < arguments.count { opts.model = arguments[idx] }
+            case "--mode":
+                idx += 1
+                if idx < arguments.count,
+                   let parsed = DictationTemplate(rawValue: arguments[idx]) {
+                    opts.template = parsed
+                }
             default:
                 break
             }
             idx += 1
         }
-        return (outputFormat, modelName)
+        return opts
     }
 }
 
