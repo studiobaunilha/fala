@@ -15,8 +15,7 @@ public final class SettingsWindowController {
     public func show() {
         NSLog("[Sussurro] show() — window already exists: %d", window != nil ? 1 : 0)
         if let window {
-            NSApp.activate(ignoringOtherApps: true)
-            window.makeKeyAndOrderFront(nil)
+            WindowFactory.show(window)
             return
         }
         makeWindow()
@@ -24,27 +23,20 @@ public final class SettingsWindowController {
 
     private func makeWindow() {
         NSLog("[Sussurro] makeWindow() — creating SettingsView")
-        let hosting = NSHostingView(rootView: SettingsView(
+        let config = WindowConfig(
+            title: "Ajustes — Sussurro",
+            width: WindowSize.settingsWidth,
+            height: WindowSize.settingsHeight
+        )
+        
+        let win = WindowFactory.makeWindow(config: config, content: SettingsView(
             settings: settings,
             modelManager: settings.modelManager
         ))
-        hosting.sizingOptions = .preferredContentSize
-
-        let win = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 520),
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        win.title = "Ajustes — Sussurro"
-        win.contentView = hosting
-        win.center()
-        win.isReleasedWhenClosed = false
+        
         self.window = win
-
         NSLog("[Sussurro] makeWindow() — activating app and showing window")
-        NSApp.activate(ignoringOtherApps: true)
-        win.makeKeyAndOrderFront(nil)
+        WindowFactory.show(win)
         NSLog("[Sussurro] makeWindow() — done, isVisible=%d", win.isVisible ? 1 : 0)
     }
 }
