@@ -27,6 +27,7 @@ public final class SettingsWindowController {
             title: "Ajustes",
             width: WindowSize.settingsDefaultWidth,
             height: WindowSize.settingsDefaultHeight,
+            styleMask: [.titled, .closable, .miniaturizable],
             isResizable: true, // Crucial for NavigationSplitView
             minSize: NSSize(width: WindowSize.settingsMinWidth, height: WindowSize.settingsMinHeight),
             maxSize: NSSize(width: WindowSize.settingsMaxWidth, height: WindowSize.settingsMaxHeight),
@@ -38,7 +39,11 @@ public final class SettingsWindowController {
             settings: settings,
             modelManager: settings.modelManager
         ))
-        
+
+        // HIG: Settings windows show traffic lights but dim minimize/zoom
+        win.standardWindowButton(.miniaturizeButton)?.isEnabled = false
+        win.standardWindowButton(.zoomButton)?.isEnabled = false
+
         self.window = win
         NSLog("[Sussurro] makeWindow() — activating app and showing window")
         WindowFactory.show(win)

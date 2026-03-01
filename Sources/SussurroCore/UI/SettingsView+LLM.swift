@@ -5,158 +5,159 @@ extension SettingsView {
     var llmView: some View {
         Form {
             Section {
-                Toggle("Habilitar IA de Pós-processamento", isOn: $settings.enableLLMPostProcessing)
-                Toggle("Memória de Contexto Contínuo", isOn: $settings.enableContextBuffer)
+                Picker("Provedor Padrão", selection: $settings.llmProvider) {
+                    Text("Google Gemini").tag("gemini")
+                    Text("OpenAI").tag("openai")
+                    Text("Apple Intelligence (em breve)").tag("apple")
+                }
+            } header: {
+                Text("Provedor de IA")
             } footer: {
-                Text("Usa inteligência artificial para formatar e processar transcrições. " +
-                     "A memória de contexto melhora a coesão baseando-se em transcrições anteriores.")
+                Text("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
+            if settings.llmProvider == "gemini" {
+                geminiCredentialsSection
+            } else if settings.llmProvider == "openai" {
+                openAICredentialsSection
+            }
+
+            Section {
+                Toggle("Memória de Contexto Contínuo", isOn: $settings.enableContextBuffer)
+            } footer: {
+                Text("Mantém notas da IA sobre tom, assunto e vocabulário " +
+                     "para melhorar transcrições ao longo da sessão.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if settings.enableContextBuffer {
                 Section {
                     TextEditor(text: $contextManager.summary)
                         .font(.body)
                         .frame(minHeight: 100)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.2)))
-                    
+                        .scrollContentBackground(.hidden)
+                        .padding(Spacing.xs)
+                        .background(Color(nsColor: .textBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
+                                .stroke(Color(nsColor: .separatorColor))
+                        )
+
                     HStack {
                         Spacer()
                         Button("Limpar Memória") {
                             contextManager.clear()
                         }
+                        .disabled(contextManager.summary.isEmpty)
                     }
                 } header: {
                     Text("Memória de Contexto")
                 } footer: {
-                    Text("Este resumo é enviado junto com suas novas falas para manter o contexto.")
+                    Text("Notas da IA sobre a sessão atual. São usadas para refinar futuras transcrições.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                }
-            }
-            
-            if settings.enableLLMPostProcessing {
-                Section("Provedor de IA") {
-                    Picker("Provedor", selection: $settings.llmProvider) {
-                        Text("Google Gemini (Gratuito)").tag("gemini")
-                        Text("OpenAI").tag("openai")
-                        Text("Apple Intelligence / Local").tag("apple")
-                    }
-                    .pickerStyle(.menu)
-                }
-                
-                if settings.llmProvider != "apple" {
-                    Section("Credenciais") {
-                        if settings.llmProvider == "gemini" {
-                            LabeledContent("Chave API") {
-                                HStack(spacing: Spacing.sm) {
-                                    SecureField("Cole sua chave aqui", text: $settings.geminiKey)
-                                        .textFieldStyle(.roundedBorder)
-                                    
-                                    Button(action: {
-                                        Task { await testKey(provider: "gemini", key: settings.geminiKey) }
-                                    }, label: {
-                                        if isTestingKey {
-                                            ProgressView().controlSize(.small)
-                                        } else {
-                                            Text("Testar")
-                                        }
-                                    })
-                                    .disabled(settings.geminiKey.isEmpty || isTestingKey)
-                                }
-                            }
-                            .help("Sua chave do Google AI Studio")
-
-                            HStack {
-                                Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                if let url = URL(string: "https://aistudio.google.com/app/apikey") {
-                                    Link("Obter chave gratuita", destination: url)
-                                        .font(.caption)
-                                }
-                            }
-                            
-                            LabeledContent("Modelo:") {
-                                HStack(spacing: Spacing.xs) {
-                                    TextField("", text: $settings.geminiModel)
-                                        .textFieldStyle(.roundedBorder)
-                                    
-                                    Menu {
-                                        ForEach(availableGeminiModels, id: \.self) { model in
-                                            Button(model) {
-                                                settings.geminiModel = model
-                                            }
-                                        }
-                                    } label: {
-                                        Image(systemName: "chevron.up.chevron.down")
-                                            .font(.caption)
-                                    }
-                                    .frame(width: 16)
-                                    .disabled(availableGeminiModels.isEmpty)
-                                    .help("Selecionar modelo disponível")
-                                }
-                            }
-                        } else if settings.llmProvider == "openai" {
-                            LabeledContent("Chave API") {
-                                HStack(spacing: Spacing.sm) {
-                                    SecureField("Cole sua chave aqui", text: $settings.openAIKey)
-                                        .textFieldStyle(.roundedBorder)
-                                    
-                                    Button(action: {
-                                        Task { await testKey(provider: "openai", key: settings.openAIKey) }
-                                    }, label: {
-                                        if isTestingKey {
-                                            ProgressView().controlSize(.small)
-                                        } else {
-                                            Text("Testar")
-                                        }
-                                    })
-                                    .disabled(settings.openAIKey.isEmpty || isTestingKey)
-                                }
-                            }
-
-                            HStack {
-                                Text("A API da OpenAI requer saldo na sua conta de desenvolvedor.")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                if let url = URL(string: "https://platform.openai.com/api-keys") {
-                                    Link("Obter chave", destination: url)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                Section {
-                    Text("Para configurar os prompts de sistema (instruções) para cada modo (Limpar, Tópicos, etc.), " +
-                         "acesse a aba 'Modos' na barra lateral.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    NavigationLink("Ir para Configuração de Modos") {
-                        // This navigation link pushes a view, but we are in a split view detail.
-                        // Ideally we switch selection. But we can't easily switch selection from here without binding.
-                        // Just showing text is enough.
-                        Text("Selecione 'Modos' na barra lateral.")
-                    }
-                    .hidden() // Hack to just keep the section valid? No, just remove NavLink
-                } header: {
-                    Text("Instruções de Prompt")
                 }
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Pós-processamento (IA)")
+        .navigationTitle("IA & LLM")
         .alert("Resultado do Teste", isPresented: $showTestKeyAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             if let result = testKeyResult {
                 Text(result)
+            }
+        }
+    }
+
+    private var geminiCredentialsSection: some View {
+        Section("Credenciais — Gemini") {
+            LabeledContent("Chave API") {
+                HStack(spacing: Spacing.sm) {
+                    SecureField("Cole sua chave aqui", text: $settings.geminiKey)
+                        .textFieldStyle(.roundedBorder)
+
+                    Button(action: {
+                        Task { await testKey(provider: "gemini", key: settings.geminiKey) }
+                    }, label: {
+                        if isTestingKey {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text("Testar")
+                        }
+                    })
+                    .disabled(settings.geminiKey.isEmpty || isTestingKey)
+                }
+            }
+            .help("Sua chave do Google AI Studio")
+
+            HStack {
+                Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if let url = URL(string: "https://aistudio.google.com/app/apikey") {
+                    Link("Obter chave gratuita", destination: url)
+                        .font(.caption)
+                }
+            }
+
+            LabeledContent("Modelo") {
+                HStack(spacing: Spacing.xs) {
+                    TextField("", text: $settings.geminiModel)
+                        .textFieldStyle(.roundedBorder)
+
+                    Menu {
+                        ForEach(availableGeminiModels, id: \.self) { model in
+                            Button(model) {
+                                settings.geminiModel = model
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption)
+                    }
+                    .frame(width: 16)
+                    .disabled(availableGeminiModels.isEmpty)
+                    .help("Selecionar modelo disponível")
+                }
+            }
+        }
+    }
+
+    private var openAICredentialsSection: some View {
+        Section("Credenciais — OpenAI") {
+            LabeledContent("Chave API") {
+                HStack(spacing: Spacing.sm) {
+                    SecureField("Cole sua chave aqui", text: $settings.openAIKey)
+                        .textFieldStyle(.roundedBorder)
+
+                    Button(action: {
+                        Task { await testKey(provider: "openai", key: settings.openAIKey) }
+                    }, label: {
+                        if isTestingKey {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text("Testar")
+                        }
+                    })
+                    .disabled(settings.openAIKey.isEmpty || isTestingKey)
+                }
+            }
+
+            HStack {
+                Text("A API da OpenAI requer saldo na sua conta de desenvolvedor.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                if let url = URL(string: "https://platform.openai.com/api-keys") {
+                    Link("Obter chave", destination: url)
+                        .font(.caption)
+                }
             }
         }
     }

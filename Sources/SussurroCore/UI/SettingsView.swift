@@ -23,10 +23,10 @@ public final class AppSettings: ObservableObject {
     @Published public var batchTemperature: Float
     @Published public var customDictionary: [String]
     @Published public var replacements: [String: String]
+    @Published public var replacementRules: [ReplacementRule]
     @Published public var defaultExportPath: String
     @Published public var enableDiarization: Bool
     
-    @Published public var enableLLMPostProcessing: Bool
     @Published public var enableContextBuffer: Bool
     @Published public var selectedDictationTemplate: DictationTemplate
     @Published public var llmProvider: String
@@ -71,9 +71,9 @@ public final class AppSettings: ObservableObject {
         self.batchTemperature = config.batchTemperature
         self.customDictionary = config.customDictionary
         self.replacements = config.replacements
+        self.replacementRules = config.replacementRules
         self.defaultExportPath = config.defaultExportPath
         self.enableDiarization = config.enableDiarization
-        self.enableLLMPostProcessing = config.enableLLMPostProcessing
         self.enableContextBuffer = config.enableContextBuffer
         self.selectedDictationTemplate = config.selectedDictationTemplate
         self.llmProvider = config.llmProvider
@@ -97,9 +97,9 @@ public final class AppSettings: ObservableObject {
         config.batchTemperature = batchTemperature
         config.customDictionary = customDictionary
         config.replacements = replacements
+        config.replacementRules = replacementRules
         config.defaultExportPath = defaultExportPath
         config.enableDiarization = enableDiarization
-        config.enableLLMPostProcessing = enableLLMPostProcessing
         config.enableContextBuffer = enableContextBuffer
         config.selectedDictationTemplate = selectedDictationTemplate
         config.llmProvider = llmProvider
@@ -142,19 +142,22 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
     case models = "Modelos"
     case advanced = "Avançado"
     case llm = "IA & LLM"
-    case modes = "Modos"
     
     var id: String { self.rawValue }
     
     var icon: String {
         switch self {
-        case .general: return "gear"
+        case .general: return "gearshape"
         case .models: return "cpu"
-        case .advanced: return "slider.horizontal.3"
+        case .advanced: return "gearshape.2"
         case .llm: return "wand.and.stars"
-        case .modes: return "list.bullet.rectangle"
         }
     }
+}
+
+enum SettingsSelection: Hashable {
+    case panel(SettingsPanel)
+    case template(DictationTemplate)
 }
 
 // MARK: – Settings View
@@ -163,7 +166,7 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
     @ObservedObject var contextManager = ContextManager.shared
-    @State private var selection: SettingsPanel? = .general
+    @State private var selection: SettingsSelection? = .panel(.general)
     @State var newWord: String = ""
     @State var newIncorrect: String = ""
     @State var newCorrect: String = ""
@@ -179,26 +182,48 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                ForEach(SettingsPanel.allCases) { panel in
-                    Label(panel.rawValue, systemImage: panel.icon)
-                        .tag(panel)
+                Section {
+                    ForEach(SettingsPanel.allCases) { panel in
+                        Label(panel.rawValue, systemImage: panel.icon)
+                            .tag(SettingsSelection.panel(panel))
+                    }
+                }
+                
+                Section("Modos") {
+                    ForEach(DictationTemplate.allCases.filter { !$0.isCreativeMode }, id: \.self) { template in
+                        Label(template.rawValue, systemImage: template.icon)
+                            .tag(SettingsSelection.template(template))
+                    }
+                }
+
+                Section("Prompts Criativos") {
+                    ForEach(DictationTemplate.allCases.filter { $0.isCreativeMode }, id: \.self) { template in
+                        Label(template.rawValue, systemImage: template.icon)
+                            .tag(SettingsSelection.template(template))
+                    }
                 }
             }
-            .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 250)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
             .listStyle(.sidebar)
         } detail: {
-            switch selection {
-            case .general:
-                generalView
-            case .models:
-                modelsView
-            case .advanced:
-                advancedView
-            case .llm:
-                llmView
-            case .modes:
-                modesView
-            case .none:
+            if let selection {
+                switch selection {
+                case .panel(let panel):
+                    switch panel {
+                    case .general:
+                        generalView
+                    case .models:
+                        modelsView
+                    case .advanced:
+                        advancedView
+                    case .llm:
+                        llmView
+                    }
+                case .template(let template):
+                    ModeDetailView(template: template, settings: settings)
+                        .id(template)
+                }
+            } else {
                 Text("Selecione um painel à esquerda")
                     .foregroundColor(.secondary)
             }
@@ -219,13 +244,13 @@ extension View {
             .onChange(of: settings.batchTemperature) { settings.save() }
             .onChange(of: settings.customDictionary) { settings.save() }
             .onChange(of: settings.replacements) { settings.save() }
+            .onChange(of: settings.replacementRules) { settings.save() }
             .observeMoreSettingsChanges(settings)
     }
     
     func observeMoreSettingsChanges(_ settings: AppSettings) -> some View {
         self
             .onChange(of: settings.enableDiarization) { settings.save() }
-            .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
             .onChange(of: settings.enableContextBuffer) { settings.save() }
             .onChange(of: settings.selectedDictationTemplate) { settings.save() }
             .onChange(of: settings.llmProvider) { settings.save() }

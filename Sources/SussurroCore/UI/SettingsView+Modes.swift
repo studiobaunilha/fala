@@ -1,78 +1,178 @@
 import SwiftUI
 
-extension SettingsView {
-    
-    var modesView: some View {
-        List {
-            ForEach(DictationTemplate.allCases, id: \.self) { template in
-                NavigationLink(destination: ModeDetailView(template: template, settings: settings)) {
-                    Label(template.rawValue, systemImage: template.icon)
-                }
-            }
-        }
-        .navigationTitle("Modos de Ditado")
-    }
-}
-
 struct ModeDetailView: View {
     let template: DictationTemplate
     @ObservedObject var settings: AppSettings
-    
+
     // Local state for editing
     @State private var provider: String = "global"
     @State private var model: String = ""
     @State private var prompt: String = ""
-    
+    @State private var showRestoreConfirmation = false
+    @State private var saveTask: Task<Void, Never>?
+
     // Available providers
-    let providers = [
-        ("global", "Usar Global"),
-        ("apple", "Apple Intelligence"),
+    private let providers = [
+        ("global", "Usar Padrão Global"),
         ("gemini", "Google Gemini"),
-        ("openai", "OpenAI GPT")
+        ("openai", "OpenAI GPT"),
+        ("apple", "Apple Intelligence (em breve)")
     ]
-    
+
+    private var effectiveProviderName: String {
+        if provider == "global" {
+            let globalProvider = settings.llmProvider
+            let name = providers.first { $0.0 == globalProvider }?.1 ?? globalProvider
+            return name
+        }
+        return providers.first { $0.0 == provider }?.1 ?? provider
+    }
+
+    private var isPromptModified: Bool {
+        prompt != (template.defaultSystemPrompt ?? "")
+    }
+
     var body: some View {
         Form {
-            Section("Configuração do Modelo") {
-                Picker("Provedor LLM", selection: $provider) {
-                    ForEach(providers, id: \.0) { key, name in
-                        Text(name).tag(key)
-                    }
+            descriptionSection
+
+            if template.requiresLLM {
+                providerSection
+                promptSection
+            } else {
+                noLLMSection
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle(template.rawValue)
+        .onAppear { loadConfig() }
+        .confirmationDialog(
+            "Restaurar prompt padrão?",
+            isPresented: $showRestoreConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Restaurar Padrão", role: .destructive) {
+                restoreDefault()
+            }
+            Button("Cancelar", role: .cancel) { }
+        } message: {
+            Text("O prompt customizado será substituído pelo padrão deste modo. Esta ação não pode ser desfeita.")
+        }
+    }
+
+    // MARK: - Sections
+
+    private var descriptionSection: some View {
+        Section {
+            Label {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(template.rawValue)
+                        .font(.headline)
+                    Text(template.modeDescription)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
-                .onChange(of: provider) { updateConfig() }
-                
-                if provider != "global" && provider != "apple" {
-                    TextField("Nome do Modelo (Opcional)", text: $model)
-                        .onChange(of: model) { updateConfig() }
-                    Text("Deixe em branco para usar o padrão do provedor.")
-                        .font(.caption)
+            } icon: {
+                Image(systemName: template.icon)
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: 28)
+            }
+            .padding(.vertical, Spacing.xs)
+        }
+    }
+
+    private var providerSection: some View {
+        Section {
+            Picker("Provedor LLM", selection: $provider) {
+                ForEach(providers, id: \.0) { key, name in
+                    Text(name).tag(key)
+                }
+            }
+            .onChange(of: provider) { debouncedSave() }
+
+            if provider == "global" {
+                LabeledContent("Provedor atual") {
+                    Text(effectiveProviderName)
                         .foregroundStyle(.secondary)
                 }
             }
-            
-            Section("Prompt do Sistema") {
-                TextEditor(text: $prompt)
-                    .frame(minHeight: 150)
-                    .font(.body.monospaced())
-                    .onChange(of: prompt) { updateConfig() }
-                
-                Button("Restaurar Padrão") {
-                    restoreDefault()
-                }
-                .disabled(prompt == (template.defaultSystemPrompt ?? ""))
+
+            if provider != "global" && provider != "apple" {
+                TextField("Modelo", text: $model, prompt: Text("Padrão do provedor"))
+                    .onChange(of: model) { debouncedSave() }
             }
-            
-            Section("Informações") {
-                LabeledContent("Padrão Original", value: template.defaultSystemPrompt ?? "Nenhum")
-                    .font(.caption)
+        } header: {
+            Text("Modelo")
+        } footer: {
+            Text("Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var promptSection: some View {
+        Section {
+            TextEditor(text: $prompt)
+                .frame(minHeight: 150)
+                .font(.body.monospaced())
+                .scrollContentBackground(.hidden)
+                .padding(Spacing.xs)
+                .background(Color(nsColor: .textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .stroke(Color(nsColor: .separatorColor))
+                )
+                .onChange(of: prompt) { debouncedSave() }
+
+            HStack {
+                Button("Restaurar Padrão") {
+                    if isPromptModified {
+                        showRestoreConfirmation = true
+                    }
+                }
+                .disabled(!isPromptModified)
+
+                Spacer()
+
+                if isPromptModified {
+                    Label("Modificado", systemImage: "pencil.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
+        } header: {
+            Text("Prompt do Sistema")
+        } footer: {
+            Text("Instruções enviadas ao LLM para processar a transcrição neste modo.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var noLLMSection: some View {
+        Section {
+            Label {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("Sem pós-processamento")
+                        .font(.body)
+                    Text("Este modo não utiliza IA. O texto é inserido diretamente do Whisper.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "bolt.horizontal")
                     .foregroundStyle(.secondary)
             }
+            .padding(.vertical, Spacing.xs)
+        } header: {
+            Text("Processamento")
         }
-        .padding()
-        .navigationTitle(template.rawValue)
-        .onAppear { loadConfig() }
     }
-    
+
+    // MARK: - Logic
+
     private func loadConfig() {
         if let config = settings.modeConfigs[template.rawValue] {
             self.provider = config.provider ?? "global"
@@ -84,28 +184,34 @@ struct ModeDetailView: View {
             self.prompt = template.defaultSystemPrompt ?? ""
         }
     }
-    
-    private func updateConfig() {
+
+    private func debouncedSave() {
+        saveTask?.cancel()
+        saveTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(500))
+            guard !Task.isCancelled else { return }
+            persistConfig()
+        }
+    }
+
+    private func persistConfig() {
         var config = settings.modeConfigs[template.rawValue] ?? ModeConfig()
-        
+
         config.provider = (provider == "global") ? nil : provider
         config.model = model.isEmpty ? nil : model
-        
-        // If prompt is same as default, store nil? Or store it explicitly?
-        // Storing explicitly allows user to revert to default if they want, but if we store nil we fallback to code default which might update in future versions.
-        // Let's store explicitly only if different.
+
         if prompt == template.defaultSystemPrompt {
             config.prompt = nil
         } else {
             config.prompt = prompt
         }
-        
+
         settings.modeConfigs[template.rawValue] = config
         settings.save()
     }
-    
+
     private func restoreDefault() {
         prompt = template.defaultSystemPrompt ?? ""
-        updateConfig()
+        persistConfig()
     }
 }

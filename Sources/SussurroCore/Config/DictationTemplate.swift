@@ -58,4 +58,33 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     public var requiresLLM: Bool {
         return self != .raw && self != .translate
     }
+
+    public var modeDescription: String {
+        switch self {
+        case .raw:
+            return "Transcrição direta sem processamento. O texto do Whisper é inserido como está."
+        case .clean:
+            return "Corrige pontuação, gramática e capitalização mantendo o conteúdo original."
+        case .translate:
+            return "Transcreve o áudio e traduz o resultado para inglês via Whisper."
+        case .bullets:
+            return "Organiza a transcrição em tópicos (bullet points) formatados em Markdown."
+        case .summary:
+            return "Condensa a transcrição em um resumo conciso dos pontos principais."
+        case .promptDev:
+            return "Converte sua fala em um prompt técnico estruturado para LLMs de código."
+        case .promptImage:
+            return "Transforma descrições faladas em prompts detalhados para Midjourney/DALL-E."
+        case .promptVideo:
+            return "Gera prompts estruturados para ferramentas de vídeo como Sora e Runway."
+        }
+    }
+
+    /// Whether this is a creative/prompt-generation mode (vs. a basic transcription mode).
+    public var isCreativeMode: Bool {
+        switch self {
+        case .promptDev, .promptImage, .promptVideo: return true
+        default: return false
+        }
+    }
 }
