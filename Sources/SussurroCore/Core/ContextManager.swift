@@ -1,10 +1,11 @@
 import Foundation
+import Combine
 
 @MainActor
-public final class ContextManager {
+public final class ContextManager: ObservableObject {
     public static let shared = ContextManager()
     
-    private var summary: String = ""
+    @Published public var summary: String = ""
     
     private init() {}
     
