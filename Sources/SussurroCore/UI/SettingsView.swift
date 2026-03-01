@@ -155,6 +155,9 @@ struct SettingsView: View {
     @State var isTestingKey = false
     @State var testKeyResult: String?
     @State var showTestKeyAlert = false
+    @State var availableGeminiModels: [String] = [
+        "gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"
+    ]
 
     var body: some View {
         NavigationSplitView {

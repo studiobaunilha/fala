@@ -184,7 +184,7 @@ extension SettingsView {
                         }
 
                         HStack {
-                            Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
+                            Text("A API do Gemini é rápida e possui um nível gratuito generoso.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()
@@ -192,6 +192,22 @@ extension SettingsView {
                                 Link("Obter chave gratuita", destination: url)
                                     .font(.caption)
                             }
+                        }
+                        
+                        HStack {
+                            TextField("Modelo:", text: $settings.geminiModel)
+                                .textFieldStyle(.roundedBorder)
+                            
+                            Menu {
+                                ForEach(availableGeminiModels, id: \.self) { model in
+                                    Button(model) {
+                                        settings.geminiModel = model
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "chevron.down")
+                            }
+                            .disabled(availableGeminiModels.isEmpty)
                         }
                     } else {
                         HStack {
@@ -308,7 +324,8 @@ extension SettingsView {
         if let json = try JSONSerialization.jsonObject(with: listData) as? [String: Any],
            let models = json["models"] as? [[String: Any]] {
             let names = models.compactMap { ($0["name"] as? String)?.components(separatedBy: "/").last }
-            testKeyResult = "Chave válida. Modelos disponíveis:\n" + names.prefix(5).joined(separator: ", ")
+            self.availableGeminiModels = names
+            testKeyResult = "Chave válida. Lista de modelos atualizada."
         } else {
             testKeyResult = "Chave válida, mas erro ao listar modelos."
         }
