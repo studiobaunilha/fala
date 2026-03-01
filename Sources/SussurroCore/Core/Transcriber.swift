@@ -21,7 +21,10 @@ public actor Transcriber: AudioTranscribing {
     /// Loads the model if not already loaded. Safe to call multiple times.
     public func loadIfNeeded() async throws {
         guard pipe == nil else { return }
-        pipe = try await WhisperKit(model: modelName)
+        // Resolve short id (e.g. "large-v3-turbo") to full variant name
+        // (e.g. "openai_whisper-large-v3_turbo") that WhisperKit expects.
+        let variant = knownModels.first { $0.id == modelName }?.variant ?? modelName
+        pipe = try await WhisperKit(model: variant)
     }
 
     /// Updates the active model. Resets the pipeline so it reloads on next use.
