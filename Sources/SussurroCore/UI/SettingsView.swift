@@ -108,76 +108,58 @@ public final class AppSettings: ObservableObject {
     }
 }
 
+// MARK: – View Components
+
+enum SettingsPanel: String, CaseIterable, Identifiable {
+    case general = "Geral"
+    case models = "Modelos"
+    case advanced = "Avançado"
+    case llm = "IA & LLM"
+    
+    var id: String { self.rawValue }
+    
+    var icon: String {
+        switch self {
+        case .general: return "gear"
+        case .models: return "cpu"
+        case .advanced: return "slider.horizontal.3"
+        case .llm: return "wand.and.stars"
+        }
+    }
+}
+
 // MARK: – Settings View
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
+    @State private var selection: SettingsPanel? = .general
 
     var body: some View {
-        Form {
-            Section("Atalho") {
-                KeyboardShortcuts.Recorder("Ditado", name: .startDictation)
-            }
-
-            Section("Modelos") {
-                ForEach(knownModels) { model in
-                    ModelRow(
-                        model: model,
-                        manager: modelManager,
-                        isDictation: settings.dictationModel == model.id,
-                        isBatch: settings.batchModel == model.id
-                    )
+        NavigationSplitView {
+            List(selection: $selection) {
+                ForEach(SettingsPanel.allCases) { panel in
+                    Label(panel.rawValue, systemImage: panel.icon)
+                        .tag(panel)
                 }
             }
-
-            Section("Modelo Ativo") {
-                downloadedModelPicker("Ditado", selection: $settings.dictationModel)
-                downloadedModelPicker("Batch / CLI", selection: $settings.batchModel)
-                Picker("Idioma", selection: $settings.language) {
-                    ForEach(AppSettings.languages) { lang in
-                        Text(lang.name).tag(lang.id)
-                    }
-                }
-            }
-            
-            Section("Avançado (Transcriber)") {
-                VStack(alignment: .leading) {
-                    Text("Temperatura (Ditado: \(settings.dictationTemperature, specifier: "%.1f"))")
-                    Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
-                    Text("Temperatura (Batch: \(settings.batchTemperature, specifier: "%.1f"))")
-                    Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
-                }
-                
-                TextField(
-                    "Dicionário Customizado (Prompt)",
-                    text: $settings.customDictionary
-                )
-                .textFieldStyle(.roundedBorder)
-                .help("Palavras ou termos específicos para priorizar no reconhecimento.")
-                
-                Toggle("Reconhecer Locutores (Diarization)", isOn: $settings.enableDiarization)
-                    .help("Reconhece múltiplos locutores (Apenas Batch). Pode ser mais lento.")
-                
-                HStack {
-                    TextField("Salvar em", text: $settings.defaultExportPath)
-                        .disabled(true)
-                    Button("Alterar...") { settings.selectExportPath() }
-                }
-            }
-            
-            Section("Pós-Processamento LLM") {
-                Toggle("Habilitar Correção com LLM", isOn: $settings.enableLLMPostProcessing)
-                if settings.enableLLMPostProcessing {
-                    SecureField("OpenAI API Key", text: $settings.openAIKey)
-                        .textFieldStyle(.roundedBorder)
-                    TextField("Prompt do LLM", text: $settings.llmPrompt, axis: .vertical)
-                        .lineLimit(3...6)
-                        .textFieldStyle(.roundedBorder)
-                }
+            .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 250)
+            .listStyle(.sidebar)
+        } detail: {
+            switch selection {
+            case .general:
+                generalView
+            case .models:
+                modelsView
+            case .advanced:
+                advancedView
+            case .llm:
+                llmView
+            case .none:
+                Text("Selecione um painel à esquerda")
+                    .foregroundColor(.secondary)
             }
         }
-        .formStyle(.grouped)
         .frame(minWidth: WindowSize.settingsWidth, minHeight: WindowSize.settingsHeight)
         .onChange(of: settings.dictationModel) { settings.save() }
         .onChange(of: settings.batchModel) { settings.save() }
@@ -189,6 +171,135 @@ struct SettingsView: View {
         .onChange(of: settings.enableLLMPostProcessing) { settings.save() }
         .onChange(of: settings.llmPrompt) { settings.save() }
         .onChange(of: settings.openAIKey) { settings.save() }
+    }
+    
+    // MARK: - Painéis Nativos
+    
+    private var generalView: some View {
+        Form {
+            Section {
+                KeyboardShortcuts.Recorder("Atalho de Ditado", name: .startDictation)
+            } header: {
+                Text("Atalhos do Sistema")
+            } footer: {
+                Text("Pressione o atalho global para iniciar o ditado de qualquer lugar.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Section("Idioma Padrão") {
+                Picker("Idioma", selection: $settings.language) {
+                    ForEach(AppSettings.languages) { lang in
+                        Text(lang.name).tag(lang.id)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+            
+            Section("Armazenamento") {
+                HStack {
+                    TextField("Salvar Transcrições", text: $settings.defaultExportPath)
+                        .disabled(true)
+                    Button("Alterar...") { settings.selectExportPath() }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle("Ajustes Gerais")
+    }
+    
+    private var modelsView: some View {
+        Form {
+            Section {
+                downloadedModelPicker("Modelo de Ditado", selection: $settings.dictationModel)
+                downloadedModelPicker("Modelo Batch / Arquivo", selection: $settings.batchModel)
+            } header: {
+                Text("Modelos Ativos")
+            } footer: {
+                Text("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Downloads Disponíveis") {
+                ForEach(knownModels) { model in
+                    ModelRow(
+                        model: model,
+                        manager: modelManager,
+                        isDictation: settings.dictationModel == model.id,
+                        isBatch: settings.batchModel == model.id
+                    )
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle("Gerenciador de Modelos")
+    }
+    
+    private var advancedView: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Temperatura Ditado (\(settings.dictationTemperature, specifier: "%.1f"))")
+                    Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
+                }
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Temperatura Batch (\(settings.batchTemperature, specifier: "%.1f"))")
+                    Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
+                }
+            } header: {
+                Text("Acurácia vs. Velocidade")
+            } footer: {
+                Text("Zero significa alta acurácia (Greedy Decoding).")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Section {
+                TextField("Palavras customizadas...", text: $settings.customDictionary, axis: .vertical)
+                    .lineLimit(3...6)
+                    .textFieldStyle(.roundedBorder)
+            } header: {
+                Text("Dicionário (Initial Prompt)")
+            } footer: {
+                Text("Termos específicos, siglas ou gírias para priorizar.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Section("Diarization (Identificação de Vozes)") {
+                Toggle("Reconhecer múltiplos locutores", isOn: $settings.enableDiarization)
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle("Avançado")
+    }
+    
+    private var llmView: some View {
+        Form {
+            Section {
+                Toggle("Habilitar Correção com LLM", isOn: $settings.enableLLMPostProcessing)
+            } footer: {
+                Text("Usa inteligência artificial (OpenAI) para corrigir pontuação e falhas.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            if settings.enableLLMPostProcessing {
+                Section("Credenciais") {
+                    SecureField("OpenAI API Key", text: $settings.openAIKey)
+                        .textFieldStyle(.roundedBorder)
+                }
+                
+                Section("Instrução (Prompt)") {
+                    TextField("Como o LLM deve se comportar?", text: $settings.llmPrompt, axis: .vertical)
+                        .lineLimit(4...8)
+                        .textFieldStyle(.roundedBorder)
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle("Pós-processamento")
     }
 
     @ViewBuilder
@@ -202,6 +313,7 @@ struct SettingsView: View {
                 Text("\(model.label)  \(model.estimatedSize)").tag(model.id)
             }
         }
+        .pickerStyle(.menu)
     }
 }
 
@@ -222,14 +334,17 @@ private struct ModelRow: View {
             VStack(alignment: .leading, spacing: Spacing.xxs) {
                 HStack(spacing: Spacing.sm) {
                     Text(model.label)
+                        .font(.body)
                     if isDownloaded {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(SussurroColors.success)
-                            .font(Typography.caption)
+                            .foregroundStyle(Color.green)
+                            .font(.caption)
                     }
                 }
                 HStack(spacing: Spacing.md) {
-                    Text(sizeLabel).font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
+                    Text(sizeLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     if isDictation {
                         RoleBadge.dictation
                     }
@@ -246,8 +361,8 @@ private struct ModelRow: View {
                     .frame(width: 80)
                     .controlSize(.small)
                 Text("\(Int(progress * 100))%")
-                    .font(Typography.caption).monospacedDigit()
-                    .foregroundStyle(SussurroColors.textSecondary)
+                    .font(.caption).monospacedDigit()
+                    .foregroundStyle(.secondary)
                     .frame(width: 32, alignment: .trailing)
             } else if isDownloaded {
                 Button(role: .destructive) {
@@ -268,7 +383,7 @@ private struct ModelRow: View {
                 .help("Baixar modelo")
             }
         }
-        .padding(.vertical, Spacing.xxs)
+        .padding(.vertical, Spacing.xs)
     }
 
     private var sizeLabel: String {

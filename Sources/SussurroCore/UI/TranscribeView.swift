@@ -211,7 +211,7 @@ struct TranscribeView: View {
                         Text("Salvar em:")
                         Spacer()
                         Text(job.outputDirectory?.lastPathComponent ?? "Mesma Pasta")
-                            .foregroundColor(SussurroColors.textSecondary)
+                            .foregroundColor(.secondary)
                         Button("Alterar...") { job.selectOutputDirectory() }
                             .disabled(isWorking)
                     }
@@ -243,8 +243,8 @@ struct TranscribeView: View {
                 StatusBanner(message: "Transcrevendo…")
                 if !progressText.isEmpty {
                     Text(progressText)
-                        .font(Typography.caption)
-                        .foregroundColor(SussurroColors.textSecondary)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                         .lineLimit(3)
                         .truncationMode(.tail)
                         .padding(.horizontal, Spacing.sm)
@@ -257,9 +257,10 @@ struct TranscribeView: View {
         case .done(let path):
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Label("Concluído", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(SussurroColors.success)
+                    .foregroundStyle(Color.green)
                 Text(path)
-                    .font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                     .textSelection(.enabled)
                 HStack {
                     Button("Mostrar no Finder") { job.revealInFinder() }
@@ -274,9 +275,10 @@ struct TranscribeView: View {
         case .error(let message):
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Label("Erro", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(SussurroColors.error)
+                    .foregroundStyle(Color.red)
                 Text(message)
-                    .font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Button("Tentar Novamente") {
                     withAnimation(AnimationConfig.standard) {
                         job.state = .idle
