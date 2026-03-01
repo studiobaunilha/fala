@@ -72,7 +72,15 @@ public enum WindowFactory {
         // Remove forced dark mode to respect macOS Light/Dark system preferences
         window.appearance = nil
         
-        window.contentView = NSHostingView(rootView: content)
+        let constrainedContent = content
+            .frame(
+                minWidth: config.minSize?.width,
+                maxWidth: config.maxSize?.width == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.width,
+                minHeight: config.minSize?.height,
+                maxHeight: config.maxSize?.height == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.height
+            )
+        
+        window.contentView = NSHostingView(rootView: constrainedContent)
         
         return window
     }
