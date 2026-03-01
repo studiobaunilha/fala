@@ -149,46 +149,32 @@ extension TranscriptionJob {
     ) -> Task<String, Never> {
         Task {
             var fullConfirmedText = ""
-            var lastCleanedText = ""
-            var currentWindowId = 0
+            var currentWindowStartToken = ""
+            var currentWindowRawText = ""
             
             for await progress in stream {
-                let cleanedCurrent = self.cleanText(progress.text)
-                var isNewWindow = false
+                let startToken = self.extractStartTimestamp(progress.text)
                 
-                if !lastCleanedText.isEmpty && !cleanedCurrent.isEmpty {
-                    if cleanedCurrent.count <= lastCleanedText.count / 2 {
-                        isNewWindow = true
-                    } else {
-                        let prefixLen = min(10, min(cleanedCurrent.count, lastCleanedText.count))
-                        let currPrefix = cleanedCurrent.prefix(prefixLen).lowercased()
-                        let lastPrefix = lastCleanedText.prefix(prefixLen).lowercased()
-                        if currPrefix != lastPrefix {
-                            isNewWindow = true
-                        }
-                    }
-                }
-                
-                if progress.windowId > 0 && progress.windowId > currentWindowId {
-                    isNewWindow = true
-                }
-                
-                if isNewWindow {
-                    if !lastCleanedText.isEmpty {
-                        let processed = await Self.applyLLM(to: lastCleanedText, config: config)
+                if let start = startToken, !currentWindowStartToken.isEmpty, start != currentWindowStartToken {
+                    // Window shifted! Process and append the PREVIOUS window.
+                    let cleanedLast = self.cleanText(currentWindowRawText)
+                    if !cleanedLast.isEmpty {
+                        let processed = await Self.applyLLM(to: cleanedLast, config: config)
                         fullConfirmedText += processed + "\n"
+                        self.appendToFile(url: outputURL, text: processed)
                     }
-                    currentWindowId = max(currentWindowId, progress.windowId)
+                    currentWindowStartToken = start
+                    currentWindowRawText = progress.text
+                } else {
+                    if currentWindowStartToken.isEmpty, let start = startToken {
+                        currentWindowStartToken = start
+                    }
+                    if !progress.text.isEmpty {
+                        currentWindowRawText = progress.text
+                    }
                 }
                 
-                if !progress.text.isEmpty {
-                    lastCleanedText = cleanedCurrent
-                }
-                
-                let header = format == "md" ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
-                let content = header + fullConfirmedText + cleanedCurrent
-                self.overwriteFile(url: outputURL, text: content)
-                
+                let cleanedCurrent = self.cleanText(progress.text)
                 await MainActor.run {
                     if case .transcribing = self.state {
                         self.state = .transcribing(cleanedCurrent)
@@ -196,12 +182,13 @@ extension TranscriptionJob {
                 }
             }
             
-            if !lastCleanedText.isEmpty {
-                let processed = await Self.applyLLM(to: lastCleanedText, config: config)
+            let cleanedLast = self.cleanText(currentWindowRawText)
+            if !cleanedLast.isEmpty {
+                let processed = await Self.applyLLM(to: cleanedLast, config: config)
                 fullConfirmedText += processed + "\n"
-                let header = format == "md" ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n" : ""
-                self.overwriteFile(url: outputURL, text: header + fullConfirmedText)
+                self.appendToFile(url: outputURL, text: processed)
             }
+            
             return fullConfirmedText
         }
     }
