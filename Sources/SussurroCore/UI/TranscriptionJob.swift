@@ -20,6 +20,13 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var state: TranscriptionState = .idle
     @Published public var outputFormat: String
     @Published public var outputDirectory: URL?
+    
+    // Per-job overrides
+    @Published public var overrideModel: String?
+    @Published public var overrideLanguage: String?
+    @Published public var enableDiarization: Bool
+    
+    private var currentTask: Task<Void, Never>?
 
     public init() {
         let config = AppConfig.load()
@@ -27,6 +34,7 @@ public final class TranscriptionJob: ObservableObject {
         if !config.defaultExportPath.isEmpty {
             self.outputDirectory = URL(fileURLWithPath: config.defaultExportPath)
         }
+        self.enableDiarization = config.enableDiarization
     }
 
     public func selectFile() {
@@ -56,26 +64,33 @@ public final class TranscriptionJob: ObservableObject {
         let ext = inputURL.pathExtension.lowercased()
         let config = AppConfig.load()
         let format = outputFormat
-        let modelName = config.batchModel
+        
+        // Resolve effective parameters
+        let effectiveModel = overrideModel ?? config.batchModel
+        let effectiveLanguage = overrideLanguage ?? config.language
+        // Assuming diarization needs an extra setup which you'll pass down in a future refactor to the transcriber
+        // let effectiveDiarization = enableDiarization
 
         withAnimation(AnimationConfig.standard) {
             state = ext == "wav" ? .transcribing("") : .converting
         }
 
-        Task {
+        currentTask = Task {
             do {
+                try Task.checkCancellation()
                 let (wavURL, needsCleanup) = try await prepareAudio(from: inputURL, ext: ext)
                 defer {
                     if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
                 }
 
+                try Task.checkCancellation()
                 await MainActor.run {
                     withAnimation(AnimationConfig.standard) { state = .transcribing("") }
                 }
 
                 let transcriber = Transcriber(
-                    modelName: modelName,
-                    language: config.language,
+                    modelName: effectiveModel,
+                    language: effectiveLanguage,
                     temperature: config.batchTemperature,
                     prompt: config.customDictionary.joined(separator: ", ")
                 )
@@ -88,7 +103,12 @@ public final class TranscriptionJob: ObservableObject {
                     }
                 }
                 
+                try Task.checkCancellation()
                 try await processOutput(text: text, inputURL: inputURL, config: config, format: format)
+            } catch is CancellationError {
+                await MainActor.run {
+                    withAnimation(AnimationConfig.standard) { state = .error("Cancelado pelo usuário") }
+                }
             } catch {
                 await MainActor.run {
                     withAnimation(AnimationConfig.standard) { state = .error(error.localizedDescription) }
@@ -96,11 +116,17 @@ public final class TranscriptionJob: ObservableObject {
             }
         }
     }
+    
+    public func cancel() {
+        currentTask?.cancel()
+        currentTask = nil
+    }
 
     private func processOutput(text: String, inputURL: URL, config: AppConfig, format: String) async throws {
         var finalText = text
         
         if config.enableLLMPostProcessing {
+            try Task.checkCancellation()
             if config.llmProvider == "gemini", !config.geminiKey.isEmpty {
                 await MainActor.run {
                     withAnimation(AnimationConfig.standard) { state = .processingLLM }
@@ -118,6 +144,7 @@ public final class TranscriptionJob: ObservableObject {
             }
         }
 
+        try Task.checkCancellation()
         let baseDir = outputDirectory ?? inputURL.deletingLastPathComponent()
         let outputURL = baseDir
             .appendingPathComponent(inputURL.deletingPathExtension().lastPathComponent)
@@ -210,6 +237,8 @@ public final class TranscriptionJob: ObservableObject {
 
     func reset() {
         inputURL = nil
+        overrideModel = nil
+        overrideLanguage = nil
         state = .idle
     }
 }
