@@ -7,6 +7,7 @@ public struct WindowConfig {
     public var styleMask: NSWindow.StyleMask
     public var isResizable: Bool
     public var minSize: NSSize?
+    public var maxSize: NSSize?
     public var fullSizeContentView: Bool
     public var transparentTitlebar: Bool
     
@@ -17,6 +18,7 @@ public struct WindowConfig {
         styleMask: NSWindow.StyleMask = [.titled, .closable],
         isResizable: Bool = false,
         minSize: NSSize? = nil,
+        maxSize: NSSize? = nil,
         fullSizeContentView: Bool = false,
         transparentTitlebar: Bool = false
     ) {
@@ -26,6 +28,7 @@ public struct WindowConfig {
         self.styleMask = styleMask
         self.isResizable = isResizable
         self.minSize = minSize
+        self.maxSize = maxSize
         self.fullSizeContentView = fullSizeContentView
         self.transparentTitlebar = transparentTitlebar
     }
@@ -55,6 +58,10 @@ public enum WindowFactory {
         
         if let minSize = config.minSize {
             window.minSize = minSize
+        }
+        
+        if let maxSize = config.maxSize {
+            window.maxSize = maxSize
         }
         
         if config.transparentTitlebar {

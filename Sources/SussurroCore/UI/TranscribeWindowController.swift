@@ -25,7 +25,8 @@ public final class TranscribeWindowController {
             width: WindowSize.transcribeDefaultWidth,
             height: WindowSize.transcribeDefaultHeight,
             isResizable: true,
-            minSize: NSSize(width: WindowSize.transcribeMinWidth, height: WindowSize.transcribeMinHeight)
+            minSize: NSSize(width: WindowSize.transcribeMinWidth, height: WindowSize.transcribeMinHeight),
+            maxSize: NSSize(width: WindowSize.transcribeMaxWidth, height: .greatestFiniteMagnitude)
         )
         
         let win = WindowFactory.makeWindow(config: config, content: TranscribeView(job: job))

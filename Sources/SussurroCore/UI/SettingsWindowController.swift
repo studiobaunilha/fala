@@ -29,6 +29,7 @@ public final class SettingsWindowController {
             height: WindowSize.settingsHeight,
             isResizable: true, // Crucial for NavigationSplitView
             minSize: NSSize(width: 600, height: 400),
+            maxSize: NSSize(width: WindowSize.settingsMaxWidth, height: WindowSize.settingsMaxHeight),
             fullSizeContentView: true,
             transparentTitlebar: true
         )
