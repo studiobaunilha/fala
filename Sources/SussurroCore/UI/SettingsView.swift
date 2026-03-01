@@ -100,7 +100,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 400, minHeight: 480)
+        .frame(minWidth: WindowSize.settingsWidth, minHeight: WindowSize.settingsHeight)
         .onChange(of: settings.dictationModel) { settings.save() }
         .onChange(of: settings.batchModel) { settings.save() }
         .onChange(of: settings.language) { settings.save() }
@@ -134,24 +134,22 @@ private struct ModelRow: View {
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                HStack(spacing: Spacing.sm) {
                     Text(model.label)
                     if isDownloaded {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .font(.caption)
+                            .foregroundStyle(SussurroColors.success)
+                            .font(Typography.caption)
                     }
                 }
-                HStack(spacing: 8) {
-                    Text(sizeLabel).font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: Spacing.md) {
+                    Text(sizeLabel).font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
                     if isDictation {
-                        Text("Ditado").font(.caption2).padding(.horizontal, 4)
-                            .background(.blue.opacity(0.15), in: .capsule)
+                        RoleBadge.dictation
                     }
                     if isBatch {
-                        Text("Batch").font(.caption2).padding(.horizontal, 4)
-                            .background(.orange.opacity(0.15), in: .capsule)
+                        RoleBadge.batch
                     }
                 }
             }
@@ -163,8 +161,8 @@ private struct ModelRow: View {
                     .frame(width: 80)
                     .controlSize(.small)
                 Text("\(Int(progress * 100))%")
-                    .font(.caption).monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .font(Typography.caption).monospacedDigit()
+                    .foregroundStyle(SussurroColors.textSecondary)
                     .frame(width: 32, alignment: .trailing)
             } else if isDownloaded {
                 Button(role: .destructive) {
@@ -185,7 +183,7 @@ private struct ModelRow: View {
                 .help("Baixar modelo")
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, Spacing.xxs)
     }
 
     private var sizeLabel: String {

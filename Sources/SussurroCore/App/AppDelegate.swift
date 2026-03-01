@@ -26,7 +26,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let settingsCtrl = SettingsWindowController(settings: appSettings)
         settingsController = settingsCtrl
 
-        let transcribeCtrl = TranscribeWindowController()
+        let job = TranscriptionJob()
+        let transcribeCtrl = TranscribeWindowController(job: job)
         transcribeController = transcribeCtrl
 
         let bar = StatusBarController(

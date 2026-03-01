@@ -3,7 +3,7 @@ import AppKit
 
 // MARK: – State
 
-enum TranscriptionState: Equatable {
+public enum TranscriptionState: Equatable {
     case idle
     case converting
     case transcribing
@@ -14,16 +14,16 @@ enum TranscriptionState: Equatable {
 // MARK: – View Model
 
 @MainActor
-final class TranscriptionJob: ObservableObject {
-    @Published var inputURL: URL?
-    @Published var state: TranscriptionState = .idle
-    @Published var outputFormat: String
+public final class TranscriptionJob: ObservableObject {
+    @Published public var inputURL: URL?
+    @Published public var state: TranscriptionState = .idle
+    @Published public var outputFormat: String
 
-    init() {
+    public init() {
         self.outputFormat = AppConfig.load().outputFormat
     }
 
-    func selectFile() {
+    public func selectFile() {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -35,40 +35,28 @@ final class TranscriptionJob: ObservableObject {
         state = .idle
     }
 
-    func transcribe() {
+    public func transcribe() {
         guard let inputURL else { return }
         let ext = inputURL.pathExtension.lowercased()
-        let config = AppConfig.load()
         let format = outputFormat
-        let modelName = config.batchModel
+        let modelName = AppConfig.load().batchModel
 
-        state = ext == "wav" ? .transcribing : .converting
+        withAnimation(AnimationConfig.standard) {
+            state = ext == "wav" ? .transcribing : .converting
+        }
 
         Task {
             do {
-                let wavURL: URL
-                let needsCleanup: Bool
-
-                if ext == "wav" {
-                    wavURL = inputURL
-                    needsCleanup = false
-                } else {
-                    wavURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                        .appendingPathComponent("sus_\(UUID().uuidString).wav")
-                    try await FFmpegConverter.convert(input: inputURL, output: wavURL)
-                    needsCleanup = true
-                }
-
+                let (wavURL, needsCleanup) = try await prepareAudio(from: inputURL, ext: ext)
                 defer {
-                    if needsCleanup {
-                        try? FileManager.default.removeItem(at: wavURL)
-                    }
+                    if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
                 }
 
-                state = .transcribing
+                await MainActor.run {
+                    withAnimation(AnimationConfig.standard) { state = .transcribing }
+                }
 
-                let transcriber = Transcriber(modelName: modelName)
-                let text = try await transcriber.transcribe(audioPath: wavURL.path)
+                let text = try await Transcriber(modelName: modelName).transcribe(audioPath: wavURL.path)
 
                 let outputURL = inputURL
                     .deletingPathExtension()
@@ -79,11 +67,26 @@ final class TranscriptionJob: ObservableObject {
                     : text + "\n"
 
                 try content.write(to: outputURL, atomically: true, encoding: .utf8)
-                state = .done(outputURL.path)
+                
+                await MainActor.run {
+                    withAnimation(AnimationConfig.standard) { state = .done(outputURL.path) }
+                }
             } catch {
-                state = .error(error.localizedDescription)
+                await MainActor.run {
+                    withAnimation(AnimationConfig.standard) { state = .error(error.localizedDescription) }
+                }
             }
         }
+    }
+
+    private func prepareAudio(from inputURL: URL, ext: String) async throws -> (URL, Bool) {
+        if ext == "wav" {
+            return (inputURL, false)
+        }
+        let wavURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("sus_\(UUID().uuidString).wav")
+        try await FFmpegConverter.convert(input: inputURL, output: wavURL)
+        return (wavURL, true)
     }
 
     func revealInFinder() {
@@ -136,48 +139,52 @@ struct TranscribeView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 400, minHeight: 280)
+        .frame(minWidth: WindowSize.transcribeMinWidth, minHeight: WindowSize.transcribeMinHeight)
     }
 
     @ViewBuilder
     private var statusView: some View {
         switch job.state {
         case .idle:
-            Button("Transcrever") { job.transcribe() }
-                .controlSize(.large)
+            Button("Transcrever") {
+                job.transcribe()
+            }
+            .controlSize(.large)
 
         case .converting:
-            HStack(spacing: 12) {
-                ProgressView().controlSize(.small)
-                Text("Convertendo áudio…").foregroundStyle(.secondary)
-            }
+            StatusBanner(message: "Convertendo áudio…")
 
         case .transcribing:
-            HStack(spacing: 12) {
-                ProgressView().controlSize(.small)
-                Text("Transcrevendo…").foregroundStyle(.secondary)
-            }
+            StatusBanner(message: "Transcrevendo…")
 
         case .done(let path):
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Label("Concluído", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(SussurroColors.success)
                 Text(path)
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
                     .textSelection(.enabled)
                 HStack {
                     Button("Mostrar no Finder") { job.revealInFinder() }
-                    Button("Nova Transcrição") { job.reset() }
+                    Button("Nova Transcrição") {
+                        withAnimation(AnimationConfig.standard) {
+                            job.reset()
+                        }
+                    }
                 }
             }
 
         case .error(let message):
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Label("Erro", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(SussurroColors.error)
                 Text(message)
-                    .font(.caption).foregroundStyle(.secondary)
-                Button("Tentar Novamente") { job.state = .idle }
+                    .font(Typography.caption).foregroundStyle(SussurroColors.textSecondary)
+                Button("Tentar Novamente") {
+                    withAnimation(AnimationConfig.standard) {
+                        job.state = .idle
+                    }
+                }
             }
         }
     }
