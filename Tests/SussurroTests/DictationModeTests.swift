@@ -32,7 +32,8 @@ actor MockTranscriber: AudioTranscribing {
         return transcribeResult
     }
 
-    func transcribe(audioPath: String) async throws -> String {
+    func transcribe(audioPath: String, progress: (@Sendable (String) -> Void)? = nil) async throws -> String {
+        if let progress { progress(transcribeResult) }
         return transcribeResult
     }
 
