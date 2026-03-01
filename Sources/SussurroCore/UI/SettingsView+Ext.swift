@@ -167,10 +167,24 @@ extension SettingsView {
                 
                 Section("Credenciais") {
                     if settings.llmProvider == "gemini" {
-                        SecureField("Gemini API Key", text: $settings.geminiKey)
-                            .textFieldStyle(.roundedBorder)
                         HStack {
-                            Text("A API do Gemini 1.5 Flash é rápida e possui um nível gratuito generoso.")
+                            SecureField("Gemini API Key", text: $settings.geminiKey)
+                                .textFieldStyle(.roundedBorder)
+                            
+                            Button(action: {
+                                Task { await testKey(provider: "gemini", key: settings.geminiKey) }
+                            }, label: {
+                                if isTestingKey {
+                                    ProgressView().controlSize(.small)
+                                } else {
+                                    Text("Testar")
+                                }
+                            })
+                            .disabled(settings.geminiKey.isEmpty || isTestingKey)
+                        }
+
+                        HStack {
+                            Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()
@@ -180,8 +194,22 @@ extension SettingsView {
                             }
                         }
                     } else {
-                        SecureField("OpenAI API Key", text: $settings.openAIKey)
-                            .textFieldStyle(.roundedBorder)
+                        HStack {
+                            SecureField("OpenAI API Key", text: $settings.openAIKey)
+                                .textFieldStyle(.roundedBorder)
+                                
+                            Button(action: {
+                                Task { await testKey(provider: "openai", key: settings.openAIKey) }
+                            }, label: {
+                                if isTestingKey {
+                                    ProgressView().controlSize(.small)
+                                } else {
+                                    Text("Testar")
+                                }
+                            })
+                            .disabled(settings.openAIKey.isEmpty || isTestingKey)
+                        }
+
                         HStack {
                             Text("A API da OpenAI requer saldo na sua conta de desenvolvedor.")
                                 .font(.caption)
@@ -210,6 +238,107 @@ extension SettingsView {
         }
         .formStyle(.grouped)
         .navigationTitle("Pós-processamento (IA)")
+        .alert("Resultado do Teste", isPresented: $showTestKeyAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let result = testKeyResult {
+                Text(result)
+            }
+        }
+    }
+    
+    func testKey(provider: String, key: String) async {
+        isTestingKey = true
+        defer { isTestingKey = false }
+        
+        do {
+            if provider == "gemini" {
+                try await testGeminiKey(key)
+            } else {
+                try await testOpenAIKey(key)
+            }
+        } catch {
+            testKeyResult = "Falha no teste: \(error.localizedDescription)"
+        }
+        
+        showTestKeyAlert = true
+    }
+    
+    private func testGeminiKey(_ key: String) async throws {
+        let baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        guard let url = URL(string: "\(baseUrl)?key=\(key)") else { throw URLError(.badURL) }
+        
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["contents": [["parts": [["text": "Hi"]]]]]
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: req)
+        
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        
+        if http.statusCode == 200 {
+            testKeyResult = "Sucesso! A chave do Gemini está funcionando."
+            return
+        }
+        
+        if http.statusCode == 404 {
+            try await checkGeminiModelsList(key)
+            return
+        }
+        
+        let errBody = String(data: data, encoding: .utf8) ?? "Erro desconhecido"
+        let msg = "Erro \(http.statusCode): \(errBody)"
+        throw NSError(domain: "API", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: msg])
+    }
+    
+    private func checkGeminiModelsList(_ key: String) async throws {
+        guard let listUrl = URL(string: "https://generativelanguage.googleapis.com/v1beta/models?key=\(key)") else {
+             throw URLError(.badURL)
+        }
+        
+        let (listData, listResp) = try await URLSession.shared.data(from: listUrl)
+        guard let listHttp = listResp as? HTTPURLResponse, listHttp.statusCode == 200 else {
+            throw NSError(domain: "API", code: 404, userInfo: [
+                NSLocalizedDescriptionKey: "Modelo não encontrado e falha ao listar modelos."
+            ])
+        }
+        
+        if let json = try JSONSerialization.jsonObject(with: listData) as? [String: Any],
+           let models = json["models"] as? [[String: Any]] {
+            let names = models.compactMap { ($0["name"] as? String)?.components(separatedBy: "/").last }
+            testKeyResult = "Chave válida. Modelos disponíveis:\n" + names.prefix(5).joined(separator: ", ")
+        } else {
+            testKeyResult = "Chave válida, mas erro ao listar modelos."
+        }
+    }
+
+    private func testOpenAIKey(_ key: String) async throws {
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else { throw URLError(.badURL) }
+        
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [["role": "user", "content": "Hi"]],
+            "max_tokens": 5
+        ]
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        
+        if http.statusCode != 200 {
+            let errBody = String(data: data, encoding: .utf8) ?? "Erro desconhecido"
+            let msg = "Erro \(http.statusCode): \(errBody)"
+            throw NSError(domain: "API", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: msg])
+        }
+        
+        testKeyResult = "Sucesso! A chave da OpenAI está funcionando."
     }
 
     @ViewBuilder

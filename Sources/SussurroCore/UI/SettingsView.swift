@@ -30,6 +30,8 @@ public final class AppSettings: ObservableObject {
     @Published public var llmPrompt: String
     @Published public var openAIKey: String
     @Published public var geminiKey: String
+    @Published public var geminiModel: String
+    @Published public var openAIModel: String
 
     public let modelManager: ModelManager
     private let transcriber: Transcriber
@@ -71,6 +73,8 @@ public final class AppSettings: ObservableObject {
         self.llmPrompt = config.llmPrompt
         self.openAIKey = config.openAIKey
         self.geminiKey = config.geminiKey
+        self.geminiModel = config.geminiModel
+        self.openAIModel = config.openAIModel
         
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -91,6 +95,8 @@ public final class AppSettings: ObservableObject {
         config.llmPrompt = llmPrompt
         config.openAIKey = openAIKey
         config.geminiKey = geminiKey
+        config.geminiModel = geminiModel
+        config.openAIModel = openAIModel
         
         // Native macOS persistence via UserDefaults
         config.save()
@@ -144,6 +150,11 @@ struct SettingsView: View {
     @ObservedObject var modelManager: ModelManager
     @State private var selection: SettingsPanel? = .general
     @State var newWord: String = ""
+    
+    // Key testing state
+    @State var isTestingKey = false
+    @State var testKeyResult: String?
+    @State var showTestKeyAlert = false
 
     var body: some View {
         NavigationSplitView {
@@ -184,6 +195,8 @@ struct SettingsView: View {
         .onChange(of: settings.llmPrompt) { settings.save() }
         .onChange(of: settings.openAIKey) { settings.save() }
         .onChange(of: settings.geminiKey) { settings.save() }
+        .onChange(of: settings.geminiModel) { settings.save() }
+        .onChange(of: settings.openAIModel) { settings.save() }
     }
 }
 
