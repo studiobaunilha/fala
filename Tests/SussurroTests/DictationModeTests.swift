@@ -112,7 +112,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
     }
 
     func testStopAndTranscribeInsertsTranscribedText() async throws {
-        let url = try makeSilentWAV(seconds: 0.1)
+        let url = try makeWAVWithTone(seconds: 0.1)
         recorder.stopResult = .success(url)
         defer { try? FileManager.default.removeItem(at: url) }
 
@@ -125,7 +125,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
     }
 
     func testStopAndTranscribeDoesNotInsertEmptyText() async throws {
-        let url = try makeSilentWAV(seconds: 0.1)
+        let url = try makeWAVWithTone(seconds: 0.1)
         recorder.stopResult = .success(url)
         defer { try? FileManager.default.removeItem(at: url) }
 
@@ -134,6 +134,32 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         await mode.stopAndTranscribe()
 
         XCTAssertTrue(inserter.insertedTexts.isEmpty)
+    }
+
+    func testStopAndTranscribeSkipsSilentAudio() async throws {
+        let url = try makeSilentWAV(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        await transcriber.setResult("Hello world")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertTrue(inserter.insertedTexts.isEmpty, "Silent audio should not produce any output")
+        let callCount = await transcriber.sampleCallCount
+        XCTAssertEqual(callCount, 0, "Transcriber should not be called for silent audio")
+    }
+
+    func testStopAndTranscribeSkipsShortNoiseHallucination() async throws {
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        await transcriber.setResult("the")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertTrue(inserter.insertedTexts.isEmpty, "Short noise artifacts should be filtered")
     }
 
     func testStopAndTranscribeHandlesRecorderError() async {
@@ -146,6 +172,26 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
     }
 
     // MARK: – Helpers
+
+    /// Creates a WAV with a 440 Hz tone (RMS well above 0.001 threshold).
+    private func makeWAVWithTone(seconds: Double = 0.05) throws -> URL {
+        let sampleRate: Double = 16_000
+        let format = try XCTUnwrap(
+            AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate, channels: 1, interleaved: false)
+        )
+        let frameCount = AVAudioFrameCount(sampleRate * seconds)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+        buffer.frameLength = frameCount
+        let data = try XCTUnwrap(buffer.floatChannelData?[0])
+        for sample in 0..<Int(frameCount) {
+            data[sample] = sin(2.0 * .pi * 440.0 * Float(sample) / Float(sampleRate)) * 0.5
+        }
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("dictmode_tone_\(UUID().uuidString).wav")
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        try file.write(from: buffer)
+        return url
+    }
 
     private func makeSilentWAV(seconds: Double = 0.05) throws -> URL {
         let format = try XCTUnwrap(

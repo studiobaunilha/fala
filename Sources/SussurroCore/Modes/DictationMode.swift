@@ -78,16 +78,32 @@ public final class DictationMode {
                 return
             }
 
+            // Skip silent audio — avoids unnecessary transcription and LLM calls
+            let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count))
+            guard rms > 0.001 else {
+                NSLog("[Sussurro] Audio too quiet (RMS: %.6f), skipping", rms)
+                statusBar?.setState(.idle)
+                return
+            }
+
             let config = AppConfig.load()
             let template = config.selectedDictationTemplate
-            
+
             let task = template == .translate ? "translate" : "transcribe"
             let text = try await transcriber.transcribe(samples: samples, task: task)
-            
-            if !text.isEmpty {
-                let finalText = await processText(text, config: config, template: template)
-                inserter.insert(finalText)
+
+            // Filter short noise hallucinations (e.g. "the", "okay", "um")
+            let words = text.split(separator: " ")
+            guard !text.isEmpty, words.count > 1 || text.count > 5 else {
+                if !text.isEmpty {
+                    NSLog("[Sussurro] Transcription too short, likely noise: '%@'", text)
+                }
+                statusBar?.setState(.idle)
+                return
             }
+
+            let finalText = await processText(text, config: config, template: template)
+            inserter.insert(finalText)
         } catch {
             print("[Sussurro] Transcription error: \(error.localizedDescription)")
         }
@@ -106,7 +122,11 @@ public final class DictationMode {
         let basePrompt = modeConfig.prompt
 
         if template.requiresLLM, !basePrompt.isEmpty {
-            let prompt = wrapPromptForCleanOutput(basePrompt)
+            var enriched = basePrompt
+            if template == .promptDev, !config.devStack.isEmpty {
+                enriched += "\n\nStack do projeto: \(config.devStack)"
+            }
+            let prompt = wrapPromptForCleanOutput(enriched)
             do {
                 let result = try await dispatchLLM(
                     text: text, prompt: prompt, config: config,
