@@ -14,17 +14,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         let config = AppConfig.load()
-        let transcriber = Transcriber(
+        let whisperTranscriber = Transcriber(
             modelName: config.dictationModel,
             language: config.language,
             temperature: config.dictationTemperature,
-            prompt: config.customDictionary.joined(separator: ", ")
+            prompt: ""
         )
         let modelManager = ModelManager()
         modelManager.scanLocal()
         let appSettings = AppSettings(
             config: config,
-            transcriber: transcriber,
+            transcriber: whisperTranscriber,
             modelManager: modelManager
         )
 
@@ -40,34 +40,53 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             onSettings: { settingsCtrl.show() },
             onTranscribe: { transcribeCtrl.show() }
         )
-        let dictation = DictationMode(transcriber: transcriber, statusBar: bar)
+
+        let activeTranscriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
+            ? ParakeetTranscriber()
+            : whisperTranscriber
+        let dictation = DictationMode(
+            recorder: AudioEngine(),
+            transcriber: activeTranscriber,
+            inserter: TextInserter(),
+            statusBar: bar
+        )
 
         statusBar = bar
         dictationMode = dictation
 
         dictation.setup()
-
-        // Request microphone access so macOS shows the prompt on first launch.
         requestMicrophoneAccess()
+        requestAccessibilityAccess()
+        preloadModel(config: config, transcriber: activeTranscriber, whisper: whisperTranscriber, bar: bar)
+    }
 
-        // Request Accessibility access with a short delay so the app is fully
-        // visible in the status bar before the system dialog appears.
-        // Only prompts if not already trusted.
-        if !AXIsProcessTrusted() {
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 s
-                AXIsProcessTrustedWithOptions(
-                    ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-                )
-            }
+    private func requestAccessibilityAccess() {
+        guard !AXIsProcessTrusted() else { return }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 s
+            AXIsProcessTrustedWithOptions(
+                ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+            )
         }
+    }
 
-        // Pre-load the model in the background so it's ready on first use.
+    private func preloadModel(
+        config: AppConfig,
+        transcriber: any AudioTranscribing,
+        whisper: Transcriber,
+        bar: StatusBarController
+    ) {
         bar.setState(.loading)
         Task {
             do {
-                NSLog("[Sussurro] Starting model pre-load: %@", config.dictationModel)
-                try await transcriber.loadIfNeeded()
+                let name = config.transcriptionEngine == "parakeet"
+                    ? "Parakeet V3" : config.dictationModel
+                NSLog("[Sussurro] Starting model pre-load: %@", name)
+                if let parakeet = transcriber as? ParakeetTranscriber {
+                    try await parakeet.loadIfNeeded()
+                } else {
+                    try await whisper.loadIfNeeded()
+                }
                 NSLog("[Sussurro] Model pre-load succeeded")
             } catch {
                 NSLog("[Sussurro] Model pre-load failed: %@", error.localizedDescription)
