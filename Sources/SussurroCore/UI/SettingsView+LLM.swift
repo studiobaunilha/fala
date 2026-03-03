@@ -31,47 +31,6 @@ extension SettingsView {
             }
 
             mlxModelsSection
-
-            Section {
-                Toggle("Memória de Contexto Contínuo",
-                       isOn: $settings.enableContextBuffer)
-            } footer: {
-                Text("Mantém notas da IA sobre tom, assunto e vocabulário "
-                     + "para melhorar transcrições ao longo da sessão.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if settings.enableContextBuffer {
-                Section {
-                    TextEditor(text: $contextManager.summary)
-                        .font(.body)
-                        .frame(minHeight: 100)
-                        .scrollContentBackground(.hidden)
-                        .padding(Spacing.xs)
-                        .background(Color(nsColor: .textBackgroundColor))
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(Color(nsColor: .separatorColor))
-                        )
-
-                    HStack {
-                        Spacer()
-                        Button("Limpar Memória") {
-                            contextManager.clear()
-                        }
-                        .disabled(contextManager.summary.isEmpty)
-                    }
-                } header: {
-                    Text("Memória de Contexto")
-                } footer: {
-                    Text("Notas da IA sobre a sessão atual. "
-                         + "São usadas para refinar futuras transcrições.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
         }
         .formStyle(.grouped)
         .navigationTitle("IA & LLM")

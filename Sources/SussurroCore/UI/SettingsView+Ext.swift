@@ -41,24 +41,48 @@ extension SettingsView {
     var modelsView: some View {
         Form {
             Section {
-                downloadedModelPicker("Modelo de Ditado", selection: $settings.dictationModel)
-                downloadedModelPicker("Modelo Batch / Arquivo", selection: $settings.batchModel)
+                Picker("Motor de Transcrição", selection: $settings.transcriptionEngine) {
+                    Text("Whisper (WhisperKit)").tag("whisper")
+                    Text("Parakeet V3 (FluidAudio)").tag("parakeet")
+                }
             } header: {
-                Text("Modelos Ativos")
+                Text("Motor de Transcrição")
             } footer: {
-                Text("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if settings.transcriptionEngine == "parakeet" {
+                    Text("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. "
+                         + "Suporta 25 idiomas europeus. O modelo é baixado automaticamente no primeiro uso. "
+                         + "Requer reiniciar o app após alterar.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Whisper usa modelos OpenAI via WhisperKit. "
+                         + "Requer reiniciar o app após alterar.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
-            Section("Downloads Disponíveis") {
-                ForEach(knownModels) { model in
-                    ModelRow(
-                        model: model,
-                        manager: modelManager,
-                        isDictation: settings.dictationModel == model.id,
-                        isBatch: settings.batchModel == model.id
-                    )
+            if settings.transcriptionEngine == "whisper" {
+                Section {
+                    downloadedModelPicker("Modelo de Ditado", selection: $settings.dictationModel)
+                    downloadedModelPicker("Modelo Batch / Arquivo", selection: $settings.batchModel)
+                } header: {
+                    Text("Modelos Whisper Ativos")
+                } footer: {
+                    Text("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Downloads Disponíveis") {
+                    ForEach(knownModels) { model in
+                        ModelRow(
+                            model: model,
+                            manager: modelManager,
+                            isDictation: settings.dictationModel == model.id,
+                            isBatch: settings.batchModel == model.id
+                        )
+                    }
                 }
             }
         }
@@ -81,46 +105,6 @@ extension SettingsView {
                 Text("Acurácia vs. Velocidade")
             } footer: {
                 Text("Zero significa alta acurácia (Greedy Decoding).")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Section {
-                HStack {
-                    TextField("Adicionar palavra...", text: $newWord)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit { addWord() }
-                    Button("Adicionar") { addWord() }
-                        .disabled(newWord.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                
-                if !settings.customDictionary.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(settings.customDictionary, id: \.self) { word in
-                                HStack(spacing: 4) {
-                                    Text(word)
-                                    Button {
-                                        removeWord(word)
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(16)
-                            }
-                        }
-                    }
-                    .frame(height: 32)
-                }
-            } header: {
-                Text("Dicionário (Initial Prompt)")
-            } footer: {
-                Text("Termos específicos, siglas ou gírias para priorizar.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -204,18 +188,6 @@ extension SettingsView {
         }
         .formStyle(.grouped)
         .navigationTitle("Avançado")
-    }
-    
-    func addWord() {
-        let trimmed = newWord.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.isEmpty && !settings.customDictionary.contains(trimmed) {
-            settings.customDictionary.append(trimmed)
-            newWord = ""
-        }
-    }
-    
-    func removeWord(_ word: String) {
-        settings.customDictionary.removeAll { $0 == word }
     }
     
     func addReplacement() {

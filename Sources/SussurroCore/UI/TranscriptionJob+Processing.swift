@@ -3,6 +3,41 @@ import Foundation
 import FoundationModels
 #endif
 
+// MARK: - Prompt Hardening
+
+/// Wraps a system prompt with strict output-only instructions to prevent
+/// LLM preambles like "Entendi sua solicitação. Segue abaixo...".
+func wrapPromptForCleanOutput(_ prompt: String) -> String {
+    """
+    \(prompt)
+
+    ---
+    REGRA CRÍTICA: Retorne EXCLUSIVAMENTE o texto processado.
+    NÃO inclua explicações, preâmbulos, comentários ou meta-texto.
+    NÃO diga "Aqui está", "Segue abaixo", "Entendi", "Claro" ou similar.
+    Você está fazendo pós-processamento em uma transcrição de áudio.
+    Sua saída será inserida diretamente — qualquer texto extra será um erro.
+    Responda APENAS com a saída final.
+    """
+}
+
+/// Strips common LLM preamble patterns from the response.
+func stripLLMPreamble(_ text: String) -> String {
+    let patterns = [
+        // Portuguese
+        #"^(?:Aqui está|Segue|Claro|Entendi|Certo|Com certeza|Sem problemas)[^:\n]*[:\n]\s*"#,
+        // English
+        #"^(?:Here(?:'s| is| are)|Sure|Of course|Certainly|Understood)[^:\n]*[:\n]\s*"#
+    ]
+    var result = text
+    for pattern in patterns {
+        if let range = result.range(of: pattern, options: [.regularExpression, .caseInsensitive]) {
+            result = String(result[range.upperBound...])
+        }
+    }
+    return result.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
 struct ProcessingContext {
     let config: AppConfig
     let template: DictationTemplate
@@ -174,29 +209,34 @@ extension TranscriptionJob {
     static func applyLLM(to text: String, config: AppConfig, template: DictationTemplate) async -> String {
         guard template.requiresLLM else { return text }
         let effective = config.getEffectiveConfig(for: template)
-        let prompt = effective.prompt
-        guard !prompt.isEmpty else { return text }
+        let rawPrompt = effective.prompt
+        guard !rawPrompt.isEmpty else { return text }
+        let prompt = wrapPromptForCleanOutput(rawPrompt)
         let provider = effective.provider
         let model = effective.model
 
         do {
+            let result: String
             if provider == "gemini", !config.geminiKey.isEmpty {
-                return try await processWithGemini(
+                result = try await processWithGemini(
                     text: text, prompt: prompt, apiKey: config.geminiKey, model: model
                 )
             } else if provider == "openai", !config.openAIKey.isEmpty {
-                return try await processWithOpenAI(
+                result = try await processWithOpenAI(
                     text: text, prompt: prompt, apiKey: config.openAIKey, model: model
                 )
             } else if provider == "apple" {
-                return try await processWithAppleNative(text: text, prompt: prompt)
+                result = try await processWithAppleNative(text: text, prompt: prompt)
             } else if provider == "mlx" {
                 let modelID = model.isEmpty
                     ? "mlx-community/Qwen2.5-3B-Instruct-4bit" : model
-                return try await processWithMLX(
+                result = try await processWithMLX(
                     text: text, prompt: prompt, modelID: modelID
                 )
+            } else {
+                return text
             }
+            return stripLLMPreamble(result)
         } catch {
             print("[Sussurro] LLM Error: \(error)")
         }

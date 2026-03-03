@@ -39,12 +39,19 @@ struct ModeDetailView: View {
     }
 
     private var isPromptModified: Bool {
-        prompt != (template.defaultSystemPrompt ?? "")
+        if template == .custom {
+            return false // Custom mode prompt is always user-defined
+        }
+        return prompt != (template.defaultSystemPrompt ?? "")
     }
 
     var body: some View {
         Form {
             descriptionSection
+
+            if template == .custom {
+                customNameSection
+            }
 
             if template.requiresLLM {
                 providerSection
@@ -54,7 +61,7 @@ struct ModeDetailView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle(template.rawValue)
+        .navigationTitle(template == .custom ? settings.customModeName : template.rawValue)
         .onAppear { loadConfig() }
         .confirmationDialog(
             "Restaurar prompt padrão?",
@@ -178,6 +185,25 @@ struct ModeDetailView: View {
         }
     }
 
+    private var customNameSection: some View {
+        Section {
+            TextField("Nome do modo", text: $settings.customModeName)
+                .onChange(of: settings.customModeName) {
+                    // Enforce 30 char limit
+                    if settings.customModeName.count > 30 {
+                        settings.customModeName = String(settings.customModeName.prefix(30))
+                    }
+                    debouncedSave()
+                }
+        } header: {
+            Text("Nome Personalizado")
+        } footer: {
+            Text("Este nome aparece no menu da barra de status. Máximo 30 caracteres.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var noLLMSection: some View {
         Section {
             Label {
@@ -200,15 +226,22 @@ struct ModeDetailView: View {
 
     // MARK: - Logic
 
+    private var effectiveDefaultPrompt: String {
+        if template == .custom {
+            return settings.customModePrompt
+        }
+        return template.defaultSystemPrompt ?? ""
+    }
+
     private func loadConfig() {
         if let config = settings.modeConfigs[template.rawValue] {
             self.provider = config.provider ?? "global"
             self.model = config.model ?? ""
-            self.prompt = config.prompt ?? template.defaultSystemPrompt ?? ""
+            self.prompt = config.prompt ?? effectiveDefaultPrompt
         } else {
             self.provider = "global"
             self.model = ""
-            self.prompt = template.defaultSystemPrompt ?? ""
+            self.prompt = effectiveDefaultPrompt
         }
     }
 
@@ -227,7 +260,11 @@ struct ModeDetailView: View {
         config.provider = (provider == "global") ? nil : provider
         config.model = model.isEmpty ? nil : model
 
-        if prompt == template.defaultSystemPrompt {
+        // For .custom mode, save the prompt to customModePrompt directly
+        if template == .custom {
+            settings.customModePrompt = prompt
+            config.prompt = nil
+        } else if prompt == template.defaultSystemPrompt {
             config.prompt = nil
         } else {
             config.prompt = prompt
@@ -238,7 +275,9 @@ struct ModeDetailView: View {
     }
 
     private func restoreDefault() {
-        prompt = template.defaultSystemPrompt ?? ""
+        prompt = template == .custom
+            ? "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+            : (template.defaultSystemPrompt ?? "")
         persistConfig()
     }
 }

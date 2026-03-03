@@ -15,19 +15,18 @@ struct LanguageOption: Identifiable {
 @MainActor
 public final class AppSettings: ObservableObject {
 
+    @Published public var transcriptionEngine: String
     @Published public var dictationModel: String
     @Published public var batchModel: String
     @Published public var language: String
     
     @Published public var dictationTemperature: Float
     @Published public var batchTemperature: Float
-    @Published public var customDictionary: [String]
     @Published public var replacements: [String: String]
     @Published public var replacementRules: [ReplacementRule]
     @Published public var defaultExportPath: String
     @Published public var enableDiarization: Bool
     
-    @Published public var enableContextBuffer: Bool
     @Published public var selectedDictationTemplate: DictationTemplate
     @Published public var llmProvider: String
     @Published public var llmPrompt: String
@@ -37,6 +36,8 @@ public final class AppSettings: ObservableObject {
     @Published public var openAIModel: String
     @Published public var mlxModel: String
     @Published public var modeConfigs: [String: ModeConfig]
+    @Published public var customModeName: String
+    @Published public var customModePrompt: String
 
     public let modelManager: ModelManager
     public let mlxModelManager = MLXModelManager()
@@ -66,17 +67,16 @@ public final class AppSettings: ObservableObject {
         modelManager: ModelManager
     ) {
         self.config = config
+        self.transcriptionEngine = config.transcriptionEngine
         self.dictationModel = config.dictationModel
         self.batchModel = config.batchModel
         self.language = config.language
         self.dictationTemperature = config.dictationTemperature
         self.batchTemperature = config.batchTemperature
-        self.customDictionary = config.customDictionary
         self.replacements = config.replacements
         self.replacementRules = config.replacementRules
         self.defaultExportPath = config.defaultExportPath
         self.enableDiarization = config.enableDiarization
-        self.enableContextBuffer = config.enableContextBuffer
         self.selectedDictationTemplate = config.selectedDictationTemplate
         self.llmProvider = config.llmProvider
         self.llmPrompt = config.llmPrompt
@@ -86,6 +86,8 @@ public final class AppSettings: ObservableObject {
         self.openAIModel = config.openAIModel
         self.mlxModel = config.mlxModel
         self.modeConfigs = config.modeConfigs
+        self.customModeName = config.customModeName
+        self.customModePrompt = config.customModePrompt
 
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -93,17 +95,16 @@ public final class AppSettings: ObservableObject {
 
     /// Persists current values and updates the Transcriber without requiring a restart.
     public func save() {
+        config.transcriptionEngine = transcriptionEngine
         config.dictationModel = dictationModel
         config.batchModel = batchModel
         config.language = language
         config.dictationTemperature = dictationTemperature
         config.batchTemperature = batchTemperature
-        config.customDictionary = customDictionary
         config.replacements = replacements
         config.replacementRules = replacementRules
         config.defaultExportPath = defaultExportPath
         config.enableDiarization = enableDiarization
-        config.enableContextBuffer = enableContextBuffer
         config.selectedDictationTemplate = selectedDictationTemplate
         config.llmProvider = llmProvider
         config.llmPrompt = llmPrompt
@@ -113,7 +114,9 @@ public final class AppSettings: ObservableObject {
         config.openAIModel = openAIModel
         config.mlxModel = mlxModel
         config.modeConfigs = modeConfigs
-        
+        config.customModeName = String(customModeName.prefix(30))
+        config.customModePrompt = customModePrompt
+
         // Native macOS persistence via UserDefaults
         config.save()
         
@@ -122,7 +125,7 @@ public final class AppSettings: ObservableObject {
             await transcriber.setConfig(
                 language: language,
                 temperature: dictationTemperature,
-                prompt: customDictionary.joined(separator: ", ")
+                prompt: ""
             )
         }
     }
@@ -169,9 +172,7 @@ enum SettingsSelection: Hashable {
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
-    @ObservedObject var contextManager = ContextManager.shared
     @State private var selection: SettingsSelection? = .panel(.general)
-    @State var newWord: String = ""
     @State var newIncorrect: String = ""
     @State var newCorrect: String = ""
     
@@ -241,12 +242,12 @@ struct SettingsView: View {
 extension View {
     func observeSettingsChanges(_ settings: AppSettings) -> some View {
         self
+            .onChange(of: settings.transcriptionEngine) { settings.save() }
             .onChange(of: settings.dictationModel) { settings.save() }
             .onChange(of: settings.batchModel) { settings.save() }
             .onChange(of: settings.language) { settings.save() }
             .onChange(of: settings.dictationTemperature) { settings.save() }
             .onChange(of: settings.batchTemperature) { settings.save() }
-            .onChange(of: settings.customDictionary) { settings.save() }
             .onChange(of: settings.replacements) { settings.save() }
             .onChange(of: settings.replacementRules) { settings.save() }
             .observeMoreSettingsChanges(settings)
@@ -255,7 +256,6 @@ extension View {
     func observeMoreSettingsChanges(_ settings: AppSettings) -> some View {
         self
             .onChange(of: settings.enableDiarization) { settings.save() }
-            .onChange(of: settings.enableContextBuffer) { settings.save() }
             .onChange(of: settings.selectedDictationTemplate) { settings.save() }
             .onChange(of: settings.llmProvider) { settings.save() }
             .onChange(of: settings.llmPrompt) { settings.save() }

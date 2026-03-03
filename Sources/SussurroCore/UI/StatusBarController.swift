@@ -17,7 +17,6 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private let axItem: NSMenuItem
     private let axSeparator = NSMenuItem.separator()
     private let settingsItem: NSMenuItem
-    private let contextBufferItem: NSMenuItem
     
     private let settings: AppSettings
 
@@ -36,12 +35,6 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         self.onTranscribe = onTranscribe
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        
-        contextBufferItem = NSMenuItem(
-            title: "🧠 Memória de Contexto",
-            action: #selector(StatusBarController.toggleContextBuffer),
-            keyEquivalent: ""
-        )
 
         settingsItem = NSMenuItem(
             title: "Ajustes…",
@@ -59,10 +52,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
         buildStaticMenuItems()
         buildModeItems()
-        
-        menu.addItem(contextBufferItem)
-        menu.addItem(.separator())
-        
+
         let transcribeItem = NSMenuItem(
             title: "Transcrever Arquivo…",
             action: #selector(StatusBarController.showTranscribe),
@@ -83,7 +73,6 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         quitItem.target = self
         menu.addItem(quitItem)
 
-        contextBufferItem.target = self
         axItem.target = self
         
         menu.delegate = self
@@ -130,17 +119,18 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
     public func menuWillOpen(_ menu: NSMenu) {
-        // Update Checkmarks for Modes
+        // Update Checkmarks and dynamic titles for Modes
         let currentMode = settings.selectedDictationTemplate
         for item in modeItems {
-            if let modeRaw = item.representedObject as? String, modeRaw == currentMode.rawValue {
-                item.state = .on
-            } else {
-                item.state = .off
+            if let modeRaw = item.representedObject as? String {
+                item.state = (modeRaw == currentMode.rawValue) ? .on : .off
+                // Update custom mode title dynamically
+                if modeRaw == DictationTemplate.custom.rawValue {
+                    let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    item.title = name.isEmpty ? DictationTemplate.custom.rawValue : name
+                }
             }
         }
-        
-        contextBufferItem.state = settings.enableContextBuffer ? .on : .off
         
         // Accessibility check
         let axPresent = menu.item(withTitle: axItem.title) != nil
@@ -154,11 +144,6 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             menu.insertItem(axSeparator, at: quitIdx)
             menu.insertItem(axItem, at: quitIdx)
         }
-    }
-    
-    @objc private func toggleContextBuffer() {
-        settings.enableContextBuffer.toggle()
-        settings.save()
     }
     
     @objc private func selectMode(_ sender: NSMenuItem) {

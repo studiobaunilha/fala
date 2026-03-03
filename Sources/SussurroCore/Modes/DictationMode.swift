@@ -106,27 +106,19 @@ public final class DictationMode {
         let basePrompt = modeConfig.prompt
 
         if template.requiresLLM, !basePrompt.isEmpty {
-            let prompt = config.enableContextBuffer
-                ? ContextManager.shared.buildPrompt(basePrompt: basePrompt)
-                : basePrompt
-
+            let prompt = wrapPromptForCleanOutput(basePrompt)
             do {
-                finalText = try await dispatchLLM(
+                let result = try await dispatchLLM(
                     text: text, prompt: prompt, config: config,
                     effective: modeConfig
                 )
+                finalText = stripLLMPreamble(result)
             } catch let error as LLMError {
                 let msg = error.localizedDescription
                 print("[Sussurro] ⚠️ \(msg) — modo '\(template.rawValue)' requer LLM.")
                 statusBar?.showTemporaryWarning(msg)
             } catch {
                 print("[Sussurro] LLM processing error: \(error.localizedDescription)")
-            }
-        }
-
-        if config.enableContextBuffer && template != .raw {
-            Task {
-                await ContextManager.shared.updateContext(newInput: finalText, config: config)
             }
         }
 

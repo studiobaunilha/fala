@@ -117,7 +117,7 @@ public final class TranscriptionJob: ObservableObject {
             modelName: effectiveModel,
             language: effectiveLanguage,
             temperature: config.batchTemperature,
-            prompt: "Keywords: " + config.customDictionary.joined(separator: ", ") + "."
+            prompt: ""
         )
         
         let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
@@ -148,7 +148,7 @@ public final class TranscriptionJob: ObservableObject {
             modelName: overrideModel ?? config.batchModel,
             language: overrideLanguage ?? config.language,
             temperature: config.batchTemperature,
-            prompt: "Keywords: " + config.customDictionary.joined(separator: ", ") + "."
+            prompt: ""
         )
     }
     
