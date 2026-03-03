@@ -35,9 +35,11 @@ public final class AppSettings: ObservableObject {
     @Published public var geminiKey: String
     @Published public var geminiModel: String
     @Published public var openAIModel: String
+    @Published public var mlxModel: String
     @Published public var modeConfigs: [String: ModeConfig]
 
     public let modelManager: ModelManager
+    public let mlxModelManager = MLXModelManager()
     private let transcriber: Transcriber
     private var config: AppConfig
 
@@ -82,8 +84,9 @@ public final class AppSettings: ObservableObject {
         self.geminiKey = config.geminiKey
         self.geminiModel = config.geminiModel
         self.openAIModel = config.openAIModel
+        self.mlxModel = config.mlxModel
         self.modeConfigs = config.modeConfigs
-        
+
         self.transcriber = transcriber
         self.modelManager = modelManager
     }
@@ -108,6 +111,7 @@ public final class AppSettings: ObservableObject {
         config.geminiKey = geminiKey
         config.geminiModel = geminiModel
         config.openAIModel = openAIModel
+        config.mlxModel = mlxModel
         config.modeConfigs = modeConfigs
         
         // Native macOS persistence via UserDefaults
@@ -264,9 +268,7 @@ extension View {
             .onChange(of: settings.geminiKey) { settings.save() }
             .onChange(of: settings.geminiModel) { settings.save() }
             .onChange(of: settings.openAIModel) { settings.save() }
-            // No need to observe modeConfigs specifically as changes are saved inside ModeDetailView via direct assignment + save call
-            // But if we want reactivity across views, we might need it. 
-            // However, ModeDetailView calls settings.save() explicitly.
+            .onChange(of: settings.mlxModel) { settings.save() }
     }
 }
 

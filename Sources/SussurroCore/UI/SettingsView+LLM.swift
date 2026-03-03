@@ -1,19 +1,21 @@
 import SwiftUI
 
 extension SettingsView {
-    
+
     var llmView: some View {
         Form {
             Section {
                 Picker("Provedor Padrão", selection: $settings.llmProvider) {
                     Text("Google Gemini").tag("gemini")
                     Text("OpenAI").tag("openai")
-                    Text("Apple Intelligence (em breve)").tag("apple")
+                    Text("Apple Intelligence").tag("apple")
+                    Text("MLX Local").tag("mlx")
                 }
             } header: {
                 Text("Provedor de IA")
             } footer: {
-                Text("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha.")
+                Text("Este é o provedor padrão global. "
+                     + "Modos individuais podem sobrescrever esta escolha.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -22,13 +24,20 @@ extension SettingsView {
                 geminiCredentialsSection
             } else if settings.llmProvider == "openai" {
                 openAICredentialsSection
+            } else if settings.llmProvider == "apple" {
+                appleIntelligenceSection
+            } else if settings.llmProvider == "mlx" {
+                mlxConfigSection
             }
 
+            mlxModelsSection
+
             Section {
-                Toggle("Memória de Contexto Contínuo", isOn: $settings.enableContextBuffer)
+                Toggle("Memória de Contexto Contínuo",
+                       isOn: $settings.enableContextBuffer)
             } footer: {
-                Text("Mantém notas da IA sobre tom, assunto e vocabulário " +
-                     "para melhorar transcrições ao longo da sessão.")
+                Text("Mantém notas da IA sobre tom, assunto e vocabulário "
+                     + "para melhorar transcrições ao longo da sessão.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -57,7 +66,8 @@ extension SettingsView {
                 } header: {
                     Text("Memória de Contexto")
                 } footer: {
-                    Text("Notas da IA sobre a sessão atual. São usadas para refinar futuras transcrições.")
+                    Text("Notas da IA sobre a sessão atual. "
+                         + "São usadas para refinar futuras transcrições.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -74,15 +84,112 @@ extension SettingsView {
         }
     }
 
+    // MARK: - Apple Intelligence
+
+    private var appleIntelligenceSection: some View {
+        Section("Apple Intelligence") {
+            appleAvailabilityRow
+        }
+    }
+
+    private var appleAvailabilityRow: some View {
+        Group {
+            #if canImport(FoundationModels)
+            if #available(macOS 26, *) {
+                AppleIntelligenceStatusView()
+            } else {
+                unavailableRow("Requer macOS Tahoe (26) ou superior.")
+            }
+            #else
+            unavailableRow("Requer macOS Tahoe (26) ou superior. "
+                           + "Compile com o SDK do macOS 26.")
+            #endif
+        }
+    }
+
+    private func unavailableRow(_ message: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text("Indisponível")
+                    .font(.body)
+                Text(message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } icon: {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+        }
+        .padding(.vertical, Spacing.xs)
+    }
+
+    // MARK: - MLX Config
+
+    private var mlxConfigSection: some View {
+        Section("MLX Local") {
+            LabeledContent("Modelo Padrão") {
+                HStack(spacing: Spacing.xs) {
+                    TextField("", text: $settings.mlxModel)
+                        .textFieldStyle(.roundedBorder)
+
+                    Menu {
+                        ForEach(knownMLXModels) { model in
+                            Button(model.label) {
+                                settings.mlxModel = model.repoID
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption)
+                    }
+                    .frame(width: 16)
+                    .help("Selecionar modelo conhecido")
+                }
+            }
+
+            Text("Os modelos MLX rodam localmente no Apple Silicon. "
+                 + "Baixe pelo menos um modelo abaixo.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - MLX Models Download
+
+    private var mlxModelsSection: some View {
+        Section {
+            ForEach(knownMLXModels) { model in
+                MLXModelRow(
+                    model: model,
+                    manager: settings.mlxModelManager,
+                    isSelected: settings.mlxModel == model.repoID
+                )
+            }
+        } header: {
+            Text("Modelos MLX Locais")
+        } footer: {
+            Text("Modelos LLM para processamento local via MLX. "
+                 + "Rodam inteiramente no dispositivo usando Apple Silicon.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Gemini Credentials
+
     private var geminiCredentialsSection: some View {
         Section("Credenciais — Gemini") {
             LabeledContent("Chave API") {
                 HStack(spacing: Spacing.sm) {
-                    SecureField("Cole sua chave aqui", text: $settings.geminiKey)
+                    SecureField("Cole sua chave aqui",
+                                text: $settings.geminiKey)
                         .textFieldStyle(.roundedBorder)
 
                     Button(action: {
-                        Task { await testKey(provider: "gemini", key: settings.geminiKey) }
+                        Task {
+                            await testKey(provider: "gemini",
+                                          key: settings.geminiKey)
+                        }
                     }, label: {
                         if isTestingKey {
                             ProgressView().controlSize(.small)
@@ -96,11 +203,14 @@ extension SettingsView {
             .help("Sua chave do Google AI Studio")
 
             HStack {
-                Text("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.")
+                Text("A API do Gemini 2.5 Flash é rápida "
+                     + "e possui um nível gratuito generoso.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if let url = URL(string: "https://aistudio.google.com/app/apikey") {
+                if let url = URL(
+                    string: "https://aistudio.google.com/app/apikey"
+                ) {
                     Link("Obter chave gratuita", destination: url)
                         .font(.caption)
                 }
@@ -129,15 +239,21 @@ extension SettingsView {
         }
     }
 
+    // MARK: - OpenAI Credentials
+
     private var openAICredentialsSection: some View {
         Section("Credenciais — OpenAI") {
             LabeledContent("Chave API") {
                 HStack(spacing: Spacing.sm) {
-                    SecureField("Cole sua chave aqui", text: $settings.openAIKey)
+                    SecureField("Cole sua chave aqui",
+                                text: $settings.openAIKey)
                         .textFieldStyle(.roundedBorder)
 
                     Button(action: {
-                        Task { await testKey(provider: "openai", key: settings.openAIKey) }
+                        Task {
+                            await testKey(provider: "openai",
+                                          key: settings.openAIKey)
+                        }
                     }, label: {
                         if isTestingKey {
                             ProgressView().controlSize(.small)
@@ -150,110 +266,19 @@ extension SettingsView {
             }
 
             HStack {
-                Text("A API da OpenAI requer saldo na sua conta de desenvolvedor.")
+                Text("A API da OpenAI requer saldo na conta "
+                     + "de desenvolvedor.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if let url = URL(string: "https://platform.openai.com/api-keys") {
+                if let url = URL(
+                    string: "https://platform.openai.com/api-keys"
+                ) {
                     Link("Obter chave", destination: url)
                         .font(.caption)
                 }
             }
         }
     }
-    
-    func testKey(provider: String, key: String) async {
-        isTestingKey = true
-        defer { isTestingKey = false }
-        
-        do {
-            if provider == "gemini" {
-                try await testGeminiKey(key)
-            } else {
-                try await testOpenAIKey(key)
-            }
-        } catch {
-            testKeyResult = "Falha no teste: \(error.localizedDescription)"
-        }
-        
-        showTestKeyAlert = true
-    }
-    
-    private func testGeminiKey(_ key: String) async throws {
-        let baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-        guard let url = URL(string: "\(baseUrl)?key=\(key)") else { throw URLError(.badURL) }
-        
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["contents": [["parts": [["text": "Hi"]]]]]
-        req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        
-        let (data, response) = try await URLSession.shared.data(for: req)
-        
-        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
-        
-        if http.statusCode == 200 {
-            testKeyResult = "Sucesso! A chave do Gemini está funcionando."
-            return
-        }
-        
-        if http.statusCode == 404 {
-            try await checkGeminiModelsList(key)
-            return
-        }
-        
-        let errBody = String(data: data, encoding: .utf8) ?? "Erro desconhecido"
-        let msg = "Erro \(http.statusCode): \(errBody)"
-        throw NSError(domain: "API", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: msg])
-    }
-    
-    private func checkGeminiModelsList(_ key: String) async throws {
-        guard let listUrl = URL(string: "https://generativelanguage.googleapis.com/v1beta/models?key=\(key)") else {
-             throw URLError(.badURL)
-        }
-        
-        let (listData, listResp) = try await URLSession.shared.data(from: listUrl)
-        guard let listHttp = listResp as? HTTPURLResponse, listHttp.statusCode == 200 else {
-            throw NSError(domain: "API", code: 404, userInfo: [
-                NSLocalizedDescriptionKey: "Modelo não encontrado e falha ao listar modelos."
-            ])
-        }
-        
-        if let json = try JSONSerialization.jsonObject(with: listData) as? [String: Any],
-           let models = json["models"] as? [[String: Any]] {
-            let names = models.compactMap { ($0["name"] as? String)?.components(separatedBy: "/").last }
-            self.availableGeminiModels = names
-            testKeyResult = "Chave válida. Lista de modelos atualizada."
-        } else {
-            testKeyResult = "Chave válida, mas erro ao listar modelos."
-        }
-    }
 
-    private func testOpenAIKey(_ key: String) async throws {
-        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else { throw URLError(.badURL) }
-        
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body: [String: Any] = [
-            "model": "gpt-4o-mini",
-            "messages": [["role": "user", "content": "Hi"]],
-            "max_tokens": 5
-        ]
-        req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        
-        let (data, response) = try await URLSession.shared.data(for: req)
-        guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
-        
-        if http.statusCode != 200 {
-            let errBody = String(data: data, encoding: .utf8) ?? "Erro desconhecido"
-            let msg = "Erro \(http.statusCode): \(errBody)"
-            throw NSError(domain: "API", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: msg])
-        }
-        
-        testKeyResult = "Sucesso! A chave da OpenAI está funcionando."
-    }
 }

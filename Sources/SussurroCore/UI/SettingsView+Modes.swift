@@ -1,5 +1,6 @@
 import SwiftUI
 
+// swiftlint:disable:next type_body_length
 struct ModeDetailView: View {
     let template: DictationTemplate
     @ObservedObject var settings: AppSettings
@@ -16,7 +17,8 @@ struct ModeDetailView: View {
         ("global", "Usar Padrão Global"),
         ("gemini", "Google Gemini"),
         ("openai", "OpenAI GPT"),
-        ("apple", "Apple Intelligence (em breve)")
+        ("apple", "Apple Intelligence"),
+        ("mlx", "MLX Local")
     ]
 
     private var effectiveProviderName: String {
@@ -26,6 +28,14 @@ struct ModeDetailView: View {
             return name
         }
         return providers.first { $0.0 == provider }?.1 ?? provider
+    }
+
+    private var mlxModelLabel: String {
+        if model.isEmpty {
+            return "Padrão global"
+        }
+        return knownMLXModels
+            .first { $0.repoID == model }?.label ?? model
     }
 
     private var isPromptModified: Bool {
@@ -99,8 +109,25 @@ struct ModeDetailView: View {
             }
 
             if provider != "global" && provider != "apple" {
-                TextField("Modelo", text: $model, prompt: Text("Padrão do provedor"))
+                if provider == "mlx" {
+                    LabeledContent("Modelo") {
+                        Menu {
+                            ForEach(knownMLXModels) { mlxModel in
+                                Button(mlxModel.label) {
+                                    model = mlxModel.repoID
+                                }
+                            }
+                        } label: {
+                            Text(mlxModelLabel)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
                     .onChange(of: model) { debouncedSave() }
+                } else {
+                    TextField("Modelo", text: $model,
+                              prompt: Text("Padrão do provedor"))
+                        .onChange(of: model) { debouncedSave() }
+                }
             }
         } header: {
             Text("Modelo")

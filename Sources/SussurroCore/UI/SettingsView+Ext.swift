@@ -131,11 +131,11 @@ extension SettingsView {
             
             Section {
                 HStack(spacing: Spacing.sm) {
-                    TextField("Variante (ex: flitu)", text: $newIncorrect)
+                    TextField("Variante", text: $newIncorrect)
                         .textFieldStyle(.roundedBorder)
                     Image(systemName: "arrow.right")
                         .foregroundStyle(.secondary)
-                    TextField("Correto (ex: Fleetu)", text: $newCorrect)
+                    TextField("Correto", text: $newCorrect)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit { addReplacement() }
 
