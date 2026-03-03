@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 struct ProcessingContext {
     let config: AppConfig
@@ -88,7 +91,51 @@ extension TranscriptionJob {
     }
 
     static func processWithAppleNative(text: String, prompt: String) async throws -> String {
+        guard #available(macOS 26, *) else {
+            throw LLMError.appleIntelligenceUnavailable
+        }
+        #if canImport(FoundationModels)
+        return try await appleIntelligenceGenerate(text: text, prompt: prompt)
+        #else
         throw LLMError.appleIntelligenceUnavailable
+        #endif
+    }
+
+    #if canImport(FoundationModels)
+    @available(macOS 26, *)
+    private static func appleIntelligenceGenerate(
+        text: String, prompt: String
+    ) async throws -> String {
+        let model = SystemLanguageModel.default
+        switch model.availability {
+        case .available:
+            break
+        case .unavailable(let reason):
+            switch reason {
+            case .appleIntelligenceNotEnabled:
+                throw LLMError.appleIntelligenceNotEnabled
+            case .deviceNotEligible:
+                throw LLMError.deviceNotEligible
+            case .modelNotReady:
+                throw LLMError.appleIntelligenceModelNotReady
+            @unknown default:
+                throw LLMError.appleIntelligenceUnavailable
+            }
+        @unknown default:
+            throw LLMError.appleIntelligenceUnavailable
+        }
+        let session = LanguageModelSession(instructions: prompt)
+        let response = try await session.respond(to: text)
+        return response.content
+    }
+    #endif
+
+    static func processWithMLX(
+        text: String, prompt: String, modelID: String
+    ) async throws -> String {
+        try await MLXModelCache.shared.generate(
+            repoID: modelID, systemPrompt: prompt, userText: text
+        )
     }
 
     nonisolated func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
@@ -143,6 +190,12 @@ extension TranscriptionJob {
                 )
             } else if provider == "apple" {
                 return try await processWithAppleNative(text: text, prompt: prompt)
+            } else if provider == "mlx" {
+                let modelID = model.isEmpty
+                    ? "mlx-community/Qwen2.5-3B-Instruct-4bit" : model
+                return try await processWithMLX(
+                    text: text, prompt: prompt, modelID: modelID
+                )
             }
         } catch {
             print("[Sussurro] LLM Error: \(error)")

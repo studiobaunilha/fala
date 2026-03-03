@@ -34,12 +34,27 @@ public enum LLMError: Error, LocalizedError {
     case noAPIKey(provider: String)
     case providerNotConfigured(String)
     case appleIntelligenceUnavailable
+    case appleIntelligenceNotEnabled
+    case deviceNotEligible
+    case appleIntelligenceModelNotReady
+    case mlxModelNotLoaded(String)
 
     public var errorDescription: String? {
         switch self {
-        case .noAPIKey(let provider): "Chave API não configurada para \(provider)"
-        case .providerNotConfigured(let provider): "Provedor '\(provider)' não reconhecido"
-        case .appleIntelligenceUnavailable: "Apple Intelligence ainda não disponível"
+        case .noAPIKey(let provider):
+            "Chave API não configurada para \(provider)"
+        case .providerNotConfigured(let provider):
+            "Provedor '\(provider)' não reconhecido"
+        case .appleIntelligenceUnavailable:
+            "Apple Intelligence requer macOS Tahoe (26+)"
+        case .appleIntelligenceNotEnabled:
+            "Apple Intelligence não está ativado nas Preferências do Sistema"
+        case .deviceNotEligible:
+            "Este dispositivo não suporta Apple Intelligence"
+        case .appleIntelligenceModelNotReady:
+            "Modelo Apple Intelligence ainda sendo baixado"
+        case .mlxModelNotLoaded(let modelID):
+            "Não foi possível carregar o modelo local '\(modelID)'"
         }
     }
 }

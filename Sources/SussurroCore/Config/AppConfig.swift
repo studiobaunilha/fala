@@ -24,7 +24,8 @@ public struct AppConfig: Codable, Sendable {
     public var geminiKey: String = ""
     public var geminiModel: String = "gemini-2.5-flash"
     public var openAIModel: String = "gpt-4o-mini"
-    
+    public var mlxModel: String = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
     public var modeConfigs: [String: ModeConfig] = [:]
@@ -82,6 +83,8 @@ public struct AppConfig: Codable, Sendable {
         geminiKey = (try? container.decode(String.self, forKey: .geminiKey)) ?? ""
         geminiModel = (try? container.decode(String.self, forKey: .geminiModel)) ?? "gemini-2.5-flash"
         openAIModel = (try? container.decode(String.self, forKey: .openAIModel)) ?? "gpt-4o-mini"
+        mlxModel = (try? container.decode(String.self, forKey: .mlxModel))
+            ?? "mlx-community/Qwen2.5-3B-Instruct-4bit"
     }
     
     // MARK: – Helper Methods for Mode Config
@@ -107,7 +110,12 @@ public struct AppConfig: Codable, Sendable {
             model = modeModel
         } else {
             // Fallback to global model based on provider
-            model = (provider == "gemini") ? geminiModel : (provider == "openai" ? openAIModel : "")
+            switch provider {
+            case "gemini": model = geminiModel
+            case "openai": model = openAIModel
+            case "mlx":    model = mlxModel
+            default:       model = ""
+            }
         }
         
         return EffectiveConfig(provider: provider, model: model, prompt: prompt)

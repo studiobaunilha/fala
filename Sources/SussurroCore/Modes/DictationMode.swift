@@ -100,60 +100,64 @@ public final class DictationMode {
         config: AppConfig,
         template: DictationTemplate
     ) async -> String {
-        var finalText = text
-        
-        // Apply replacement rules (multi-variant → single correct word)
-        finalText = ReplacementRule.applyAll(finalText, rules: config.replacementRules)
-        
-        // Resolve effective configuration for this mode
+        var finalText = ReplacementRule.applyAll(text, rules: config.replacementRules)
+
         let modeConfig = config.getEffectiveConfig(for: template)
-        let provider = modeConfig.provider
-        let model = modeConfig.model
         let basePrompt = modeConfig.prompt
-        
-        // Apply LLM post-processing if this mode requires it and we have a prompt
+
         if template.requiresLLM, !basePrompt.isEmpty {
             let prompt = config.enableContextBuffer
                 ? ContextManager.shared.buildPrompt(basePrompt: basePrompt)
                 : basePrompt
 
             do {
-                if provider == "gemini" {
-                    guard !config.geminiKey.isEmpty else {
-                        throw LLMError.noAPIKey(provider: "Gemini")
-                    }
-                    finalText = try await TranscriptionJob.processWithGemini(
-                        text: text, prompt: prompt, apiKey: config.geminiKey, model: model
-                    )
-                } else if provider == "openai" {
-                    guard !config.openAIKey.isEmpty else {
-                        throw LLMError.noAPIKey(provider: "OpenAI")
-                    }
-                    finalText = try await TranscriptionJob.processWithOpenAI(
-                        text: text, prompt: prompt, apiKey: config.openAIKey, model: model
-                    )
-                } else if provider == "apple" {
-                    finalText = try await TranscriptionJob.processWithAppleNative(
-                        text: text, prompt: prompt
-                    )
-                } else {
-                    throw LLMError.providerNotConfigured(provider)
-                }
+                finalText = try await dispatchLLM(
+                    text: text, prompt: prompt, config: config,
+                    effective: modeConfig
+                )
             } catch let error as LLMError {
-                print("[Sussurro] ⚠️ \(error.localizedDescription) — modo '\(template.rawValue)' requer LLM.")
-                statusBar?.showTemporaryWarning(error.localizedDescription)
+                let msg = error.localizedDescription
+                print("[Sussurro] ⚠️ \(msg) — modo '\(template.rawValue)' requer LLM.")
+                statusBar?.showTemporaryWarning(msg)
             } catch {
                 print("[Sussurro] LLM processing error: \(error.localizedDescription)")
             }
         }
-        
-        // Update context buffer in background (using global config for memory updates as defined in ContextManager)
+
         if config.enableContextBuffer && template != .raw {
             Task {
                 await ContextManager.shared.updateContext(newInput: finalText, config: config)
             }
         }
-        
+
         return finalText
+    }
+
+    private func dispatchLLM(
+        text: String, prompt: String, config: AppConfig,
+        effective: AppConfig.EffectiveConfig
+    ) async throws -> String {
+        let model = effective.model
+        switch effective.provider {
+        case "gemini":
+            guard !config.geminiKey.isEmpty else { throw LLMError.noAPIKey(provider: "Gemini") }
+            return try await TranscriptionJob.processWithGemini(
+                text: text, prompt: prompt, apiKey: config.geminiKey, model: model
+            )
+        case "openai":
+            guard !config.openAIKey.isEmpty else { throw LLMError.noAPIKey(provider: "OpenAI") }
+            return try await TranscriptionJob.processWithOpenAI(
+                text: text, prompt: prompt, apiKey: config.openAIKey, model: model
+            )
+        case "apple":
+            return try await TranscriptionJob.processWithAppleNative(text: text, prompt: prompt)
+        case "mlx":
+            let modelID = model.isEmpty ? config.mlxModel : model
+            return try await TranscriptionJob.processWithMLX(
+                text: text, prompt: prompt, modelID: modelID
+            )
+        default:
+            throw LLMError.providerNotConfigured(effective.provider)
+        }
     }
 }
