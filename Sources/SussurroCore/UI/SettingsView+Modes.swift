@@ -53,6 +53,10 @@ struct ModeDetailView: View {
                 customNameSection
             }
 
+            if template == .promptDev {
+                stackSection
+            }
+
             if template.requiresLLM {
                 providerSection
                 promptSection
@@ -199,6 +203,19 @@ struct ModeDetailView: View {
             Text("Nome Personalizado")
         } footer: {
             Text("Este nome aparece no menu da barra de status. Máximo 30 caracteres.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var stackSection: some View {
+        Section {
+            TextField("Stack / Tecnologias", text: $settings.devStack)
+                .onChange(of: settings.devStack) { debouncedSave() }
+        } header: {
+            Text("Stack do Projeto")
+        } footer: {
+            Text("Tecnologias do projeto atual. Incluída automaticamente no prompt para gerar código contextualizado.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

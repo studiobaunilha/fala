@@ -211,7 +211,11 @@ extension TranscriptionJob {
         let effective = config.getEffectiveConfig(for: template)
         let rawPrompt = effective.prompt
         guard !rawPrompt.isEmpty else { return text }
-        let prompt = wrapPromptForCleanOutput(rawPrompt)
+        var enriched = rawPrompt
+        if template == .promptDev, !config.devStack.isEmpty {
+            enriched += "\n\nStack do projeto: \(config.devStack)"
+        }
+        let prompt = wrapPromptForCleanOutput(enriched)
         let provider = effective.provider
         let model = effective.model
 

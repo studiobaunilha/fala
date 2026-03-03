@@ -28,6 +28,7 @@ public struct AppConfig: Codable, Sendable {
     public var customModeName: String = "Personalizado"
     public var customModePrompt: String =
         "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+    public var devStack: String = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
 
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
@@ -83,6 +84,8 @@ public struct AppConfig: Codable, Sendable {
         customModeName = (try? container.decode(String.self, forKey: .customModeName)) ?? "Personalizado"
         customModePrompt = (try? container.decode(String.self, forKey: .customModePrompt))
             ?? "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+        devStack = (try? container.decode(String.self, forKey: .devStack))
+            ?? "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
     }
     
     // MARK: – Helper Methods for Mode Config

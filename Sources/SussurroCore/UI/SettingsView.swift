@@ -38,6 +38,7 @@ public final class AppSettings: ObservableObject {
     @Published public var modeConfigs: [String: ModeConfig]
     @Published public var customModeName: String
     @Published public var customModePrompt: String
+    @Published public var devStack: String
 
     public let modelManager: ModelManager
     public let mlxModelManager = MLXModelManager()
@@ -88,6 +89,7 @@ public final class AppSettings: ObservableObject {
         self.modeConfigs = config.modeConfigs
         self.customModeName = config.customModeName
         self.customModePrompt = config.customModePrompt
+        self.devStack = config.devStack
 
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -116,6 +118,7 @@ public final class AppSettings: ObservableObject {
         config.modeConfigs = modeConfigs
         config.customModeName = String(customModeName.prefix(30))
         config.customModePrompt = customModePrompt
+        config.devStack = devStack
 
         // Native macOS persistence via UserDefaults
         config.save()
