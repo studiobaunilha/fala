@@ -38,6 +38,7 @@ public final class AppSettings: ObservableObject {
     @Published public var modeConfigs: [String: ModeConfig]
     @Published public var customModeName: String
     @Published public var customModePrompt: String
+    @Published public var globalSystemPrompt: String
     @Published public var devStack: String
 
     public let modelManager: ModelManager
@@ -122,6 +123,7 @@ public final class AppSettings: ObservableObject {
         self.modeConfigs = config.modeConfigs
         self.customModeName = config.customModeName
         self.customModePrompt = config.customModePrompt
+        self.globalSystemPrompt = config.globalSystemPrompt
         self.devStack = config.devStack
 
         self.transcriber = transcriber
@@ -151,6 +153,7 @@ public final class AppSettings: ObservableObject {
         config.modeConfigs = modeConfigs
         config.customModeName = String(customModeName.prefix(30))
         config.customModePrompt = customModePrompt
+        config.globalSystemPrompt = globalSystemPrompt
         config.devStack = devStack
 
         // Native macOS persistence via UserDefaults

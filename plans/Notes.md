@@ -17,6 +17,5 @@ Se eu selecionar o motor Parakeet eu não precisaria ter nenhum modelo whisper b
 
 Se o idioma da aplicação estiver selecionado para inglês, a gente deveria tirar do menu a opção traduzir para inglês. Seria redundante, né?
 
-
 Sobre o pós-processamento, a gente criou um "system prompt" que ele serve para qualquer um dos modos, né? Independente do pós-processamento que está selecionado ali. Eu fiquei pensando que isso está hard-coded no sistema. E a gente deveria deixar isso para o usuário poder modificar, sabe? Que é o prompt de sistema, digamos assim, né? Que dá a atribuição para IA qual que é o objetivo dela, o que ela deve fazer e tudo mais. Eu não vejo por que a gente travar e esconder isso do usuário, sabe?
 

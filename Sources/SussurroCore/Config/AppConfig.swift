@@ -28,6 +28,11 @@ public struct AppConfig: Codable, Sendable {
     public var customModeName: String = L10n("Personalizado")
     public var customModePrompt: String =
         L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
+        
+    // swiftlint:disable:next line_length
+    public static let defaultGlobalSystemPrompt = L10n("REGRA CRÍTICA DO SISTEMA: Você não é um assistente conversacional respondendo a um usuário.\nVocê atua rigidamente como um formatador de texto silencioso.\nRetorne EXCLUSIVAMENTE o texto final do prompt transcrito.\nNÃO inclua explicações, preâmbulos, comentários, saudações, markdown de conversação ou meta-texto.\nNÃO diga \"Aqui está\", \"Segue abaixo\", \"Entendi\", \"Claro\" ou similar.\nVocê está fazendo pós-processamento de roteiro em uma transcrição bruta.\nSua saída direta inteira será colada e usada, qualquer palavra além da instrução será um erro severo.\nResponda APENAS com a saída final.")
+    
+    public var globalSystemPrompt: String = AppConfig.defaultGlobalSystemPrompt
     public var devStack: String = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
 
     public var replacements: [String: String] = [:]
@@ -85,6 +90,9 @@ public struct AppConfig: Codable, Sendable {
         customModeName = (try? container.decode(String.self, forKey: .customModeName)) ?? L10n("Personalizado")
         customModePrompt = (try? container.decode(String.self, forKey: .customModePrompt))
             ?? L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
+        globalSystemPrompt = (try? container.decode(String.self, forKey: .globalSystemPrompt))
+            ?? AppConfig.defaultGlobalSystemPrompt
+
         devStack = (try? container.decode(String.self, forKey: .devStack))
             ?? "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
     }

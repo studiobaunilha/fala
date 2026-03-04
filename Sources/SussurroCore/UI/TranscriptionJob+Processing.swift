@@ -7,19 +7,12 @@ import FoundationModels
 
 /// Wraps a system prompt with strict output-only instructions to prevent
 /// LLM preambles like "Entendi sua solicitação. Segue abaixo...".
-func wrapPromptForCleanOutput(_ prompt: String) -> String {
+func wrapPromptForCleanOutput(_ prompt: String, globalPrompt: String) -> String {
     """
     \(prompt)
 
     ---
-    REGRA CRÍTICA DO SISTEMA: Você não é um assistente conversacional respondendo a um usuário.
-    Você atua rigidamente como um formatador de texto silencioso.
-    Retorne EXCLUSIVAMENTE o texto final do prompt transcrito.
-    NÃO inclua explicações, preâmbulos, comentários, saudações, markdown de conversação ou meta-texto.
-    NÃO diga "Aqui está", "Segue abaixo", "Entendi", "Claro" ou similar.
-    Você está fazendo pós-processamento de roteiro em uma transcrição bruta.
-    Sua saída direta inteira será colada e usada, qualquer palavra além da instrução será um erro severo.
-    Responda APENAS com a saída final.
+    \(globalPrompt)
     """
 }
 
@@ -229,7 +222,7 @@ extension TranscriptionJob {
             NÃO adicione essas linguagens como listas isoladas na saída, apenas utilize-as no contexto.
             """
         }
-        let prompt = wrapPromptForCleanOutput(enriched)
+        let prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
         let provider = effective.provider
         let model = effective.model
 

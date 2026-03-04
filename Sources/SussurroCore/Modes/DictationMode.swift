@@ -155,7 +155,7 @@ public final class DictationMode {
             if template == .promptDev, !config.devStack.isEmpty {
                 enriched += "\n\nStack do projeto: \(config.devStack)"
             }
-            let prompt = wrapPromptForCleanOutput(enriched)
+            let prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
             do {
                 let result = try await dispatchLLM(
                     text: text, prompt: prompt, config: config,
