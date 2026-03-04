@@ -71,16 +71,16 @@ extension SettingsView {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            }
 
-                Section(L10n("Downloads Disponíveis")) {
-                    ForEach(knownModels) { model in
-                        ModelRow(
-                            model: model,
-                            manager: modelManager,
-                            isDictation: settings.dictationModel == model.id,
-                            isBatch: settings.batchModel == model.id
-                        )
-                    }
+            Section(L10n("Modelos Whisper (Offline)")) {
+                ForEach(knownModels) { model in
+                    ModelRow(
+                        model: model,
+                        manager: modelManager,
+                        isDictation: settings.transcriptionEngine == "whisper" && settings.dictationModel == model.id,
+                        isBatch: settings.transcriptionEngine == "whisper" && settings.batchModel == model.id
+                    )
                 }
             }
         }
@@ -100,15 +100,21 @@ extension SettingsView {
                     Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
                 }
             } header: {
-                Text(L10n("Acurácia vs. Velocidade"))
+                Text(L10n("Acurácia vs. Velocidade (Apenas Whisper)"))
             } footer: {
-                Text(L10n("Zero significa alta acurácia (Greedy Decoding)."))
+                Text(L10n("Zero significa alta acurácia (Greedy Decoding). Aplicável apenas ao motor Whisper."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            Section(L10n("Diarization (Identificação de Vozes)")) {
+            Section {
                 Toggle(L10n("Reconhecer múltiplos locutores"), isOn: $settings.enableDiarization)
+            } header: {
+                Text(L10n("Diarization (Identificação de Vozes)"))
+            } footer: {
+                Text(L10n("Apenas para transcrição de arquivos. Tenta separar o texto por locutores diferentes."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             
             Section {
@@ -220,6 +226,10 @@ extension SettingsView {
     ) -> some View {
         let downloaded = knownModels.filter { modelManager.isDownloaded($0.id) }
         Picker(label, selection: selection) {
+            Text(L10n("Nenhum")).tag("none")
+            if !downloaded.isEmpty {
+                Divider()
+            }
             ForEach(downloaded) { model in
                 Text("\(model.label)  \(model.estimatedSize)").tag(model.id)
             }
