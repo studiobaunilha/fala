@@ -38,6 +38,7 @@ public enum BatchMode {
         }
 
         try await performTranscription(
+            config: config,
             wavURL: wavURL,
             inputURL: inputURL,
             modelName: opts.model,
@@ -46,6 +47,7 @@ public enum BatchMode {
     }
 
     private static func performTranscription(
+        config: AppConfig,
         wavURL: URL,
         inputURL: URL,
         modelName: String,
@@ -58,7 +60,10 @@ public enum BatchMode {
             .deletingPathExtension()
             .appendingPathExtension(outputFormat)
 
-        let transcriber = Transcriber(modelName: modelName)
+        let transcriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
+            ? ParakeetTranscriber()
+            : Transcriber(modelName: modelName)
+        
         let text = try await transcriber.transcribe(audioPath: wavURL.path)
 
         let content = outputFormat == "md"
