@@ -20,6 +20,10 @@ final class MockRecorder: AudioRecording, @unchecked Sendable {
         stopCallCount += 1
         return try stopResult.get()
     }
+
+    func setRMSHandler(_ handler: (@Sendable (Float) -> Void)?) {
+        // No-op in tests
+    }
 }
 
 /// Returns a fixed transcription string without loading any ML model.

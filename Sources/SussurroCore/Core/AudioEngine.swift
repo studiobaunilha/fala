@@ -33,8 +33,13 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
     private let lock   = NSLock()
     private var tmpURL: URL?
     private var running = false
+    private var onRMS: (@Sendable (Float) -> Void)?
 
     public init() {}
+
+    public func setRMSHandler(_ handler: (@Sendable (Float) -> Void)?) {
+        lock.withLock { onRMS = handler }
+    }
 
     public func startRecording() throws {
         try lock.withLock {
@@ -49,10 +54,18 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
 
             try writer.open(url: url, settings: format.settings)
 
-            // Capture only `writer` (@unchecked Sendable, no actor isolation).
-            // Core Audio calls this closure on its own thread — no @MainActor here.
-            inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [writer] buffer, _ in
+            // Capture only `writer` and `weak self` — Core Audio calls this on its own thread.
+            inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [writer, weak self] buffer, _ in
                 writer.write(buffer)
+                // Compute RMS for waveform visualization (~85ms cadence at 48kHz)
+                let count = Int(buffer.frameLength)
+                guard count > 0, let data = buffer.floatChannelData?[0] else { return }
+                var sum: Float = 0
+                for idx in 0..<count { sum += data[idx] * data[idx] }
+                let rms = sqrt(sum / Float(count))
+                if let handler = self?.lock.withLock({ self?.onRMS }) {
+                    handler(rms)
+                }
             }
 
             engine.prepare()

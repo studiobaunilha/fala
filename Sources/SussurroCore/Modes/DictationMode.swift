@@ -12,6 +12,7 @@ public final class DictationMode {
     private let transcriber: any AudioTranscribing
     private let inserter: any TextInserting
     private weak var statusBar: StatusBarController?
+    private let feedback: DictationFeedbackController?
 
     private var isRecording = false
 
@@ -30,12 +31,14 @@ public final class DictationMode {
         recorder: any AudioRecording,
         transcriber: any AudioTranscribing,
         inserter: any TextInserting,
-        statusBar: StatusBarController? = nil
+        statusBar: StatusBarController? = nil,
+        feedback: DictationFeedbackController? = nil
     ) {
         self.recorder = recorder
         self.transcriber = transcriber
         self.inserter = inserter
         self.statusBar = statusBar
+        self.feedback = feedback
     }
 
     /// Binds global keyboard shortcut handlers. Call once at app startup.
@@ -56,9 +59,18 @@ public final class DictationMode {
     func startRecording() async {
         guard !isRecording else { return }
         do {
+            // Wire RMS levels to the floating feedback panel
+            if let feedback {
+                feedback.model.reset()
+                recorder.setRMSHandler { [weak feedback] rms in
+                    Task { @MainActor in feedback?.model.pushRMS(rms) }
+                }
+            }
             try recorder.startRecording()
             isRecording = true
             statusBar?.setState(.recording)
+            feedback?.model.stage = .recording
+            feedback?.show()
         } catch {
             print("[Sussurro] Recording start failed: \(error.localizedDescription)")
         }
@@ -66,7 +78,9 @@ public final class DictationMode {
 
     func stopAndTranscribe() async {
         isRecording = false
+        recorder.setRMSHandler(nil)
         statusBar?.setState(.transcribing)
+        feedback?.model.stage = .transcribing
 
         do {
             let audioURL = try recorder.stopRecording()
@@ -75,6 +89,7 @@ public final class DictationMode {
             let samples = try AudioConverter.toFloat16k(from: audioURL)
             guard !samples.isEmpty else {
                 statusBar?.setState(.idle)
+                feedback?.dismiss()
                 return
             }
 
@@ -83,6 +98,7 @@ public final class DictationMode {
             guard rms > 0.001 else {
                 NSLog("[Sussurro] Audio too quiet (RMS: %.6f), skipping", rms)
                 statusBar?.setState(.idle)
+                feedback?.dismiss()
                 return
             }
 
@@ -91,6 +107,7 @@ public final class DictationMode {
 
             let task = template == .translate ? "translate" : "transcribe"
             let text = try await transcriber.transcribe(samples: samples, task: task)
+            feedback?.model.transcriptionText = text
 
             // Filter short noise hallucinations (e.g. "the", "okay", "um")
             let words = text.split(separator: " ")
@@ -99,13 +116,21 @@ public final class DictationMode {
                     NSLog("[Sussurro] Transcription too short, likely noise: '%@'", text)
                 }
                 statusBar?.setState(.idle)
+                feedback?.dismiss()
                 return
             }
 
+            feedback?.model.stage = .processing
             let finalText = await processText(text, config: config, template: template)
+
+            feedback?.model.stage = .inserting
             inserter.insert(finalText)
+
+            feedback?.model.stage = .done
+            feedback?.dismiss()
         } catch {
             print("[Sussurro] Transcription error: \(error.localizedDescription)")
+            feedback?.dismiss()
         }
 
         statusBar?.setState(.idle)
