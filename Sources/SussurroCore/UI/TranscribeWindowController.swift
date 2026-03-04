@@ -7,8 +7,8 @@ public final class TranscribeWindowController {
     private var window: NSWindow?
     private let job: TranscriptionJob
 
-    public init(job: TranscriptionJob) {
-        self.job = job
+    public init(settings: AppSettings) {
+        self.job = TranscriptionJob(appSettings: settings)
     }
 
     public func show() {

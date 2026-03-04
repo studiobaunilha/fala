@@ -85,7 +85,7 @@ extension TranscribeView {
                 Picker(L10n("Idioma"), selection: $job.overrideLanguage) {
                     Text(L10n("Usar Padrão do Sistema")).tag(nil as String?)
                     Divider()
-                    ForEach(AppSettings.languages) { lang in
+                    ForEach(job.appSettings.availableLanguagesForEngine) { lang in
                         Text(lang.name).tag(lang.id as String?)
                     }
                 }

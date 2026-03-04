@@ -27,9 +27,12 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var overrideLanguage: String?
     @Published public var enableDiarization: Bool
     
+    // Dependency
+    @Published public var appSettings: AppSettings
     private var currentTask: Task<Void, Never>?
 
-    public init() {
+    public init(appSettings: AppSettings) {
+        self.appSettings = appSettings
         let config = AppConfig.load()
         self.outputFormat = config.outputFormat
         if !config.defaultExportPath.isEmpty {

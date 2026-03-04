@@ -9,7 +9,10 @@ final class IncrementalSavingTests: XCTestCase {
     }
 
     func testIncrementalProcessingAppendsBlocks() async throws {
-        let job = TranscriptionJob()
+        let config = AppConfig.load()
+        let transcriber = Transcriber(modelName: "", language: "")
+        let settings = AppSettings(config: config, transcriber: transcriber, modelManager: ModelManager())
+        let job = TranscriptionJob(appSettings: settings)
         let tempDir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tempDir) }
@@ -20,14 +23,14 @@ final class IncrementalSavingTests: XCTestCase {
         // Setup initial file
         try job.initializeOutputFile(url: outputURL, format: "txt", inputURL: inputURL)
         
-        let config = AppConfig() // default config, no LLM processing
+        let testConfig = AppConfig() // default config, no LLM processing
         
         // Mock stream yielding two distinct windows
         let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
         
         let processingTask = job.createProcessingTask(
             stream: stream,
-            config: config,
+            config: testConfig,
             template: .raw,
             format: "txt",
             outputURL: outputURL,

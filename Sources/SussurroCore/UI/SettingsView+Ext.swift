@@ -19,7 +19,7 @@ extension SettingsView {
             
             Section(L10n("Idioma Padrão")) {
                 Picker(L10n("Idioma"), selection: $settings.language) {
-                    ForEach(AppSettings.languages) { lang in
+                    ForEach(settings.availableLanguagesForEngine) { lang in
                         Text(lang.name).tag(lang.id)
                     }
                 }

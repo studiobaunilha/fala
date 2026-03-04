@@ -3,9 +3,9 @@ import KeyboardShortcuts
 
 // MARK: – Supporting types
 
-struct LanguageOption: Identifiable {
-    let id: String  // BCP-47 code, or "auto"
-    let name: String
+public struct LanguageOption: Identifiable {
+    public let id: String  // BCP-47 code, or "auto"
+    public let name: String
 }
 
 // MARK: – View Model
@@ -46,7 +46,7 @@ public final class AppSettings: ObservableObject {
     private var config: AppConfig
 
     // swiftlint:disable trailing_comma
-    static let languages: [LanguageOption] = [
+    public static let allLanguages: [LanguageOption] = [
         LanguageOption(id: "auto", name: L10n("Auto-detectar")),
         LanguageOption(id: "pt", name: L10n("Português")),
         LanguageOption(id: "en", name: L10n("English")),
@@ -59,8 +59,41 @@ public final class AppSettings: ObservableObject {
         LanguageOption(id: "ko", name: L10n("한국어")),
         LanguageOption(id: "ru", name: L10n("Русский")),
         LanguageOption(id: "ar", name: L10n("العربية")),
+        LanguageOption(id: "bg", name: L10n("Búlgaro")),
+        LanguageOption(id: "hr", name: L10n("Croata")),
+        LanguageOption(id: "cs", name: L10n("Tcheco")),
+        LanguageOption(id: "da", name: L10n("Dinamarquês")),
+        LanguageOption(id: "nl", name: L10n("Holandês")),
+        LanguageOption(id: "et", name: L10n("Estoniano")),
+        LanguageOption(id: "fi", name: L10n("Finlandês")),
+        LanguageOption(id: "el", name: L10n("Grego")),
+        LanguageOption(id: "hu", name: L10n("Húngaro")),
+        LanguageOption(id: "lv", name: L10n("Letão")),
+        LanguageOption(id: "lt", name: L10n("Lituano")),
+        LanguageOption(id: "mt", name: L10n("Maltês")),
+        LanguageOption(id: "pl", name: L10n("Polonês")),
+        LanguageOption(id: "ro", name: L10n("Romeno")),
+        LanguageOption(id: "sk", name: L10n("Eslovaco")),
+        LanguageOption(id: "sl", name: L10n("Esloveno")),
+        LanguageOption(id: "sv", name: L10n("Sueco")),
+        LanguageOption(id: "uk", name: L10n("Ucraniano")),
     ]
     // swiftlint:enable trailing_comma
+
+    public var availableLanguagesForEngine: [LanguageOption] {
+        if transcriptionEngine == "parakeet" {
+            // Parakeet v3 supports 25 European languages + auto
+            let parakeetSupported: Set<String> = [
+                "auto", "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr",
+                "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro",
+                "sk", "sl", "es", "sv", "ru", "uk"
+            ]
+            return Self.allLanguages.filter { parakeetSupported.contains($0.id) }
+        } else {
+            // Whisper supports all basically, keep everything
+            return Self.allLanguages
+        }
+    }
 
     public init(
         config: AppConfig,
