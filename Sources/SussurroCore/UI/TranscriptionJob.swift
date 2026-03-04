@@ -103,7 +103,8 @@ public final class TranscriptionJob: ObservableObject {
     }
     
     private func executeTranscription(wavURL: URL, inputURL: URL) async throws {
-        let config = AppConfig.load()
+        var config = AppConfig.load()
+        config.enableDiarization = self.enableDiarization
         let format = outputFormat
         
         let baseDir = outputDirectory ?? inputURL.deletingLastPathComponent()

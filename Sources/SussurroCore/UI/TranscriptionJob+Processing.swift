@@ -214,6 +214,12 @@ extension TranscriptionJob {
         let rawPrompt = effective.prompt
         guard !rawPrompt.isEmpty else { return text }
         var enriched = rawPrompt
+        
+        if config.enableDiarization {
+            // swiftlint:disable:next line_length
+            enriched += "\n\n" + L10n("IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).")
+        }
+        
         if template == .promptDev, !config.devStack.isEmpty {
             enriched += """
             
