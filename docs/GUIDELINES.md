@@ -15,7 +15,16 @@ Se houver necessidade de aplicar expressividade visual ou dar destaque a determi
 
 A formatação deve servir puramente ao propósito de organizar o conteúdo e facilitar a leitura horizontal, sem distrações.
 
-## 3. Estruturação do Diretório `docs/`
-Mantenha a organização atômica dos documentos:
-* `docs/SPEC.md`: Conterá ÚNICA E EXCLUSIVAMENTE decisões consolidadas, arquitetura confirmada, definições concretas do produto, features já aprovadas e público alvo. Não misture "ideias pro futuro" ou "talvez façamos isso" neste arquivo.
-* `docs/brainstorming/`: Este diretório é descartável e iterativo. Nele, despeje rascunhos, especulações sobre planos de negócios, hipóteses e notas desorganizadas. O que não é oficial ainda, não vai para a raiz de `docs`.
+## 3. Documentação vs. Especulação (A Regra da Definição)
+A documentação oficial do Repositório (arquivos na raiz como o `README.md` ou arquivos dentro de `docs/`) tem uma regra estrita: **A documentação deve conter SEMPRE E APENAS decisões consolidadas, arquitetura confirmada e definições concretas.**
+
+A documentação serve para responder: O que é o produto? Para que ele serve? O que ele resolve? Quais são as features garantidas?
+
+- **NÃO documente especulações.**
+- **NÃO faça estimativas ou planos futuros incertos na documentação.**
+- **NÃO crie históricos de mudanças de ideia nas SPECs oficiais.**
+
+### 3.1 Onde colocar o resto? (`docs/brainstorming/`)
+Tudo o que fugir da regra acima (ideias soltas, planos de alterações, notas não-oficiais, rascunhos de modelo de negócio ou escopo hipotético) deve obrigatoriamente ir para o diretório `docs/brainstorming/`. 
+
+Este é um diretório iterativo e descartável. O que não é oficial ainda, fica lá aguardando validação ou deleção futura.
