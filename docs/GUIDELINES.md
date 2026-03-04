@@ -28,3 +28,11 @@ A documentação serve para responder: O que é o produto? Para que ele serve? O
 Tudo o que fugir da regra acima (ideias soltas, planos de alterações, notas não-oficiais, rascunhos de modelo de negócio ou escopo hipotético) deve obrigatoriamente ir para o diretório `docs/brainstorming/`. 
 
 Este é um diretório iterativo e descartável. O que não é oficial ainda, fica lá aguardando validação ou deleção futura.
+
+## 4. UI, UX e Identidade Visual (Design System)
+O Sussurro é, e sempre deve parecer, um **Aplicativo Nativo do macOS**. Nossa identidade visual e experiência do usuário são estritamente regidas pelas **Apple Human Interface Guidelines (HIG)**.
+
+Sempre que propormos, revisarmos ou implementarmos qualquer alteração de interface (SwiftUI), devemos garantir que:
+- O design pareça pertencer organicamente ao macOS (Sonoma/Sequoia).
+- Os padrões de componentização, espaçamento, sombras, e tipografia sigam os componentes nativos da Apple.
+- Nenhuma anomalia visual de web-app ou frameworks cross-platform seja emulada. Consulte sempre a documentação de UI da Apple para validação técnica de design.
