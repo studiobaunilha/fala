@@ -1,16 +1,16 @@
 # Sussurro — Especificações do Produto (v1)
 
-## 📌 Visão Geral do Produto
+## 1. Visão Geral do Produto
 O **Sussurro** é uma ferramenta nativa de transcrição e pós-processamento de áudio para macOS (focada em Apple Silicon). Desenvolvida sem necessidade de nuvem para a transcrição central, ela garante máxima privacidade e performance, ideal para profissionais que lidam com informações sensíveis (advogados, médicos, jornalistas, executivos).
 
-## 🎯 Proposta de Valor
+## 2. Proposta de Valor
 - **100% Offline no Core:** A transcrição de áudio ocorre inteiramente de forma local na máquina (via Neural Engine), garantindo que dados de voz nunca sejam enviados a servidores de terceiros.
 - **Integração Fluida (System-wide):** O usuário dita em qualquer lugar do SO ou transcreve arquivos locais, com o texto final sendo inserido magicamente onde o cursor estiver.
 - **Pós-Processamento com IA Inteligente:** Após a transcrição bruta, o texto pode passar por LLMs (locais ou via API) para formatação, limpeza, resumo, ou geração de código, poupando trabalho manual de edição.
 
 ---
 
-## ⚙️ Principais Funcionalidades
+## 3. Principais Funcionalidades
 
 ### 1. Modos de Uso
 - **Ditado (Tempo Real):** Ativado por um atalho global customizável. O usuário segura a tecla para gravar (push-to-talk). Ao soltar, o áudio é transcrito, formatado pela IA (opcional) e o texto é colado automaticamente no campo ativo.
@@ -29,19 +29,18 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
   - Google Gemini API
   - OpenAI GPT API
   - Apple Intelligence (via API Nativa)
-- **Modos Embutidos (Templates):**
-  - **Limpar & Formatar:** Arruma vírgulas, pontos e remove gaguejos.
-  - **Resumir:** Entrega apenas os tópicos centrais falados.
-  - **Traduzir para o Inglês:** Translada dinamicamente texto em PT-BR (ou outro idioma) para Inglês de forma nativa.
-  - **Desenvolvedor:** Contextualiza o áudio gerando código utilizando a "Tech Stack" informada nas configurações.
-  - **Modo Personalizado:** Permite ao usuário definir o prompt de pós-processamento exato que ele deseja usar.
+  - [Limpar & Formatar] Arruma vírgulas, pontos e remove gaguejos.
+  - [Resumir] Entrega apenas os tópicos centrais falados.
+  - [Traduzir] Translada dinamicamente texto em PT-BR (ou outro idioma) para Inglês de forma nativa.
+  - [Desenvolvedor] Entende instruções de código contextualizado.
+  - [Diarization] Identifica múltiplas vozes em arquivos (ex: Locutor 1, Locutor 2) via regras de prompt.
 
 ### 4. Gestão de Vocabulário e Atalhos
 - **Filtro de Dicionário Automático:** O sistema possui um sistema de *Replacement Rules* (Regras de Substituição). Qualquer termo identificado no áudio pode ser automaticamente substituído (Case-Insensitive) antes mesmo do pós-processamento (ex: "Jira" ➔ "JIRA", "píar" ➔ "PR").
 
 ---
 
-## 🛠 Arquitetura e Tecnologia (Stack)
+## 4. Arquitetura e Tecnologia (Stack)
 - **Plataforma:** macOS 14.0+
 - **Linguagem / UI:** Swift 6.0 / SwiftUI (Arquitetura orientada a Actors, MVVM)
 - **Integração Local:** MenuBar Extra (ícone de bandeja).
@@ -51,6 +50,6 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
   - `mlx-swift-lm` (Inferência nativa de LLMs usando M-series Unified Memory)
   - `KeyboardShortcuts` (Gestão de atalhos globais no macOS)
 
-## 🔒 Permissões do Sistema Operacional
+## 5. Permissões do Sistema Operacional
 - `NSMicrophoneUsageDescription`: Gravação de voz local do usuário.
 - `Accessibility (Acessibilidade)`: Necessário para a API `CGEventPost` gerenciar o clipboard dinamicamente e efetuar a injeção (colagem `Cmd+V`) do texto transcrito nas aplicações nativas focadas.
