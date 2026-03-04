@@ -24,7 +24,7 @@ public final class SettingsWindowController {
     private func makeWindow() {
         NSLog("[Sussurro] makeWindow() — creating SettingsView")
         let config = WindowConfig(
-            title: "Ajustes",
+            title: L10n("Ajustes"),
             width: WindowSize.settingsDefaultWidth,
             height: WindowSize.settingsDefaultHeight,
             styleMask: [.titled, .closable, .miniaturizable],

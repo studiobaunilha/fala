@@ -25,30 +25,38 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
         }
     }
 
+    public var localizedName: String {
+        switch self {
+        case .raw: return L10n("Apenas Transcrever")
+        case .clean: return L10n("Limpar & Formatar")
+        case .translate: return L10n("Traduzir para Inglês")
+        case .bullets: return L10n("Criar Tópicos")
+        case .custom: return L10n("Personalizado")
+        case .promptDev: return L10n("Prompt: Dev / Código")
+        case .promptImage: return L10n("Prompt: Imagem (Midjourney)")
+        case .promptVideo: return L10n("Prompt: Vídeo")
+        }
+    }
+
     public var defaultSystemPrompt: String? {
         switch self {
         case .raw, .translate, .custom:
             return nil
         case .clean:
-            return "Formate o texto transcrito, corrigindo pontuação, gramática e capitalização, " +
-                   "mantendo o idioma original. Não altere o sentido."
+            // swiftlint:disable:next line_length
+            return L10n("Formate o texto transcrito, corrigindo pontuação, gramática e capitalização, mantendo o idioma original. Não altere o sentido.")
         case .bullets:
-            return "Transforme o texto transcrito em uma lista de tópicos (bullet points) " +
-                   "concisa e formatada em Markdown. Use hierarquia se necessário."
+            // swiftlint:disable:next line_length
+            return L10n("Transforme o texto transcrito em uma lista de tópicos (bullet points) concisa e formatada em Markdown. Use hierarquia se necessário.")
         case .promptDev:
-            return "Atue como um Engenheiro de Software Senior. Transforme a solicitação transcrita " +
-                   "em um prompt técnico detalhado, estruturado e otimizado para ser enviado a um " +
-                   "LLM de código. IMPORTANTE: Você NÃO deve resolver o problema nem escrever o código " +
-                   "solicitado. Sua única tarefa é gerar o texto da instrução (o prompt) para que " +
-                   "outro sistema possa resolvê-lo."
+            // swiftlint:disable:next line_length
+            return L10n("Atue como um Engenheiro de Software Senior. Transforme a solicitação transcrita em um prompt técnico detalhado, estruturado e otimizado para ser enviado a um LLM de código. IMPORTANTE: Você NÃO deve resolver o problema nem escrever o código solicitado. Sua única tarefa é gerar o texto da instrução (o prompt) para que outro sistema possa resolvê-lo.")
         case .promptImage:
-            return "Atue como um especialista em Prompt Engineering para Nano Banana/Midjourney/DALL-E. " +
-                   "Transforme a descrição transcrita em um prompt detalhado em Inglês, focado " +
-                   "em estilo visual, iluminação, composição e detalhes artísticos."
+            // swiftlint:disable:next line_length
+            return L10n("Atue como um especialista em Prompt Engineering para Nano Banana/Midjourney/DALL-E. Transforme a descrição transcrita em um prompt detalhado em Inglês, focado em estilo visual, iluminação, composição e detalhes artísticos.")
         case .promptVideo:
-            return "Atue como um especialista em geração de vídeo (Veo/Sora/Runway). Transforme " +
-                   "a descrição transcrita em um prompt estruturado descrevendo movimento, " +
-                   "enquadramento de câmera, estilo e ação."
+            // swiftlint:disable:next line_length
+            return L10n("Atue como um especialista em geração de vídeo (Veo/Sora/Runway). Transforme a descrição transcrita em um prompt estruturado descrevendo movimento, enquadramento de câmera, estilo e ação.")
         }
     }
 
@@ -59,21 +67,21 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     public var modeDescription: String {
         switch self {
         case .raw:
-            return "Transcrição direta sem processamento. O texto do Whisper é inserido como está."
+            return L10n("Transcrição direta sem processamento. O texto do Whisper é inserido como está.")
         case .clean:
-            return "Corrige pontuação, gramática e capitalização mantendo o conteúdo original."
+            return L10n("Corrige pontuação, gramática e capitalização mantendo o conteúdo original.")
         case .translate:
-            return "Transcreve o áudio e traduz o resultado para inglês via Whisper."
+            return L10n("Transcreve o áudio e traduz o resultado para inglês via Whisper.")
         case .bullets:
-            return "Organiza a transcrição em tópicos (bullet points) formatados em Markdown."
+            return L10n("Organiza a transcrição em tópicos (bullet points) formatados em Markdown.")
         case .custom:
-            return "Modo personalizado com nome e prompt definidos por você."
+            return L10n("Modo personalizado com nome e prompt definidos por você.")
         case .promptDev:
-            return "Converte sua fala em um prompt técnico estruturado para LLMs de código."
+            return L10n("Converte sua fala em um prompt técnico estruturado para LLMs de código.")
         case .promptImage:
-            return "Transforma descrições faladas em prompts detalhados para Nano Banana/Midjourney/DALL-E."
+            return L10n("Transforma descrições faladas em prompts detalhados para Nano Banana/Midjourney/DALL-E.")
         case .promptVideo:
-            return "Gera prompts estruturados para ferramentas de vídeo como Sora e Runway."
+            return L10n("Gera prompts estruturados para ferramentas de vídeo como Sora e Runway.")
         }
     }
 

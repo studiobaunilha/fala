@@ -37,13 +37,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         settingsItem = NSMenuItem(
-            title: "Ajustes…",
+            title: L10n("Ajustes…"),
             action: #selector(StatusBarController.showSettings),
             keyEquivalent: ","
         )
 
         axItem = NSMenuItem(
-            title: "⚠️ Habilitar Acessibilidade…",
+            title: L10n("⚠️ Habilitar Acessibilidade…"),
             action: #selector(StatusBarController.openAccessibilitySettings),
             keyEquivalent: ""
         )
@@ -54,7 +54,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         buildModeItems()
 
         let transcribeItem = NSMenuItem(
-            title: "Transcrever Arquivo…",
+            title: L10n("Transcrever Arquivo…"),
             action: #selector(StatusBarController.showTranscribe),
             keyEquivalent: "o"
         )
@@ -66,7 +66,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Sair do Sussurro",
+            title: L10n("Sair do Sussurro"),
             action: #selector(StatusBarController.quit),
             keyEquivalent: "q"
         )
@@ -82,13 +82,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func buildStaticMenuItems() {
-        let title = NSMenuItem(title: "Sussurro", action: nil, keyEquivalent: "")
+        let title = NSMenuItem(title: L10n("Sussurro"), action: nil, keyEquivalent: "")
         title.isEnabled = false
         menu.addItem(title)
         menu.addItem(.separator())
 
         let shortcutItem = NSMenuItem(
-            title: "Atalho: ⌥Espaço (segure para gravar)",
+            title: L10n("Atalho: ⌥Espaço (segure para gravar)"),
             action: nil,
             keyEquivalent: ""
         )
@@ -98,13 +98,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func buildModeItems() {
-        let modeHeader = NSMenuItem(title: "Modo de Captura:", action: nil, keyEquivalent: "")
+        let modeHeader = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
         modeHeader.isEnabled = false
         menu.addItem(modeHeader)
         
         for mode in DictationTemplate.allCases {
             let item = NSMenuItem(
-                title: mode.rawValue,
+                title: mode.localizedName,
                 action: #selector(StatusBarController.selectMode(_:)),
                 keyEquivalent: ""
             )
@@ -127,7 +127,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 // Update custom mode title dynamically
                 if modeRaw == DictationTemplate.custom.rawValue {
                     let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    item.title = name.isEmpty ? DictationTemplate.custom.rawValue : name
+                    item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
                 }
             }
         }
@@ -156,10 +156,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     public func setState(_ state: AppState) {
         let (name, description): (String, String) = switch state {
-        case .idle: ("mic", "Sussurro — pronto")
-        case .loading: ("arrow.down.circle", "Sussurro — carregando modelo…")
-        case .recording: ("mic.fill", "Sussurro — gravando")
-        case .transcribing: ("waveform", "Sussurro — transcrevendo…")
+        case .idle: ("mic", L10n("Sussurro — pronto"))
+        case .loading: ("arrow.down.circle", L10n("Sussurro — carregando modelo…"))
+        case .recording: ("mic.fill", L10n("Sussurro — gravando"))
+        case .transcribing: ("waveform", L10n("Sussurro — transcrevendo…"))
         }
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
     }
@@ -170,7 +170,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     public func setDownloadProgress(_ fraction: Double, modelName: String) {
         let pct = Int(fraction * 100)
-        statusItem.button?.toolTip = "Baixando \(modelName)… \(pct)%"
+        statusItem.button?.toolTip = String(format: L10n("Baixando %@… %d%%"), modelName, pct)
     }
 
     public func showTemporaryWarning(_ message: String) {

@@ -1,0 +1,3318 @@
+{
+  "sourceLanguage": "pt-BR",
+  "strings": {
+    "A API da OpenAI requer saldo na conta de desenvolvedor.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The OpenAI API requires balance in the developer account."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La API de OpenAI requiere saldo en la cuenta de desarrollador."
+          }
+        }
+      }
+    },
+    "A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Gemini 2.5 Flash API is fast and has a generous free tier."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La API de Gemini 2.5 Flash es rápida y tiene un nivel gratuito generoso."
+          }
+        }
+      }
+    },
+    "Acurácia vs. Velocidade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accuracy vs. Speed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisión vs. Velocidad"
+          }
+        }
+      }
+    },
+    "Ajustes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
+    "Ajustes Gerais": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes Generales"
+          }
+        }
+      }
+    },
+    "Ajustes…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes…"
+          }
+        }
+      }
+    },
+    "Alterar...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar..."
+          }
+        }
+      }
+    },
+    "Apagar modelo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar modelo"
+          }
+        }
+      }
+    },
+    "Apenas Transcrever": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe Only"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo Transcribir"
+          }
+        }
+      }
+    },
+    "Apple Intelligence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence"
+          }
+        }
+      }
+    },
+    "Apple Intelligence desativado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence disabled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence desactivado"
+          }
+        }
+      }
+    },
+    "Apple Intelligence não está ativado nas Preferências do Sistema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence is not enabled in System Preferences"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence no está activado en las Preferencias del Sistema"
+          }
+        }
+      }
+    },
+    "Apple Intelligence requer macOS Tahoe (26+)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence requires macOS Tahoe (26+)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence requiere macOS Tahoe (26+)"
+          }
+        }
+      }
+    },
+    "Aprimorando com IA (LLM)…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enhancing with AI (LLM)…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mejorando con IA (LLM)…"
+          }
+        }
+      }
+    },
+    "Armazenamento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almacenamiento"
+          }
+        }
+      }
+    },
+    "Arquivo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo"
+          }
+        }
+      }
+    },
+    "Arraste e solte um arquivo de áudio aqui": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag and drop an audio file here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra y suelta un archivo de audio aquí"
+          }
+        }
+      }
+    },
+    "Atalho de Ditado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation Shortcut"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo de Dictado"
+          }
+        }
+      }
+    },
+    "Atalho: ⌥Espaço (segure para gravar)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcut: ⌥Space (hold to record)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajo: ⌥Espacio (mantén para grabar)"
+          }
+        }
+      }
+    },
+    "Atalhos do Sistema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Shortcuts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajos del Sistema"
+          }
+        }
+      }
+    },
+    "Ative em Ajustes do Sistema → Apple Intelligence e Siri.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable in System Settings → Apple Intelligence & Siri."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa en Ajustes del Sistema → Apple Intelligence y Siri."
+          }
+        }
+      }
+    },
+    "Ativo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activo"
+          }
+        }
+      }
+    },
+    "Atue como um Engenheiro de Software Senior. Transforme a solicitação transcrita em um prompt técnico detalhado, estruturado e otimizado para ser enviado a um LLM de código. IMPORTANTE: Você NÃO deve resolver o problema nem escrever o código solicitado. Sua única tarefa é gerar o texto da instrução (o prompt) para que outro sistema possa resolvê-lo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Act as a Senior Software Engineer. Transform the transcribed request into a detailed, structured, and optimized technical prompt to be sent to a code LLM. IMPORTANT: You MUST NOT solve the problem or write the requested code. Your only task is to generate the instruction text (the prompt) so that another system can solve it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actúa como un Ingeniero de Software Senior. Transforma la solicitud transcrita en un prompt técnico detallado, estructurado y optimizado para ser enviado a un LLM de código. IMPORTANTE: NO debes resolver el problema ni escribir el código solicitado. Tu única tarea es generar el texto de la instrucción (el prompt) para que otro sistema lo resuelva."
+          }
+        }
+      }
+    },
+    "Atue como um especialista em Prompt Engineering para Nano Banana/Midjourney/DALL-E. Transforme a descrição transcrita em um prompt detalhado em Inglês, focado em estilo visual, iluminação, composição e detalhes artísticos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Act as a Prompt Engineering specialist for Nano Banana/Midjourney/DALL-E. Transform the transcribed description into a detailed English prompt, focused on visual style, lighting, composition, and artistic details."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actúa como un especialista en Prompt Engineering para Nano Banana/Midjourney/DALL-E. Transforma la descripción transcrita en un prompt detallado en Inglés, enfocado en estilo visual, iluminación, composición y detalles artísticos."
+          }
+        }
+      }
+    },
+    "Atue como um especialista em geração de vídeo (Veo/Sora/Runway). Transforme a descrição transcrita em um prompt estruturado descrevendo movimento, enquadramento de câmera, estilo e ação.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Act as a video generation specialist (Veo/Sora/Runway). Transform the transcribed description into a structured prompt describing movement, camera framing, style, and action."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actúa como un especialista en generación de video (Veo/Sora/Runway). Transforma la descripción transcrita en un prompt estructurado describiendo movimiento, encuadre de cámara, estilo y acción."
+          }
+        }
+      }
+    },
+    "Audio conversion failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio conversion failed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de conversión de audio"
+          }
+        }
+      }
+    },
+    "Auto-detectar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-detect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autodetectar"
+          }
+        }
+      }
+    },
+    "Avançado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzado"
+          }
+        }
+      }
+    },
+    "Baixando %@… %d%%": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading %@… %d%%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando %@… %d%%"
+          }
+        }
+      }
+    },
+    "Baixar modelo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar modelo"
+          }
+        }
+      }
+    },
+    "Cada regra pode ter várias variantes. Se o correto já existir, a variante é adicionada à regra.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each rule can have multiple variants. If the correct one already exists, the variant is added to the rule."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada regla puede tener múltiples variantes. Si el correcto ya existe, la variante se añade a la regla."
+          }
+        }
+      }
+    },
+    "Cancelado pelo usuário": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canceled by user"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado por el usuario"
+          }
+        }
+      }
+    },
+    "Cancelar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "Chave API": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave API"
+          }
+        }
+      }
+    },
+    "Chave API não configurada para %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key not configured for %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave API no configurada para %@"
+          }
+        }
+      }
+    },
+    "Chave válida, mas erro ao listar modelos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid key, but error listing models."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave válida, pero error al listar modelos."
+          }
+        }
+      }
+    },
+    "Chave válida. Lista de modelos atualizada.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid key. Model list updated."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave válida. Lista de modelos actualizada."
+          }
+        }
+      }
+    },
+    "Cole sua chave aqui": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste your key here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega tu clave aquí"
+          }
+        }
+      }
+    },
+    "Converte sua fala em um prompt técnico estruturado para LLMs de código.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converts your speech into a structured technical prompt for code LLMs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convierte tu voz en un prompt técnico estructurado para LLMs de código."
+          }
+        }
+      }
+    },
+    "Correto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correcto"
+          }
+        }
+      }
+    },
+    "Corrige pontuação, gramática e capitalização mantendo o conteúdo original.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrects punctuation, grammar, and capitalization while maintaining the original content."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrige puntuación, gramática y capitalización manteniendo el contenido original."
+          }
+        }
+      }
+    },
+    "Could not allocate audio buffer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not allocate audio buffer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo asignar el búfer de audio"
+          }
+        }
+      }
+    },
+    "Could not create target audio format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not create target audio format"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo crear el formato de audio de destino"
+          }
+        }
+      }
+    },
+    "Credenciais — Gemini": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credentials — Gemini"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credenciales — Gemini"
+          }
+        }
+      }
+    },
+    "Credenciais — OpenAI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credentials — OpenAI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credenciales — OpenAI"
+          }
+        }
+      }
+    },
+    "Criar Tópicos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Topics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear Temas"
+          }
+        }
+      }
+    },
+    "Deutsch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deutsch"
+          }
+        }
+      }
+    },
+    "Diarization (Identificação de Vozes)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diarization (Speaker Identification)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diarización (Identificación de Voces)"
+          }
+        }
+      }
+    },
+    "Disponível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disponible"
+          }
+        }
+      }
+    },
+    "Dispositivo não suportado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivo no soportado"
+          }
+        }
+      }
+    },
+    "Downloads Disponíveis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available Downloads"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargas Disponibles"
+          }
+        }
+      }
+    },
+    "English": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English"
+          }
+        }
+      }
+    },
+    "Erro ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error "
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error "
+          }
+        }
+      }
+    },
+    "Erro desconhecido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown error"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error desconocido"
+          }
+        }
+      }
+    },
+    "Español": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Español"
+          }
+        }
+      }
+    },
+    "Este Mac não suporta Apple Intelligence.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Mac does not support Apple Intelligence."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta Mac no soporta Apple Intelligence."
+          }
+        }
+      }
+    },
+    "Este dispositivo não suporta Apple Intelligence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device does not support Apple Intelligence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo no soporta Apple Intelligence"
+          }
+        }
+      }
+    },
+    "Este modo não utiliza IA. O texto é inserido diretamente do Whisper.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This mode does not use AI. Text is inserted directly from Whisper."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este modo no utiliza IA. El texto se inserta directamente de Whisper."
+          }
+        }
+      }
+    },
+    "Este nome aparece no menu da barra de status. Máximo 30 caracteres.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This name appears in the status bar menu. Maximum 30 characters."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este nombre aparece en el menú de la barra de estado. Máximo 30 caracteres."
+          }
+        }
+      }
+    },
+    "Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the global default provider. Individual modes can override this choice."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este es el proveedor predeterminado global. Los modos individuales pueden anular esta elección."
+          }
+        }
+      }
+    },
+    "Failed to start audio engine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to start audio engine"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al iniciar el motor de audio"
+          }
+        }
+      }
+    },
+    "Failed to write output file": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to write output file"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al escribir el archivo de salida"
+          }
+        }
+      }
+    },
+    "Falha na Transcrição": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Failed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallo en la Transcripción"
+          }
+        }
+      }
+    },
+    "Falha no teste: ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test failed: "
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallo en la prueba: "
+          }
+        }
+      }
+    },
+    "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format and correct the transcription below, matching the original language and fixing punctuation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formatea y corrige la transcripción a continuación, manteniendo el idioma original y corrigiendo la puntuación."
+          }
+        }
+      }
+    },
+    "Formate o texto transcrito, corrigindo pontuação, gramática e capitalização, mantendo o idioma original. Não altere o sentido.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format the transcribed text, correcting punctuation, grammar, and capitalization, matching the original language. Do not alter the meaning."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formatea el texto transcrito, corrigiendo puntuación, gramática y capitalización, manteniendo el idioma original. No alteres el sentido."
+          }
+        }
+      }
+    },
+    "Formato": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Format"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato"
+          }
+        }
+      }
+    },
+    "Français": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Français"
+          }
+        }
+      }
+    },
+    "Gera prompts estruturados para ferramentas de vídeo como Sora e Runway.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generates structured prompts for video tools like Sora and Runway."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genera prompts estructurados para herramientas de video como Sora y Runway."
+          }
+        }
+      }
+    },
+    "Geral": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        }
+      }
+    },
+    "Gerenciador de Modelos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Manager"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestor de Modelos"
+          }
+        }
+      }
+    },
+    "Google Gemini": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Gemini"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Gemini"
+          }
+        }
+      }
+    },
+    "IA & LLM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI & LLM"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA & LLM"
+          }
+        }
+      }
+    },
+    "Identificar múltiplos locutores (Diarization)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identify multiple speakers (Diarization)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identificar múltiples locutores (Diarización)"
+          }
+        }
+      }
+    },
+    "Idioma": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma"
+          }
+        }
+      }
+    },
+    "Idioma Padrão": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Language"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idioma Predeterminado"
+          }
+        }
+      }
+    },
+    "Indisponível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible"
+          }
+        }
+      }
+    },
+    "Iniciar Transcrição": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Transcription"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar Transcripción"
+          }
+        }
+      }
+    },
+    "Instruções enviadas ao LLM para processar a transcrição neste modo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instructions sent to the LLM to process transcription in this mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrucciones enviadas al LLM para procesar la transcripción en este modo."
+          }
+        }
+      }
+    },
+    "Italiano": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Italiano"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Italiano"
+          }
+        }
+      }
+    },
+    "Limpar & Formatar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean & Format"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar y Formatear"
+          }
+        }
+      }
+    },
+    "MLX Local": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local MLX"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX Local"
+          }
+        }
+      }
+    },
+    "Markdown (.md)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown (.md)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown (.md)"
+          }
+        }
+      }
+    },
+    "Mesma Pasta do Original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same Folder as Original"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Misma Carpeta que el Original"
+          }
+        }
+      }
+    },
+    "Modelo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo"
+          }
+        }
+      }
+    },
+    "Modelo & Qualidade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model & Quality"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo y Calidad"
+          }
+        }
+      }
+    },
+    "Modelo Apple Intelligence ainda sendo baixado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence model is still downloading"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo de Apple Intelligence aún descargándose"
+          }
+        }
+      }
+    },
+    "Modelo Batch / Arquivo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch / File Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Batch / Archivo"
+          }
+        }
+      }
+    },
+    "Modelo Padrão": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Predeterminado"
+          }
+        }
+      }
+    },
+    "Modelo de Ditado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo de Dictado"
+          }
+        }
+      }
+    },
+    "Modelo não encontrado e falha ao listar modelos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model not found and failed to list models."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo no encontrado y error al listar modelos."
+          }
+        }
+      }
+    },
+    "Modelo sendo baixado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargando modelo"
+          }
+        }
+      }
+    },
+    "Modelos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Models"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos"
+          }
+        }
+      }
+    },
+    "Modelos LLM para processamento local via MLX. Rodam inteiramente no dispositivo usando Apple Silicon.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LLM models for local processing via MLX. They run entirely on-device using Apple Silicon."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos LLM para procesamiento local vía MLX. Se ejecutan completamente en el dispositivo usando Apple Silicon."
+          }
+        }
+      }
+    },
+    "Modelos MLX Locais": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local MLX Models"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos MLX Locales"
+          }
+        }
+      }
+    },
+    "Modelos Whisper Ativos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active Whisper Models"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelos Whisper Activos"
+          }
+        }
+      }
+    },
+    "Modificado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modified"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modificado"
+          }
+        }
+      }
+    },
+    "Modo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo"
+          }
+        }
+      }
+    },
+    "Modo de Captura:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture Mode:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de Captura:"
+          }
+        }
+      }
+    },
+    "Modo de Processamento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing Mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de Procesamiento"
+          }
+        }
+      }
+    },
+    "Modo personalizado com nome e prompt definidos por você.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom mode with name and prompt defined by you."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo personalizado con nombre y prompt definidos por ti."
+          }
+        }
+      }
+    },
+    "Modos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modos"
+          }
+        }
+      }
+    },
+    "Mostrar no Finder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Finder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar en el Finder"
+          }
+        }
+      }
+    },
+    "Motor de Transcrição": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Engine"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motor de Transcripción"
+          }
+        }
+      }
+    },
+    "No active recording to stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active recording to stop"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active recording to stop"
+          }
+        }
+      }
+    },
+    "No input file specified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No input file specified"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No input file specified"
+          }
+        }
+      }
+    },
+    "Nome Personalizado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom Name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre Personalizado"
+          }
+        }
+      }
+    },
+    "Nome do modo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode Name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del modo"
+          }
+        }
+      }
+    },
+    "Nova Transcrição": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Transcription"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva Transcripción"
+          }
+        }
+      }
+    },
+    "Não foi possível carregar o modelo local '%@'": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load local model '%@'"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar el modelo local '%@'"
+          }
+        }
+      }
+    },
+    "Não pode apagar modelo ativo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot delete active model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede eliminar el modelo activo"
+          }
+        }
+      }
+    },
+    "O modelo está sendo preparado. Tente novamente em alguns minutos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model is being prepared. Try again in a few minutes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modelo se está preparando. Inténtalo de nuevo en unos minutos."
+          }
+        }
+      }
+    },
+    "O prompt customizado será substituído pelo padrão deste modo. Esta ação não pode ser desfeita.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The custom prompt will be replaced by the default for this mode. This action cannot be undone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El prompt personalizado será reemplazado por el predeterminado para este modo. Esta acción no se puede deshacer."
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Obter chave": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener clave"
+          }
+        }
+      }
+    },
+    "Obter chave gratuita": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get free key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener clave gratis"
+          }
+        }
+      }
+    },
+    "OpenAI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI"
+          }
+        }
+      }
+    },
+    "OpenAI GPT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI GPT"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI GPT"
+          }
+        }
+      }
+    },
+    "Organiza a transcrição em tópicos (bullet points) formatados em Markdown.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizes the transcription into bullet points formatted in Markdown."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organiza la transcripción en puntos (bullet points) formateados en Markdown."
+          }
+        }
+      }
+    },
+    "Os modelos MLX rodam localmente no Apple Silicon. Baixe pelo menos um modelo abaixo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX models run locally on Apple Silicon. Download at least one model below."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los modelos MLX se ejecutan localmente en Apple Silicon. Descarga al menos un modelo a continuación."
+          }
+        }
+      }
+    },
+    "Ou selecione um arquivo para iniciar a transcrição de alta precisão.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or select a file to start high-precision transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O selecciona un archivo para iniciar la transcripción de alta precisión."
+          }
+        }
+      }
+    },
+    "Padrão do provedor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminado del proveedor"
+          }
+        }
+      }
+    },
+    "Padrão global": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminado global"
+          }
+        }
+      }
+    },
+    "Parakeet V3 (FluidAudio)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 (FluidAudio)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 (FluidAudio)"
+          }
+        }
+      }
+    },
+    "Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. O modelo é baixado automaticamente no primeiro uso. Requer reiniciar o app após alterar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 uses CoreML/ANE for ultra-fast transcription. Supports 25 European languages. The model is downloaded automatically on first use. Requires app restart after changing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 usa CoreML/ANE para una transcripción ultrarrápida. Soporta 25 idiomas europeos. El modelo se descarga automáticamente en el primer uso. Requiere reiniciar la aplicación después de cambiar."
+          }
+        }
+      }
+    },
+    "Personalizado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado"
+          }
+        }
+      }
+    },
+    "Português": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portuguese"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portugués"
+          }
+        }
+      }
+    },
+    "Preparando arquivo de áudio…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing audio file…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando archivo de audio…"
+          }
+        }
+      }
+    },
+    "Pressione o atalho global para iniciar o ditado de qualquer lugar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press the global shortcut to start dictation from anywhere."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presiona el atajo global para iniciar el dictado desde cualquier lugar."
+          }
+        }
+      }
+    },
+    "Processamento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procesamiento"
+          }
+        }
+      }
+    },
+    "Prompt do Sistema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Prompt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt del Sistema"
+          }
+        }
+      }
+    },
+    "Prompt: Dev / Código": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Dev / Code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Dev / Código"
+          }
+        }
+      }
+    },
+    "Prompt: Imagem (Midjourney)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Image (Midjourney)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Imagen (Midjourney)"
+          }
+        }
+      }
+    },
+    "Prompt: Vídeo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Video"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt: Video"
+          }
+        }
+      }
+    },
+    "Prompts Criativos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creative Prompts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompts Creativos"
+          }
+        }
+      }
+    },
+    "Pronto para transcrever": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to transcribe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo para transcribir"
+          }
+        }
+      }
+    },
+    "Pronto para uso. Nenhuma configuração necessária.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to use. No configuration necessary."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo para usar. No necesita configuración."
+          }
+        }
+      }
+    },
+    "Provedor '%@' não reconhecido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider '%@' not recognized"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor '%@' no reconocido"
+          }
+        }
+      }
+    },
+    "Provedor LLM": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LLM Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor LLM"
+          }
+        }
+      }
+    },
+    "Provedor Padrão": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor Predeterminado"
+          }
+        }
+      }
+    },
+    "Provedor atual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor actual"
+          }
+        }
+      }
+    },
+    "Provedor de IA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proveedor de IA"
+          }
+        }
+      }
+    },
+    "Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A smaller, faster model is recommended for dictation, and a larger one for files."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recomienda un modelo más pequeño y rápido para dictado, y uno más grande para archivos."
+          }
+        }
+      }
+    },
+    "Reconhecer múltiplos locutores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognize multiple speakers"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconocer múltiples locutores"
+          }
+        }
+      }
+    },
+    "Requer macOS Tahoe (26) ou superior.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires macOS Tahoe (26) or later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere macOS Tahoe (26) o superior."
+          }
+        }
+      }
+    },
+    "Requer macOS Tahoe (26) ou superior. Compile com o SDK do macOS 26.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires macOS Tahoe (26) or later. Compile with the macOS 26 SDK."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere macOS Tahoe (26) o superior. Compile con el SDK de macOS 26."
+          }
+        }
+      }
+    },
+    "Restaurar Padrão": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar Predeterminado"
+          }
+        }
+      }
+    },
+    "Restaurar prompt padrão?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore default prompt?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Restaurar prompt predeterminado?"
+          }
+        }
+      }
+    },
+    "Resultado do Teste": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test Result"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultado de la Prueba"
+          }
+        }
+      }
+    },
+    "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summarize the transcribed text in a concise paragraph, capturing the main points."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume el texto transcrito en un párrafo conciso, capturando los puntos principales."
+          }
+        }
+      }
+    },
+    "Sair do Sussurro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Sussurro"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir de Sussurro"
+          }
+        }
+      }
+    },
+    "Salvar Transcrições": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Transcriptions"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Transcripciones"
+          }
+        }
+      }
+    },
+    "Salvar em:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save in:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar en:"
+          }
+        }
+      }
+    },
+    "Saída": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salida"
+          }
+        }
+      }
+    },
+    "Selecionar Arquivo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select File…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar Archivo…"
+          }
+        }
+      }
+    },
+    "Selecionar modelo conhecido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select known model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar modelo conocido"
+          }
+        }
+      }
+    },
+    "Selecionar modelo disponível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select available model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar modelo disponible"
+          }
+        }
+      }
+    },
+    "Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select \"Use Global Default\" to inherit the provider configured in the AI & LLM panel."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona \"Usar Predeterminado Global\" para heredar el proveedor configurado en el panel IA & LLM."
+          }
+        }
+      }
+    },
+    "Selecione um painel à esquerda": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a panel on the left"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un panel a la izquierda"
+          }
+        }
+      }
+    },
+    "Sem pós-processamento": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No post-processing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin posprocesamiento"
+          }
+        }
+      }
+    },
+    "Stack / Tecnologias": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stack / Technologies"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stack / Tecnologías"
+          }
+        }
+      }
+    },
+    "Stack do Projeto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project Stack"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stack del Proyecto"
+          }
+        }
+      }
+    },
+    "Status desconhecido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown status"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado desconocido"
+          }
+        }
+      }
+    },
+    "Sua chave do Google AI Studio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Google AI Studio key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave de Google AI Studio"
+          }
+        }
+      }
+    },
+    "Substituição de Texto (Pós-processamento)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text Replacement (Post-processing)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reemplazo de Texto (Posprocesamiento)"
+          }
+        }
+      }
+    },
+    "Sucesso! A chave da OpenAI está funcionando.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Success! The OpenAI key is working."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Éxito! La clave de OpenAI está funcionando."
+          }
+        }
+      }
+    },
+    "Sucesso! A chave do Gemini está funcionando.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Success! The Gemini key is working."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Éxito! La clave de Gemini está funcionando."
+          }
+        }
+      }
+    },
+    "Sussurro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro"
+          }
+        }
+      }
+    },
+    "Sussurro — carregando modelo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — loading model…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — cargando modelo…"
+          }
+        }
+      }
+    },
+    "Sussurro — gravando": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — recording"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — grabando"
+          }
+        }
+      }
+    },
+    "Sussurro — pronto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — ready"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — listo"
+          }
+        }
+      }
+    },
+    "Sussurro — transcrevendo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — transcribing…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sussurro — transcribiendo…"
+          }
+        }
+      }
+    },
+    "Tecnologias do projeto atual. Incluída automaticamente no prompt para gerar código contextualizado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current project technologies. Automatically included in the prompt to generate contextualized code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tecnologías del proyecto actual. Incluida automáticamente en el prompt para generar código contextualizado."
+          }
+        }
+      }
+    },
+    "Temperatura Batch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batch Temperature"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperatura Batch"
+          }
+        }
+      }
+    },
+    "Temperatura Ditado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation Temperature"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperatura de Dictado"
+          }
+        }
+      }
+    },
+    "Tentar Novamente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intentar de nuevo"
+          }
+        }
+      }
+    },
+    "Testar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar"
+          }
+        }
+      }
+    },
+    "Texto (.txt)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text (.txt)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto (.txt)"
+          }
+        }
+      }
+    },
+    "Traduzir para Inglês": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate to English"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traducir a Inglés"
+          }
+        }
+      }
+    },
+    "Transcreve o áudio e traduz o resultado para inglês via Whisper.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribes the audio and translates the result to English via Whisper."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe el audio y traduce el resultado al inglés a través de Whisper."
+          }
+        }
+      }
+    },
+    "Transcrevendo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribiendo…"
+          }
+        }
+      }
+    },
+    "Transcrever Arquivo — Sussurro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe File — Sussurro"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribir Archivo — Sussurro"
+          }
+        }
+      }
+    },
+    "Transcrever Arquivo…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe File…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribir Archivo…"
+          }
+        }
+      }
+    },
+    "Transcriber model is not loaded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcriber model is not loaded"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcriber model is not loaded"
+          }
+        }
+      }
+    },
+    "Transcription returned no text": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription returned no text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription returned no text"
+          }
+        }
+      }
+    },
+    "Transcrição Cancelada": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Canceled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripción Cancelada"
+          }
+        }
+      }
+    },
+    "Transcrição Concluída": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Completed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripción Completada"
+          }
+        }
+      }
+    },
+    "Transcrição direta sem processamento. O texto do Whisper é inserido como está.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direct transcription without processing. Whisper's text is inserted as is."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripción directa sin procesamiento. El texto de Whisper se inserta tal cual."
+          }
+        }
+      }
+    },
+    "Transforma descrições faladas em prompts detalhados para Nano Banana/Midjourney/DALL-E.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transforms spoken descriptions into detailed prompts for Nano Banana/Midjourney/DALL-E."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transforma descripciones habladas en prompts detallados para Nano Banana/Midjourney/DALL-E."
+          }
+        }
+      }
+    },
+    "Transforme o texto transcrito em uma lista de tópicos (bullet points) concisa e formatada em Markdown. Use hierarquia se necessário.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transform the transcribed text into a concise bullet point list formatted in Markdown. Use hierarchy if necessary."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transforma el texto transcrito en una lista de puntos (bullet points) concisa y formateada en Markdown. Usa jerarquía si es necesario."
+          }
+        }
+      }
+    },
+    "Trocar...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar..."
+          }
+        }
+      }
+    },
+    "Unsupported format: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported format: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported format: %@"
+          }
+        }
+      }
+    },
+    "Usar Padrão Global": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Global Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Predeterminado Global"
+          }
+        }
+      }
+    },
+    "Usar Padrão do Sistema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use System Default"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Predeterminado del Sistema"
+          }
+        }
+      }
+    },
+    "Variante": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variant"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variante"
+          }
+        }
+      }
+    },
+    "Verifique os Ajustes do Sistema.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check System Settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica los Ajustes del Sistema."
+          }
+        }
+      }
+    },
+    "Whisper (WhisperKit)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper (WhisperKit)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper (WhisperKit)"
+          }
+        }
+      }
+    },
+    "Whisper usa modelos OpenAI via WhisperKit. Requer reiniciar o app após alterar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper uses OpenAI models via WhisperKit. Requires app restart after changing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper usa modelos de OpenAI a través de WhisperKit. Requiere reiniciar la aplicación después de cambiar."
+          }
+        }
+      }
+    },
+    "Zero significa alta acurácia (Greedy Decoding).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero means high accuracy (Greedy Decoding)."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cero significa alta precisión (Greedy Decoding)."
+          }
+        }
+      }
+    },
+    "ffmpeg exited with code %d": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ffmpeg exited with code %d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ffmpeg salió con código %d"
+          }
+        }
+      }
+    },
+    "ffmpeg not found. Install with: brew install ffmpeg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ffmpeg not found. Install with: brew install ffmpeg"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ffmpeg not found. Instálalo con: brew install ffmpeg"
+          }
+        }
+      }
+    },
+    "Русский": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Русский"
+          }
+        }
+      }
+    },
+    "العربية": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العربية"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "العربية"
+          }
+        }
+      }
+    },
+    "⚠️ Habilitar Acessibilidade…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Enable Accessibility…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠️ Habilitar Accesibilidad…"
+          }
+        }
+      }
+    },
+    "中文": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中文"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中文"
+          }
+        }
+      }
+    },
+    "日本語": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日本語"
+          }
+        }
+      }
+    },
+    "한국어": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한국어"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

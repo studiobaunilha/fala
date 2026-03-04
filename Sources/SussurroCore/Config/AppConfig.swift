@@ -18,16 +18,16 @@ public struct AppConfig: Codable, Sendable {
     public var selectedDictationTemplate: DictationTemplate = .clean
     public var llmProvider: String = "gemini"
     public var llmPrompt: String =
-        "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
+        L10n("Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação.")
     public var openAIKey: String = ""
     public var geminiKey: String = ""
     public var geminiModel: String = "gemini-2.5-flash"
     public var openAIModel: String = "gpt-4o-mini"
     public var mlxModel: String = "mlx-community/Qwen2.5-3B-Instruct-4bit"
 
-    public var customModeName: String = "Personalizado"
+    public var customModeName: String = L10n("Personalizado")
     public var customModePrompt: String =
-        "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+        L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
     public var devStack: String = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
 
     public var replacements: [String: String] = [:]
@@ -72,7 +72,8 @@ public struct AppConfig: Codable, Sendable {
         
         llmProvider = (try? container.decode(String.self, forKey: .llmProvider)) ?? "gemini"
         
-        let defaultPrompt = "Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação."
+        // swiftlint:disable:next line_length
+        let defaultPrompt = L10n("Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação.")
         llmPrompt = (try? container.decode(String.self, forKey: .llmPrompt)) ?? defaultPrompt
         openAIKey = (try? container.decode(String.self, forKey: .openAIKey)) ?? ""
         geminiKey = (try? container.decode(String.self, forKey: .geminiKey)) ?? ""
@@ -81,9 +82,9 @@ public struct AppConfig: Codable, Sendable {
         mlxModel = (try? container.decode(String.self, forKey: .mlxModel))
             ?? "mlx-community/Qwen2.5-3B-Instruct-4bit"
 
-        customModeName = (try? container.decode(String.self, forKey: .customModeName)) ?? "Personalizado"
+        customModeName = (try? container.decode(String.self, forKey: .customModeName)) ?? L10n("Personalizado")
         customModePrompt = (try? container.decode(String.self, forKey: .customModePrompt))
-            ?? "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+            ?? L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
         devStack = (try? container.decode(String.self, forKey: .devStack))
             ?? "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
     }

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Sussurro",
+    defaultLocalization: "pt-BR",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/argmaxinc/WhisperKit.git", from: "0.9.0"),
@@ -21,7 +22,10 @@ let package = Package(
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
                 .product(name: "FluidAudio", package: "FluidAudio"),
             ],
-            path: "Sources/SussurroCore"
+            path: "Sources/SussurroCore",
+            resources: [
+                .process("Resources/Localizable.xcstrings")
+            ]
         ),
         // Thin executable shell: only main.swift + linker-embedded Info.plist.
         .executableTarget(

@@ -5,17 +5,16 @@ extension SettingsView {
     var llmView: some View {
         Form {
             Section {
-                Picker("Provedor Padrão", selection: $settings.llmProvider) {
-                    Text("Google Gemini").tag("gemini")
-                    Text("OpenAI").tag("openai")
-                    Text("Apple Intelligence").tag("apple")
-                    Text("MLX Local").tag("mlx")
+                Picker(L10n("Provedor Padrão"), selection: $settings.llmProvider) {
+                    Text(L10n("Google Gemini")).tag("gemini")
+                    Text(L10n("OpenAI")).tag("openai")
+                    Text(L10n("Apple Intelligence")).tag("apple")
+                    Text(L10n("MLX Local")).tag("mlx")
                 }
             } header: {
-                Text("Provedor de IA")
+                Text(L10n("Provedor de IA"))
             } footer: {
-                Text("Este é o provedor padrão global. "
-                     + "Modos individuais podem sobrescrever esta escolha.")
+                Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -32,9 +31,9 @@ extension SettingsView {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("IA & LLM")
-        .alert("Resultado do Teste", isPresented: $showTestKeyAlert) {
-            Button("OK", role: .cancel) { }
+        .navigationTitle(L10n("IA & LLM"))
+        .alert(L10n("Resultado do Teste"), isPresented: $showTestKeyAlert) {
+            Button(L10n("OK"), role: .cancel) { }
         } message: {
             if let result = testKeyResult {
                 Text(result)
@@ -45,7 +44,7 @@ extension SettingsView {
     // MARK: - Apple Intelligence
 
     private var appleIntelligenceSection: some View {
-        Section("Apple Intelligence") {
+        Section(L10n("Apple Intelligence")) {
             appleAvailabilityRow
         }
     }
@@ -56,11 +55,10 @@ extension SettingsView {
             if #available(macOS 26, *) {
                 AppleIntelligenceStatusView()
             } else {
-                unavailableRow("Requer macOS Tahoe (26) ou superior.")
+                unavailableRow(L10n("Requer macOS Tahoe (26) ou superior."))
             }
             #else
-            unavailableRow("Requer macOS Tahoe (26) ou superior. "
-                           + "Compile com o SDK do macOS 26.")
+            unavailableRow(L10n("Requer macOS Tahoe (26) ou superior. Compile com o SDK do macOS 26."))
             #endif
         }
     }
@@ -68,7 +66,7 @@ extension SettingsView {
     private func unavailableRow(_ message: String) -> some View {
         Label {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text("Indisponível")
+                Text(L10n("Indisponível"))
                     .font(.body)
                 Text(message)
                     .font(.caption)
@@ -84,8 +82,8 @@ extension SettingsView {
     // MARK: - MLX Config
 
     private var mlxConfigSection: some View {
-        Section("MLX Local") {
-            LabeledContent("Modelo Padrão") {
+        Section(L10n("MLX Local")) {
+            LabeledContent(L10n("Modelo Padrão")) {
                 HStack(spacing: Spacing.xs) {
                     TextField("", text: $settings.mlxModel)
                         .textFieldStyle(.roundedBorder)
@@ -101,12 +99,11 @@ extension SettingsView {
                             .font(.caption)
                     }
                     .frame(width: 16)
-                    .help("Selecionar modelo conhecido")
+                    .help(L10n("Selecionar modelo conhecido"))
                 }
             }
 
-            Text("Os modelos MLX rodam localmente no Apple Silicon. "
-                 + "Baixe pelo menos um modelo abaixo.")
+            Text(L10n("Os modelos MLX rodam localmente no Apple Silicon. Baixe pelo menos um modelo abaixo."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -124,10 +121,10 @@ extension SettingsView {
                 )
             }
         } header: {
-            Text("Modelos MLX Locais")
+            Text(L10n("Modelos MLX Locais"))
         } footer: {
-            Text("Modelos LLM para processamento local via MLX. "
-                 + "Rodam inteiramente no dispositivo usando Apple Silicon.")
+            // swiftlint:disable:next line_length
+            Text(L10n("Modelos LLM para processamento local via MLX. Rodam inteiramente no dispositivo usando Apple Silicon."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -136,10 +133,10 @@ extension SettingsView {
     // MARK: - Gemini Credentials
 
     private var geminiCredentialsSection: some View {
-        Section("Credenciais — Gemini") {
-            LabeledContent("Chave API") {
+        Section(L10n("Credenciais — Gemini")) {
+            LabeledContent(L10n("Chave API")) {
                 HStack(spacing: Spacing.sm) {
-                    SecureField("Cole sua chave aqui",
+                    SecureField(L10n("Cole sua chave aqui"),
                                 text: $settings.geminiKey)
                         .textFieldStyle(.roundedBorder)
 
@@ -152,29 +149,28 @@ extension SettingsView {
                         if isTestingKey {
                             ProgressView().controlSize(.small)
                         } else {
-                            Text("Testar")
+                            Text(L10n("Testar"))
                         }
                     })
                     .disabled(settings.geminiKey.isEmpty || isTestingKey)
                 }
             }
-            .help("Sua chave do Google AI Studio")
+            .help(L10n("Sua chave do Google AI Studio"))
 
             HStack {
-                Text("A API do Gemini 2.5 Flash é rápida "
-                     + "e possui um nível gratuito generoso.")
+                Text(L10n("A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 if let url = URL(
                     string: "https://aistudio.google.com/app/apikey"
                 ) {
-                    Link("Obter chave gratuita", destination: url)
+                    Link(L10n("Obter chave gratuita"), destination: url)
                         .font(.caption)
                 }
             }
 
-            LabeledContent("Modelo") {
+            LabeledContent(L10n("Modelo")) {
                 HStack(spacing: Spacing.xs) {
                     TextField("", text: $settings.geminiModel)
                         .textFieldStyle(.roundedBorder)
@@ -191,7 +187,7 @@ extension SettingsView {
                     }
                     .frame(width: 16)
                     .disabled(availableGeminiModels.isEmpty)
-                    .help("Selecionar modelo disponível")
+                    .help(L10n("Selecionar modelo disponível"))
                 }
             }
         }
@@ -200,10 +196,10 @@ extension SettingsView {
     // MARK: - OpenAI Credentials
 
     private var openAICredentialsSection: some View {
-        Section("Credenciais — OpenAI") {
-            LabeledContent("Chave API") {
+        Section(L10n("Credenciais — OpenAI")) {
+            LabeledContent(L10n("Chave API")) {
                 HStack(spacing: Spacing.sm) {
-                    SecureField("Cole sua chave aqui",
+                    SecureField(L10n("Cole sua chave aqui"),
                                 text: $settings.openAIKey)
                         .textFieldStyle(.roundedBorder)
 
@@ -216,7 +212,7 @@ extension SettingsView {
                         if isTestingKey {
                             ProgressView().controlSize(.small)
                         } else {
-                            Text("Testar")
+                            Text(L10n("Testar"))
                         }
                     })
                     .disabled(settings.openAIKey.isEmpty || isTestingKey)
@@ -224,15 +220,14 @@ extension SettingsView {
             }
 
             HStack {
-                Text("A API da OpenAI requer saldo na conta "
-                     + "de desenvolvedor.")
+                Text(L10n("A API da OpenAI requer saldo na conta de desenvolvedor."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 if let url = URL(
                     string: "https://platform.openai.com/api-keys"
                 ) {
-                    Link("Obter chave", destination: url)
+                    Link(L10n("Obter chave"), destination: url)
                         .font(.caption)
                 }
             }

@@ -9,11 +9,11 @@ public enum AudioError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .engineStartFailed: "Failed to start audio engine"
-        case .noRecording: "No active recording to stop"
-        case .invalidFormat: "Could not create target audio format"
-        case .conversionFailed: "Audio conversion failed"
-        case .bufferAllocationFailed: "Could not allocate audio buffer"
+        case .engineStartFailed: L10n("Failed to start audio engine")
+        case .noRecording: L10n("No active recording to stop")
+        case .invalidFormat: L10n("Could not create target audio format")
+        case .conversionFailed: L10n("Audio conversion failed")
+        case .bufferAllocationFailed: L10n("Could not allocate audio buffer")
         }
     }
 }
@@ -24,8 +24,8 @@ public enum TranscriberError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .notLoaded: "Transcriber model is not loaded"
-        case .emptyResult: "Transcription returned no text"
+        case .notLoaded: L10n("Transcriber model is not loaded")
+        case .emptyResult: L10n("Transcription returned no text")
         }
     }
 }
@@ -42,19 +42,19 @@ public enum LLMError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .noAPIKey(let provider):
-            "Chave API não configurada para \(provider)"
+            String(format: L10n("Chave API não configurada para %@"), provider)
         case .providerNotConfigured(let provider):
-            "Provedor '\(provider)' não reconhecido"
+            String(format: L10n("Provedor '%@' não reconhecido"), provider)
         case .appleIntelligenceUnavailable:
-            "Apple Intelligence requer macOS Tahoe (26+)"
+            L10n("Apple Intelligence requer macOS Tahoe (26+)")
         case .appleIntelligenceNotEnabled:
-            "Apple Intelligence não está ativado nas Preferências do Sistema"
+            L10n("Apple Intelligence não está ativado nas Preferências do Sistema")
         case .deviceNotEligible:
-            "Este dispositivo não suporta Apple Intelligence"
+            L10n("Este dispositivo não suporta Apple Intelligence")
         case .appleIntelligenceModelNotReady:
-            "Modelo Apple Intelligence ainda sendo baixado"
+            L10n("Modelo Apple Intelligence ainda sendo baixado")
         case .mlxModelNotLoaded(let modelID):
-            "Não foi possível carregar o modelo local '\(modelID)'"
+            String(format: L10n("Não foi possível carregar o modelo local '%@'"), modelID)
         }
     }
 }
@@ -68,11 +68,11 @@ public enum BatchError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .noInputFile: "No input file specified"
-        case .unsupportedFormat(let ext): "Unsupported format: \(ext)"
-        case .ffmpegNotFound: "ffmpeg not found. Install with: brew install ffmpeg"
-        case .ffmpegFailed(let code): "ffmpeg exited with code \(code)"
-        case .outputWriteFailed: "Failed to write output file"
+        case .noInputFile: L10n("No input file specified")
+        case .unsupportedFormat(let ext): String(format: L10n("Unsupported format: %@"), ext)
+        case .ffmpegNotFound: L10n("ffmpeg not found. Install with: brew install ffmpeg")
+        case .ffmpegFailed(let code): String(format: L10n("ffmpeg exited with code %d"), code)
+        case .outputWriteFailed: L10n("Failed to write output file")
         }
     }
 }

@@ -47,18 +47,18 @@ public final class AppSettings: ObservableObject {
 
     // swiftlint:disable trailing_comma
     static let languages: [LanguageOption] = [
-        LanguageOption(id: "auto", name: "Auto-detectar"),
-        LanguageOption(id: "pt", name: "Português"),
-        LanguageOption(id: "en", name: "English"),
-        LanguageOption(id: "es", name: "Español"),
-        LanguageOption(id: "fr", name: "Français"),
-        LanguageOption(id: "de", name: "Deutsch"),
-        LanguageOption(id: "it", name: "Italiano"),
-        LanguageOption(id: "ja", name: "日本語"),
-        LanguageOption(id: "zh", name: "中文"),
-        LanguageOption(id: "ko", name: "한국어"),
-        LanguageOption(id: "ru", name: "Русский"),
-        LanguageOption(id: "ar", name: "العربية"),
+        LanguageOption(id: "auto", name: L10n("Auto-detectar")),
+        LanguageOption(id: "pt", name: L10n("Português")),
+        LanguageOption(id: "en", name: L10n("English")),
+        LanguageOption(id: "es", name: L10n("Español")),
+        LanguageOption(id: "fr", name: L10n("Français")),
+        LanguageOption(id: "de", name: L10n("Deutsch")),
+        LanguageOption(id: "it", name: L10n("Italiano")),
+        LanguageOption(id: "ja", name: L10n("日本語")),
+        LanguageOption(id: "zh", name: L10n("中文")),
+        LanguageOption(id: "ko", name: L10n("한국어")),
+        LanguageOption(id: "ru", name: L10n("Русский")),
+        LanguageOption(id: "ar", name: L10n("العربية")),
     ]
     // swiftlint:enable trailing_comma
 
@@ -163,6 +163,15 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
         case .llm: return "wand.and.stars"
         }
     }
+    
+    var localizedName: String {
+        switch self {
+        case .general: return L10n("Geral")
+        case .models: return L10n("Modelos")
+        case .advanced: return L10n("Avançado")
+        case .llm: return L10n("IA & LLM")
+        }
+    }
 }
 
 enum SettingsSelection: Hashable {
@@ -192,21 +201,21 @@ struct SettingsView: View {
             List(selection: $selection) {
                 Section {
                     ForEach(SettingsPanel.allCases) { panel in
-                        Label(panel.rawValue, systemImage: panel.icon)
+                        Label(panel.localizedName, systemImage: panel.icon)
                             .tag(SettingsSelection.panel(panel))
                     }
                 }
                 
-                Section("Modos") {
+                Section(L10n("Modos")) {
                     ForEach(DictationTemplate.allCases.filter { !$0.isCreativeMode }, id: \.self) { template in
-                        Label(template.rawValue, systemImage: template.icon)
+                        Label(template.localizedName, systemImage: template.icon)
                             .tag(SettingsSelection.template(template))
                     }
                 }
 
-                Section("Prompts Criativos") {
+                Section(L10n("Prompts Criativos")) {
                     ForEach(DictationTemplate.allCases.filter { $0.isCreativeMode }, id: \.self) { template in
-                        Label(template.rawValue, systemImage: template.icon)
+                        Label(template.localizedName, systemImage: template.icon)
                             .tag(SettingsSelection.template(template))
                     }
                 }
@@ -232,7 +241,7 @@ struct SettingsView: View {
                         .id(template)
                 }
             } else {
-                Text("Selecione um painel à esquerda")
+                Text(L10n("Selecione um painel à esquerda"))
                     .foregroundColor(.secondary)
             }
         }
@@ -330,7 +339,7 @@ struct ModelRow: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(isActive)
-                .help(isActive ? "Não pode apagar modelo ativo" : "Apagar modelo")
+                .help(isActive ? L10n("Não pode apagar modelo ativo") : L10n("Apagar modelo"))
             } else {
                 Button {
                     manager.download(model.id)
@@ -338,7 +347,7 @@ struct ModelRow: View {
                     Image(systemName: "arrow.down.circle")
                 }
                 .buttonStyle(.borderless)
-                .help("Baixar modelo")
+                .help(L10n("Baixar modelo"))
             }
         }
         .padding(.vertical, Spacing.xs)

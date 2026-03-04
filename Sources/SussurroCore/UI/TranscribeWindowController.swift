@@ -21,7 +21,7 @@ public final class TranscribeWindowController {
 
     private func makeWindow() {
         let config = WindowConfig(
-            title: "Transcrever Arquivo — Sussurro",
+            title: L10n("Transcrever Arquivo — Sussurro"),
             width: WindowSize.transcribeDefaultWidth,
             height: WindowSize.transcribeDefaultHeight,
             isResizable: true,

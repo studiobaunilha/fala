@@ -15,7 +15,7 @@ extension SettingsView {
                 try await testOpenAIKey(key)
             }
         } catch {
-            testKeyResult = "Falha no teste: \(error.localizedDescription)"
+            testKeyResult = L10n("Falha no teste: ") + error.localizedDescription
         }
 
         showTestKeyAlert = true
@@ -43,7 +43,7 @@ extension SettingsView {
         }
 
         if http.statusCode == 200 {
-            testKeyResult = "Sucesso! A chave do Gemini está funcionando."
+            testKeyResult = L10n("Sucesso! A chave do Gemini está funcionando.")
             return
         }
 
@@ -53,8 +53,8 @@ extension SettingsView {
         }
 
         let errBody = String(data: data, encoding: .utf8)
-            ?? "Erro desconhecido"
-        let msg = "Erro \(http.statusCode): \(errBody)"
+            ?? L10n("Erro desconhecido")
+        let msg = L10n("Erro ") + "\(http.statusCode): \(errBody)"
         throw NSError(
             domain: "API", code: http.statusCode,
             userInfo: [NSLocalizedDescriptionKey: msg]
@@ -74,7 +74,7 @@ extension SettingsView {
               listHttp.statusCode == 200 else {
             throw NSError(domain: "API", code: 404, userInfo: [
                 NSLocalizedDescriptionKey:
-                    "Modelo não encontrado e falha ao listar modelos."
+                    L10n("Modelo não encontrado e falha ao listar modelos.")
             ])
         }
 
@@ -86,9 +86,9 @@ extension SettingsView {
                     .components(separatedBy: "/").last
             }
             self.availableGeminiModels = names
-            testKeyResult = "Chave válida. Lista de modelos atualizada."
+            testKeyResult = L10n("Chave válida. Lista de modelos atualizada.")
         } else {
-            testKeyResult = "Chave válida, mas erro ao listar modelos."
+            testKeyResult = L10n("Chave válida, mas erro ao listar modelos.")
         }
     }
 
@@ -118,15 +118,15 @@ extension SettingsView {
 
         if http.statusCode != 200 {
             let errBody = String(data: data, encoding: .utf8)
-                ?? "Erro desconhecido"
-            let msg = "Erro \(http.statusCode): \(errBody)"
+                ?? L10n("Erro desconhecido")
+            let msg = L10n("Erro ") + "\(http.statusCode): \(errBody)"
             throw NSError(
                 domain: "API", code: http.statusCode,
                 userInfo: [NSLocalizedDescriptionKey: msg]
             )
         }
 
-        testKeyResult = "Sucesso! A chave da OpenAI está funcionando."
+        testKeyResult = L10n("Sucesso! A chave da OpenAI está funcionando.")
     }
 }
 
@@ -162,39 +162,37 @@ struct AppleIntelligenceStatusView: View {
     private var statusText: String {
         switch availability {
         case .available:
-            return "Disponível"
+            return L10n("Disponível")
         case .unavailable(let reason):
             switch reason {
             case .deviceNotEligible:
-                return "Dispositivo não suportado"
+                return L10n("Dispositivo não suportado")
             case .appleIntelligenceNotEnabled:
-                return "Apple Intelligence desativado"
+                return L10n("Apple Intelligence desativado")
             case .modelNotReady:
-                return "Modelo sendo baixado"
+                return L10n("Modelo sendo baixado")
             @unknown default:
-                return "Indisponível"
+                return L10n("Indisponível")
             }
         @unknown default:
-            return "Status desconhecido"
+            return L10n("Status desconhecido")
         }
     }
 
     private var statusDetail: String {
         switch availability {
         case .available:
-            return "Pronto para uso. Nenhuma configuração necessária."
+            return L10n("Pronto para uso. Nenhuma configuração necessária.")
         case .unavailable(let reason):
             switch reason {
             case .deviceNotEligible:
-                return "Este Mac não suporta Apple Intelligence."
+                return L10n("Este Mac não suporta Apple Intelligence.")
             case .appleIntelligenceNotEnabled:
-                return "Ative em Ajustes do Sistema → "
-                    + "Apple Intelligence e Siri."
+                return L10n("Ative em Ajustes do Sistema → Apple Intelligence e Siri.")
             case .modelNotReady:
-                return "O modelo está sendo preparado. "
-                    + "Tente novamente em alguns minutos."
+                return L10n("O modelo está sendo preparado. Tente novamente em alguns minutos.")
             @unknown default:
-                return "Verifique os Ajustes do Sistema."
+                return L10n("Verifique os Ajustes do Sistema.")
             }
         @unknown default:
             return ""
@@ -246,7 +244,7 @@ struct MLXModelRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if isSelected && isDownloaded {
-                        Text("Ativo")
+                        Text(L10n("Ativo"))
                             .font(.caption2)
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, 2)
@@ -273,7 +271,7 @@ struct MLXModelRow: View {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
-                .help("Apagar modelo")
+                .help(L10n("Apagar modelo"))
             } else {
                 Button {
                     manager.download(model.id)
@@ -281,7 +279,7 @@ struct MLXModelRow: View {
                     Image(systemName: "arrow.down.circle")
                 }
                 .buttonStyle(.borderless)
-                .help("Baixar modelo")
+                .help(L10n("Baixar modelo"))
             }
         }
         .padding(.vertical, Spacing.xs)

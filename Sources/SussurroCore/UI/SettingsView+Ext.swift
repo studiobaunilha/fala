@@ -8,17 +8,17 @@ extension SettingsView {
     var generalView: some View {
         Form {
             Section {
-                KeyboardShortcuts.Recorder("Atalho de Ditado", name: .startDictation)
+                KeyboardShortcuts.Recorder(L10n("Atalho de Ditado"), name: .startDictation)
             } header: {
-                Text("Atalhos do Sistema")
+                Text(L10n("Atalhos do Sistema"))
             } footer: {
-                Text("Pressione o atalho global para iniciar o ditado de qualquer lugar.")
+                Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            Section("Idioma Padrão") {
-                Picker("Idioma", selection: $settings.language) {
+            Section(L10n("Idioma Padrão")) {
+                Picker(L10n("Idioma"), selection: $settings.language) {
                     ForEach(AppSettings.languages) { lang in
                         Text(lang.name).tag(lang.id)
                     }
@@ -26,37 +26,35 @@ extension SettingsView {
                 .pickerStyle(.menu)
             }
             
-            Section("Armazenamento") {
+            Section(L10n("Armazenamento")) {
                 HStack {
-                    TextField("Salvar Transcrições", text: $settings.defaultExportPath)
+                    TextField(L10n("Salvar Transcrições"), text: $settings.defaultExportPath)
                         .disabled(true)
-                    Button("Alterar...") { settings.selectExportPath() }
+                    Button(L10n("Alterar...")) { settings.selectExportPath() }
                 }
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Ajustes Gerais")
+        .navigationTitle(L10n("Ajustes Gerais"))
     }
     
     var modelsView: some View {
         Form {
             Section {
-                Picker("Motor de Transcrição", selection: $settings.transcriptionEngine) {
-                    Text("Whisper (WhisperKit)").tag("whisper")
-                    Text("Parakeet V3 (FluidAudio)").tag("parakeet")
+                Picker(L10n("Motor de Transcrição"), selection: $settings.transcriptionEngine) {
+                    Text(L10n("Whisper (WhisperKit)")).tag("whisper")
+                    Text(L10n("Parakeet V3 (FluidAudio)")).tag("parakeet")
                 }
             } header: {
-                Text("Motor de Transcrição")
+                Text(L10n("Motor de Transcrição"))
             } footer: {
                 if settings.transcriptionEngine == "parakeet" {
-                    Text("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. "
-                         + "Suporta 25 idiomas europeus. O modelo é baixado automaticamente no primeiro uso. "
-                         + "Requer reiniciar o app após alterar.")
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. O modelo é baixado automaticamente no primeiro uso. Requer reiniciar o app após alterar."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("Whisper usa modelos OpenAI via WhisperKit. "
-                         + "Requer reiniciar o app após alterar.")
+                    Text(L10n("Whisper usa modelos OpenAI via WhisperKit. Requer reiniciar o app após alterar."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -64,17 +62,17 @@ extension SettingsView {
 
             if settings.transcriptionEngine == "whisper" {
                 Section {
-                    downloadedModelPicker("Modelo de Ditado", selection: $settings.dictationModel)
-                    downloadedModelPicker("Modelo Batch / Arquivo", selection: $settings.batchModel)
+                    downloadedModelPicker(L10n("Modelo de Ditado"), selection: $settings.dictationModel)
+                    downloadedModelPicker(L10n("Modelo Batch / Arquivo"), selection: $settings.batchModel)
                 } header: {
-                    Text("Modelos Whisper Ativos")
+                    Text(L10n("Modelos Whisper Ativos"))
                 } footer: {
-                    Text("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos.")
+                    Text(L10n("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
 
-                Section("Downloads Disponíveis") {
+                Section(L10n("Downloads Disponíveis")) {
                     ForEach(knownModels) { model in
                         ModelRow(
                             model: model,
@@ -87,39 +85,39 @@ extension SettingsView {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Gerenciador de Modelos")
+        .navigationTitle(L10n("Gerenciador de Modelos"))
     }
     
     var advancedView: some View {
         Form {
             Section {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Temperatura Ditado (\(settings.dictationTemperature, specifier: "%.1f"))")
+                    Text("\(L10n("Temperatura Ditado")) (\(settings.dictationTemperature, specifier: "%.1f"))")
                     Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
                 }
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Temperatura Batch (\(settings.batchTemperature, specifier: "%.1f"))")
+                    Text("\(L10n("Temperatura Batch")) (\(settings.batchTemperature, specifier: "%.1f"))")
                     Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
                 }
             } header: {
-                Text("Acurácia vs. Velocidade")
+                Text(L10n("Acurácia vs. Velocidade"))
             } footer: {
-                Text("Zero significa alta acurácia (Greedy Decoding).")
+                Text(L10n("Zero significa alta acurácia (Greedy Decoding)."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             
-            Section("Diarization (Identificação de Vozes)") {
-                Toggle("Reconhecer múltiplos locutores", isOn: $settings.enableDiarization)
+            Section(L10n("Diarization (Identificação de Vozes)")) {
+                Toggle(L10n("Reconhecer múltiplos locutores"), isOn: $settings.enableDiarization)
             }
             
             Section {
                 HStack(spacing: Spacing.sm) {
-                    TextField("Variante", text: $newIncorrect)
+                    TextField(L10n("Variante"), text: $newIncorrect)
                         .textFieldStyle(.roundedBorder)
                     Image(systemName: "arrow.right")
                         .foregroundStyle(.secondary)
-                    TextField("Correto", text: $newCorrect)
+                    TextField(L10n("Correto"), text: $newCorrect)
                         .textFieldStyle(.roundedBorder)
                         .onSubmit { addReplacement() }
 
@@ -179,15 +177,16 @@ extension SettingsView {
                     .padding(.vertical, Spacing.xxs)
                 }
             } header: {
-                Text("Substituição de Texto (Pós-processamento)")
+                Text(L10n("Substituição de Texto (Pós-processamento)"))
             } footer: {
-                Text("Cada regra pode ter várias variantes. Se o correto já existir, a variante é adicionada à regra.")
+                // swiftlint:disable:next line_length
+                Text(L10n("Cada regra pode ter várias variantes. Se o correto já existir, a variante é adicionada à regra."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Avançado")
+        .navigationTitle(L10n("Avançado"))
     }
     
     func addReplacement() {

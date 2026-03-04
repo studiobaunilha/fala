@@ -14,11 +14,11 @@ struct ModeDetailView: View {
 
     // Available providers
     private let providers = [
-        ("global", "Usar Padrão Global"),
-        ("gemini", "Google Gemini"),
-        ("openai", "OpenAI GPT"),
-        ("apple", "Apple Intelligence"),
-        ("mlx", "MLX Local")
+        ("global", L10n("Usar Padrão Global")),
+        ("gemini", L10n("Google Gemini")),
+        ("openai", L10n("OpenAI GPT")),
+        ("apple", L10n("Apple Intelligence")),
+        ("mlx", L10n("MLX Local"))
     ]
 
     private var effectiveProviderName: String {
@@ -32,7 +32,7 @@ struct ModeDetailView: View {
 
     private var mlxModelLabel: String {
         if model.isEmpty {
-            return "Padrão global"
+            return L10n("Padrão global")
         }
         return knownMLXModels
             .first { $0.repoID == model }?.label ?? model
@@ -69,19 +69,19 @@ struct ModeDetailView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle(template == .custom ? settings.customModeName : template.rawValue)
+        .navigationTitle(template == .custom ? settings.customModeName : template.localizedName)
         .onAppear { loadConfig() }
         .confirmationDialog(
-            "Restaurar prompt padrão?",
+            L10n("Restaurar prompt padrão?"),
             isPresented: $showRestoreConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Restaurar Padrão", role: .destructive) {
+            Button(L10n("Restaurar Padrão"), role: .destructive) {
                 restoreDefault()
             }
-            Button("Cancelar", role: .cancel) { }
+            Button(L10n("Cancelar"), role: .cancel) { }
         } message: {
-            Text("O prompt customizado será substituído pelo padrão deste modo. Esta ação não pode ser desfeita.")
+            Text(L10n("O prompt customizado será substituído pelo padrão deste modo. Esta ação não pode ser desfeita."))
         }
     }
 
@@ -91,7 +91,7 @@ struct ModeDetailView: View {
         Section {
             Label {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(template.rawValue)
+                    Text(template.localizedName)
                         .font(.headline)
                     Text(template.modeDescription)
                         .font(.subheadline)
@@ -109,7 +109,7 @@ struct ModeDetailView: View {
 
     private var providerSection: some View {
         Section {
-            Picker("Provedor LLM", selection: $provider) {
+            Picker(L10n("Provedor LLM"), selection: $provider) {
                 ForEach(providers, id: \.0) { key, name in
                     Text(name).tag(key)
                 }
@@ -117,7 +117,7 @@ struct ModeDetailView: View {
             .onChange(of: provider) { debouncedSave() }
 
             if provider == "global" {
-                LabeledContent("Provedor atual") {
+                LabeledContent(L10n("Provedor atual")) {
                     Text(effectiveProviderName)
                         .foregroundStyle(.secondary)
                 }
@@ -125,7 +125,7 @@ struct ModeDetailView: View {
 
             if provider != "global" && provider != "apple" {
                 if provider == "mlx" {
-                    LabeledContent("Modelo") {
+                    LabeledContent(L10n("Modelo")) {
                         Menu {
                             ForEach(knownMLXModels) { mlxModel in
                                 Button(mlxModel.label) {
@@ -139,15 +139,15 @@ struct ModeDetailView: View {
                     }
                     .onChange(of: model) { debouncedSave() }
                 } else {
-                    TextField("Modelo", text: $model,
-                              prompt: Text("Padrão do provedor"))
+                    TextField(L10n("Modelo"), text: $model,
+                              prompt: Text(L10n("Padrão do provedor")))
                         .onChange(of: model) { debouncedSave() }
                 }
             }
         } header: {
-            Text("Modelo")
+            Text(L10n("Modelo"))
         } footer: {
-            Text("Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM.")
+            Text(L10n("Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -169,7 +169,7 @@ struct ModeDetailView: View {
                 .onChange(of: prompt) { debouncedSave() }
 
             HStack {
-                Button("Restaurar Padrão") {
+                Button(L10n("Restaurar Padrão")) {
                     if isPromptModified {
                         showRestoreConfirmation = true
                     }
@@ -179,15 +179,15 @@ struct ModeDetailView: View {
                 Spacer()
 
                 if isPromptModified {
-                    Label("Modificado", systemImage: "pencil.circle.fill")
+                    Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
             }
         } header: {
-            Text("Prompt do Sistema")
+            Text(L10n("Prompt do Sistema"))
         } footer: {
-            Text("Instruções enviadas ao LLM para processar a transcrição neste modo.")
+            Text(L10n("Instruções enviadas ao LLM para processar a transcrição neste modo."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -195,7 +195,7 @@ struct ModeDetailView: View {
 
     private var customNameSection: some View {
         Section {
-            TextField("Nome do modo", text: $settings.customModeName)
+            TextField(L10n("Nome do modo"), text: $settings.customModeName)
                 .onChange(of: settings.customModeName) {
                     // Enforce 30 char limit
                     if settings.customModeName.count > 30 {
@@ -204,9 +204,9 @@ struct ModeDetailView: View {
                     debouncedSave()
                 }
         } header: {
-            Text("Nome Personalizado")
+            Text(L10n("Nome Personalizado"))
         } footer: {
-            Text("Este nome aparece no menu da barra de status. Máximo 30 caracteres.")
+            Text(L10n("Este nome aparece no menu da barra de status. Máximo 30 caracteres."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -214,11 +214,11 @@ struct ModeDetailView: View {
 
     private var stackSection: some View {
         Section {
-            TextField("Stack / Tecnologias", text: $settings.devStack)
+            TextField(L10n("Stack / Tecnologias"), text: $settings.devStack)
                 .onChange(of: settings.devStack) { debouncedSave() }
             
             HStack {
-                Button("Restaurar Padrão") {
+                Button(L10n("Restaurar Padrão")) {
                     settings.devStack = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
                     debouncedSave()
                 }
@@ -227,15 +227,16 @@ struct ModeDetailView: View {
                 Spacer()
                 
                 if isStackModified {
-                    Label("Modificado", systemImage: "pencil.circle.fill")
+                    Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
             }
         } header: {
-            Text("Stack do Projeto")
+            Text(L10n("Stack do Projeto"))
         } footer: {
-            Text("Tecnologias do projeto atual. Incluída automaticamente no prompt para gerar código contextualizado.")
+            // swiftlint:disable:next line_length
+            Text(L10n("Tecnologias do projeto atual. Incluída automaticamente no prompt para gerar código contextualizado."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -245,9 +246,9 @@ struct ModeDetailView: View {
         Section {
             Label {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text("Sem pós-processamento")
+                    Text(L10n("Sem pós-processamento"))
                         .font(.body)
-                    Text("Este modo não utiliza IA. O texto é inserido diretamente do Whisper.")
+                    Text(L10n("Este modo não utiliza IA. O texto é inserido diretamente do Whisper."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -257,7 +258,7 @@ struct ModeDetailView: View {
             }
             .padding(.vertical, Spacing.xs)
         } header: {
-            Text("Processamento")
+            Text(L10n("Processamento"))
         }
     }
 
@@ -313,7 +314,7 @@ struct ModeDetailView: View {
 
     private func restoreDefault() {
         prompt = template == .custom
-            ? "Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais."
+            ? L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
             : (template.defaultSystemPrompt ?? "")
         persistConfig()
     }
