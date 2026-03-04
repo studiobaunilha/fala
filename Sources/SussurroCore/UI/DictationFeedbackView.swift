@@ -7,7 +7,7 @@ struct DictationFeedbackView: View {
 
     var body: some View {
         VStack(spacing: Spacing.lg) {
-            StageIndicatorRow(stage: model.stage)
+            StageIndicatorRow(stage: model.stage, template: model.template)
             WaveformBars(
                 levels: model.rmsHistory,
                 isRecording: model.stage == .recording
@@ -35,27 +35,36 @@ struct DictationFeedbackView: View {
 
 private struct StageIndicatorRow: View {
     let stage: DictationStage
+    let template: DictationTemplate
 
-    private static let stages: [(DictationStage, String)] = [
-        (.recording, "mic.fill"),
-        (.transcribing, "waveform"),
-        (.processing, "gearshape"),
-        (.inserting, "doc.on.clipboard"),
-        (.done, "checkmark.circle")
-    ]
+    private var activeStages: [(DictationStage, String)] {
+        var stages: [(DictationStage, String)] = [
+            (.recording, "mic.fill"),
+            (.transcribing, "waveform")
+        ]
+        if template.requiresLLM {
+            stages.append((.processing, "gearshape"))
+        }
+        stages.append(contentsOf: [
+            (.inserting, "doc.on.clipboard"),
+            (.done, "checkmark.circle")
+        ])
+        return stages
+    }
 
     var body: some View {
+        let stages = activeStages
         HStack(spacing: Spacing.md) {
-            ForEach(Array(Self.stages.enumerated()), id: \.offset) { idx, item in
+            ForEach(Array(stages.enumerated()), id: \.offset) { idx, item in
                 let (itemStage, icon) = item
-                let state = indicatorState(for: itemStage)
+                let state = indicatorState(for: itemStage, order: stages.map(\.0))
                 Image(systemName: state == .completed ? "checkmark.circle.fill" : icon)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(state.color)
                     .scaleEffect(state == .active ? 1.2 : 1.0)
                     .animation(AnimationConfig.spring, value: stage)
 
-                if idx < Self.stages.count - 1 {
+                if idx < stages.count - 1 {
                     Rectangle()
                         .fill(state.lineColor)
                         .frame(height: 1)
@@ -84,8 +93,7 @@ private struct StageIndicatorRow: View {
         }
     }
 
-    private func indicatorState(for itemStage: DictationStage) -> IndicatorState {
-        let order: [DictationStage] = [.recording, .transcribing, .processing, .inserting, .done]
+    private func indicatorState(for itemStage: DictationStage, order: [DictationStage]) -> IndicatorState {
         guard let current = order.firstIndex(of: stage),
               let target = order.firstIndex(of: itemStage) else { return .pending }
         if target < current { return .completed }

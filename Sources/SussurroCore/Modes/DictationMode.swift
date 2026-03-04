@@ -62,6 +62,7 @@ public final class DictationMode {
             // Wire RMS levels to the floating feedback panel
             if let feedback {
                 feedback.model.reset()
+                feedback.model.template = AppConfig.load().selectedDictationTemplate
                 recorder.setRMSHandler { [weak feedback] rms in
                     Task { @MainActor in feedback?.model.pushRMS(rms) }
                 }

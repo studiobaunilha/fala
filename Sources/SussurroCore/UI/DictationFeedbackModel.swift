@@ -5,6 +5,7 @@ import Foundation
 @MainActor
 public final class DictationFeedbackModel: ObservableObject {
     @Published public var stage: DictationStage = .recording
+    @Published public var template: DictationTemplate = .raw
     @Published public var rmsLevel: Float = 0
     @Published public var rmsHistory: [Float] = Array(repeating: 0, count: 12)
     @Published public var transcriptionText: String = ""
