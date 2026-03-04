@@ -1,40 +1,44 @@
-# Sussuro
+# Sussurro 🤫
 
-Sistema unificado de transcrição de áudio e ditado inteligente, ultra-otimizado para processadores Apple Silicon (M4).
+O **Sussurro** é uma ferramenta nativa, unificada e privada de transcrição de áudio e ditado inteligente para macOS. Foi construída do zero para **Apple Silicon (M1 ou superior)**, focando em entregar o máximo de performance, privacidade e utilidade sem depender de serviços externos na nuvem.
 
-## 1. Visão Geral
-Substituir ferramentas fragmentadas (Handy, MacWhisper) por um motor unificado, local e open-source que utiliza o FFmpeg 8.0 para manipulação de áudio, Whisper.cpp para transcrição via Metal (GPU) e Ollama (Llama 3.2) para pós-processamento e correção de texto.
+Seja você um advogado analisando depoimentos, um médico documentando diagnósticos, ou um executivo lidando com reuniões confidenciais: seus áudios **nunca saem do seu Mac**.
 
-## 2. Requisitos Técnicos
-- **OS:** macOS (Apple Silicon M4).
-- **Audio Engine:** FFmpeg 8.0 (nativo com Apple Neon/AudioToolbox).
-- **Transcription Engine:** `whisper.cpp` (Metal enabled).
-- **LLM Engine:** `Ollama` (local).
-- **Modelos Sugeridos:**
-  - Whisper: `ggml-large-v3-turbo` (Velocidade e precisão).
-  - LLM: `llama3.2:3b` (Correção gramatical e formatação técnica).
+---
 
-## 3. Funcionalidades Principais
+## 🌟 O que o Sussurro resolve?
+Esqueça gravar áudios em um app, exportar, subir no navegador, esperar a transcrição e depois colar no ChatGPT para arrumar a pontuação.
 
-### A. Transcrição de Arquivos (Modo Batch)
-- Entrada: Arquivos `.m4a`, `.mp3`, `.wav`, `.mp4`.
-- Processo: 
-  1. Extração/Normalização via FFmpeg (16kHz, mono).
-  2. Transcrição acelerada por GPU.
-  3. Pós-processamento opcional via LLM para limpeza de "gargalos" de fala e formatação Markdown.
-- Saída: Arquivo `.txt` ou `.md` com o mesmo nome do original.
+Com o Sussurro, você tem um fluxo mágico e contínuo:
+1. **Dite em qualquer lugar:** Segure um atalho no teclado em qualquer aplicativo (Word, Slack, Mail, Xcode). Fale naturalmente. Ao soltar a tecla, o texto digitado magicamente aparece formatado sob o seu cursor.
+2. **Basta arrastar:** Solte um áudio (ou vídeo) gravado. O Sussurro transcreve, identifica locutores diferentes e te entrega uma ata arrumada em segundos.
 
-### B. Ditado Inteligente (Modo Real-time replacement)
-- Funcionamento: Atalho de teclado inicia a gravação.
-- Diferencial: O texto transcrito passa por uma "limpeza rápida" (LLM) antes de ser inserido no sistema via AppleScript (`keystroke`), removendo vícios de linguagem e corrigindo termos técnicos em milissegundos.
+## 🚀 Principais Funcionalidades
 
-## 4. Estrutura do Projeto (Sugestão)
-- `bin/susurro`: Script principal (Python ou Bash).
-- `config/prompts.json`: Prompts do LLM para diferentes contextos (Arquitetura de Software, Reunião, Notas).
-- `models/`: Links simbólicos ou gerenciamento dos modelos `.bin`.
+### 1. 100% Offline e Privado no seu Mac
+* Utiliza o Motor Apple Neural Engine em conjunto com as melhores bibliotecas (`WhisperKit` e `FluidAudio`) para inferência local. Você não paga taxas por minuto de áudio ou mensalidades absurdas.
+* Compatibilidade testada em toda a linha **Apple Silicon (M1, M2, M3, M4)**.
 
-## 5. Próximos Passos (Desenvolvimento)
-1. Criar script de bootstrap para garantir dependências (`brew install ffmpeg whisper-cpp ollama`).
-2. Desenvolver o script de transcrição de arquivo com suporte a parâmetros.
-3. Implementar a lógica de inserção de texto via AppleScript para o modo ditado.
-4. Refinar o prompt de correção para o contexto do Sussuro.
+### 2. Modos de Uso Inteligentes
+* **Ditado (Tempo Real):** Atalho global (*Push-to-talk*). Pressionou, falou, soltou, colou. O texto é inserido nativamente onde o cursor estiver focado.
+* **Batch (Arquivos):** Transcreva gravações de reuniões, aulas, entrevistas ou vídeos. Suporta vários formatos (`.mp3`, `.m4a`, `.wav`, etc).
+
+### 3. Pós-processamento com Inteligência Artificial
+Ninguém gosta de ler transcrições cheias de "éhhh", "hmmm" e pontuação quebrada. O Sussurro roteia o texto bruto para Modelos de Linguagem (Locais via MLX ou via API como Gemini e OpenAI) para limpar a sujeira.
+* 🧹 **Limpar & Formatar:** Arruma gramática e remove vícios de linguagem.
+* 📝 **Resumir:** Extrai direto o assunto e tópicos chaves do áudio.
+* 🌍 **Traduzir:** Dite em Português e o texto será inserido em Inglês.
+* 💻 **Desenvolvedor:** Entende instruções de código contextualizado.
+* 🎙️ **Diarization (Múltiplas Vozes):** Identifica e formata "Locutor 1, Locutor 2" automaticamente em arquivos.
+
+### 4. Controle Total na sua Mão
+* **Acurácia vs Velocidade:** Ajuste fino sobre o motor Whisper (via *Greedy Decoding*). Otimize caso precise de transcrições instantâneas ou extremamente apuradas.
+* **Auto-Substituição:** Crie suas regras de dicionário. ("píar" vira "PR", "Jira" vira "JIRA"). 
+* **Prompt Global Hakeável:** Você quem manda na IA. Se não gostar do estilo de formatação do Sussurro, você pode editar o Prompt de Sistema raiz.
+
+---
+
+## 🛠 Requisitos Técnicos
+- **Sistema Operacional:** macOS 14.0 (Sonoma) ou superior.
+- **Hardware:** Mac com Processador **Apple Silicon (M1, M1 Pro, M2, M3, M4, etc)**.
+- *Nota:* Baixar modelos pesados de LLM ou Whisper (Large-v3) pode requerer >= 16GB de Memória RAM Unificada para máxima fluidez, embora modelos menores (Medium, Parakeet) rodem perfeitamente em 8GB de RAM.

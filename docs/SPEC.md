@@ -1,140 +1,56 @@
-# Sussurro — Definições Técnicas
+# Sussurro — Especificações do Produto (v1)
 
-## Projeto
+## 📌 Visão Geral do Produto
+O **Sussurro** é uma ferramenta nativa de transcrição e pós-processamento de áudio para macOS (focada em Apple Silicon). Desenvolvida sem necessidade de nuvem para a transcrição central, ela garante máxima privacidade e performance, ideal para profissionais que lidam com informações sensíveis (advogados, médicos, jornalistas, executivos).
 
-**Nome:** Sussurro
-**Escopo:** Ferramenta pessoal, sem App Store, sem sandbox
-**Plataforma:** macOS 26.1+ (Tahoe), Apple M4
-**Repositório:** `/Users/ale/Dev/sussurro`
-
----
-
-## Linguagem e Toolchain
-
-- **Linguagem:** Swift 6.0
-- **Build:** `swift build -c release` (sem Xcode obrigatório)
-- **Package manifest:** `swift-tools-version: 6.0`
-- **Deployment target:** `.macOS(.v26)`
+## 🎯 Proposta de Valor
+- **100% Offline no Core:** A transcrição de áudio ocorre inteiramente de forma local na máquina (via Neural Engine), garantindo que dados de voz nunca sejam enviados a servidores de terceiros.
+- **Integração Fluida (System-wide):** O usuário dita em qualquer lugar do SO ou transcreve arquivos locais, com o texto final sendo inserido magicamente onde o cursor estiver.
+- **Pós-Processamento com IA Inteligente:** Após a transcrição bruta, o texto pode passar por LLMs (locais ou via API) para formatação, limpeza, resumo, ou geração de código, poupando trabalho manual de edição.
 
 ---
 
-## Dependências (Swift Package Manager)
+## ⚙️ Principais Funcionalidades
 
-```swift
-dependencies: [
-    .package(url: "https://github.com/argmaxinc/WhisperKit.git", from: "0.9.0"),
-    .package(url: "https://github.com/sindresorhus/KeyboardShortcuts.git", from: "2.0.0"),
-]
-```
+### 1. Modos de Uso
+- **Ditado (Tempo Real):** Ativado por um atalho global customizável. O usuário segura a tecla para gravar (push-to-talk). Ao soltar, o áudio é transcrito, formatado pela IA (opcional) e o texto é colado automaticamente no campo ativo.
+- **Transcrição de Arquivos (Batch):** O usuário seleciona arquivos de áudio locais. O sistema transcreve o arquivo todo em background.
+  - *Diarization:* Identifica automaticamente em transcrições de arquivos as trocas de locutores e formata as respostas via LLM (ex: Locutor 1, Locutor 2).
 
----
+### 2. Motores de Transcrição
+O aplicativo oferece suporte dual-engine, permitindo adequação entre performance e flexibilidade:
+- **Whisper (via WhisperKit - MLX):** Solução robusta da OpenAI otimizada para Apple Silicon. Aceita controle paramétrico (*Accuracy vs Speed*) e requer downloads locais pesados para alta precisão (large-v3, medium, etc).
+- **Parakeet (via FluidAudio):** Motor de transcrição alternativo e leve da FluidInference para inferência imediata e incrivelmente rápida sem download de modelos massivos da HuggingFace.
 
-## Modos de Operação
+### 3. Pós-Processamento Intensivo com LLM (Inteligência Artificial)
+O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua rigidamente para que a IA não seja um "assistente conversacional", mas sim um utilitário cego e invisível.
+- **Provedores Suportados (Híbrido Nuvem/Local):**
+  - MLX Local (*100% Offline e Privado*)
+  - Google Gemini API
+  - OpenAI GPT API
+  - Apple Intelligence (via API Nativa)
+- **Modos Embutidos (Templates):**
+  - **Limpar & Formatar:** Arruma vírgulas, pontos e remove gaguejos.
+  - **Resumir:** Entrega apenas os tópicos centrais falados.
+  - **Traduzir para o Inglês:** Translada dinamicamente texto em PT-BR (ou outro idioma) para Inglês de forma nativa.
+  - **Desenvolvedor:** Contextualiza o áudio gerando código utilizando a "Tech Stack" informada nas configurações.
+  - **Modo Personalizado:** Permite ao usuário definir o prompt de pós-processamento exato que ele deseja usar.
 
-### Modo 1: Ditado em Tempo Real
-
-**Ativação:** menu bar app (lançado sem argumentos CLI)
-**Mecanismo de parada:** push-to-talk — tecla pressionada = gravando, tecla solta = transcreve
-**Hotkey padrão:** configurável via `KeyboardShortcuts`
-
-**Pipeline:**
-```
-keyDown  →  AVAudioEngine.start()  →  [gravando]
-keyUp    →  AVAudioEngine.stop()   →  PCM 16kHz Float array
-         →  WhisperKit.transcribe()  →  String
-         →  NSPasteboard.set(text) + CGEventPost(⌘V)  →  texto inserido no campo focado
-```
-
-### Modo 2: Transcrição em Lote (CLI)
-
-**Ativação:** `sussurro transcribe <arquivo> [--format md] [--model large-v3]`
-**Entrada suportada:** `.m4a`, `.mp3`, `.wav`, `.mp4`
-
-**Pipeline:**
-```
-ffmpeg -i <input> -ar 16000 -ac 1 -f wav /tmp/sussurro_tmp.wav
-→  WhisperKit.transcribe(audioPath:)
-→  grava <mesmo-nome>.txt ou .md no mesmo diretório
-```
+### 4. Gestão de Vocabulário e Atalhos
+- **Filtro de Dicionário Automático:** O sistema possui um sistema de *Replacement Rules* (Regras de Substituição). Qualquer termo identificado no áudio pode ser automaticamente substituído (Case-Insensitive) antes mesmo do pós-processamento (ex: "Jira" ➔ "JIRA", "píar" ➔ "PR").
 
 ---
 
-## Componentes Técnicos
+## 🛠 Arquitetura e Tecnologia (Stack)
+- **Plataforma:** macOS 14.0+
+- **Linguagem / UI:** Swift 6.0 / SwiftUI (Arquitetura orientada a Actors, MVVM)
+- **Integração Local:** MenuBar Extra (ícone de bandeja).
+- **Dependências Chave:**
+  - `WhisperKit` (Transcrição offline baseada em Transformers via CoreML)
+  - `FluidAudio` (Transcrição alternativa com suporte a Parakeet)
+  - `mlx-swift-lm` (Inferência nativa de LLMs usando M-series Unified Memory)
+  - `KeyboardShortcuts` (Gestão de atalhos globais no macOS)
 
-| Responsabilidade | Solução |
-|---|---|
-| Transcrição | WhisperKit (CoreML + Apple Neural Engine) |
-| Captura de áudio | `AVAudioEngine` — saída PCM mono 16kHz |
-| Conversão de arquivo | FFmpeg 8.0.1 via `Foundation.Process` |
-| Hotkey global | `KeyboardShortcuts` (SPM) |
-| Inserção de texto | `NSPasteboard.general` + `CGEventPost(⌘V)` — salva/restaura clipboard |
-| UI | `SwiftUI MenuBarExtra` — ícone muda por estado |
-| Configuração | `Codable` + JSON em `~/.config/sussurro/config.json` |
-
----
-
-## Modelos de Transcrição
-
-| Modo | Modelo padrão | Override via config |
-|------|--------------|---------------------|
-| Ditado | `openai_whisper-medium` | sim |
-| Batch | `openai_whisper-large-v3-turbo` | sim |
-
-Modelos baixados automaticamente por WhisperKit para `~/.cache/huggingface/`.
-
----
-
-## Estados da UI (StatusBar)
-
-| Estado | Ícone |
-|--------|-------|
-| Idle | microfone (inativo) |
-| Gravando | microfone + círculo vermelho |
-| Transcrevendo | atividade / spinner |
-
----
-
-## Permissões Necessárias (macOS)
-
-- **Microfone** — `AVAudioEngine` (`NSMicrophoneUsageDescription`)
-- **Accessibility** — `CGEventPost` para inserção de texto
-
-Solicitadas na primeira execução. Sem sandbox = sem entitlements adicionais.
-
----
-
-## Estrutura do Projeto
-
-```
-sussurro/
-├── Package.swift
-├── Sources/
-│   └── Sussurro/
-│       ├── main.swift                  # Dispatch: menu bar OU CLI batch
-│       ├── App/
-│       │   └── SussurroApp.swift       # MenuBarExtra + AppDelegate
-│       ├── Core/
-│       │   ├── AudioEngine.swift       # AVAudioEngine: captura e retorna [Float]
-│       │   ├── Transcriber.swift       # WhisperKit wrapper
-│       │   └── TextInserter.swift      # Clipboard save → paste → restore
-│       ├── Modes/
-│       │   ├── DictationMode.swift     # Coordena push-to-talk + transcrição + inserção
-│       │   └── BatchMode.swift         # Coordena ffmpeg + transcrição + escrita de arquivo
-│       ├── UI/
-│       │   └── StatusBarView.swift     # Estado visual do menu bar
-│       └── Config/
-│           └── AppConfig.swift         # Leitura/escrita de config.json
-├── config/
-│   └── default-config.json
-└── scripts/
-    └── install.sh                      # swift build -c release + ln -s para /usr/local/bin
-```
-
----
-
-## Fora do Escopo (MVP)
-
-- LLM / pós-processamento com Ollama
-- VAD automático (silêncio detectado — adicionado em iteração futura)
-- Múltiplos perfis de contexto para LLM
-- Distribuição via App Store ou código assinado
+## 🔒 Permissões do Sistema Operacional
+- `NSMicrophoneUsageDescription`: Gravação de voz local do usuário.
+- `Accessibility (Acessibilidade)`: Necessário para a API `CGEventPost` gerenciar o clipboard dinamicamente e efetuar a injeção (colagem `Cmd+V`) do texto transcrito nas aplicações nativas focadas.
