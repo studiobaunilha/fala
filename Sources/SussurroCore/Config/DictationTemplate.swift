@@ -38,7 +38,9 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
         case .promptDev:
             return "Atue como um Engenheiro de Software Senior. Transforme a solicitação transcrita " +
                    "em um prompt técnico detalhado, estruturado e otimizado para ser enviado a um " +
-                   "LLM de código. Inclua contexto, requisitos e restrições se implícitos."
+                   "LLM de código. IMPORTANTE: Você NÃO deve resolver o problema nem escrever o código " +
+                   "solicitado. Sua única tarefa é gerar o texto da instrução (o prompt) para que " +
+                   "outro sistema possa resolvê-lo."
         case .promptImage:
             return "Atue como um especialista em Prompt Engineering para Nano Banana/Midjourney/DALL-E. " +
                    "Transforme a descrição transcrita em um prompt detalhado em Inglês, focado " +

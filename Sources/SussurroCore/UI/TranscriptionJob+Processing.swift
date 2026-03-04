@@ -218,9 +218,9 @@ extension TranscriptionJob {
             enriched += """
             
             Tecnologias de Contexto (Stack): \(config.devStack). 
-            Use isso apenas como contexto implícito para moldar a instrução.
-            Incorpore essas tecnologias sutil e naturalmente no prompt técnico pedido.
-            NÃO adicione essas linguagens como listas isoladas de markdown na saída.
+            Use isso apenas para moldar a instrução/prompt que você está criando.
+            Lembre-se: Você está ESCREVENDO UM PROMPT, NÃO tentando resolver a tarefa ou gerar código.
+            NÃO adicione essas linguagens como listas isoladas na saída, apenas utilize-as no contexto.
             """
         }
         let prompt = wrapPromptForCleanOutput(enriched)
