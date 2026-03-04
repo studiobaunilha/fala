@@ -54,9 +54,14 @@ actor MockTranscriber: AudioTranscribing {
 /// @unchecked Sendable: insertedTexts is only ever accessed from @MainActor context.
 final class MockInserter: TextInserting, @unchecked Sendable {
     private(set) var insertedTexts: [String] = []
+    private(set) var savedToClipboardTexts: [String] = []
 
     @MainActor func insert(_ text: String) {
         insertedTexts.append(text)
+    }
+
+    @MainActor func saveToClipboard(_ text: String) {
+        savedToClipboardTexts.append(text)
     }
 }
 

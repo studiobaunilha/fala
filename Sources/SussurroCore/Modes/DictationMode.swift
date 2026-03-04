@@ -122,6 +122,10 @@ public final class DictationMode {
             }
 
             feedback?.model.stage = .processing
+            
+            if template.requiresLLM {
+                inserter.saveToClipboard(text)
+            }
             let finalText = await processText(text, config: config, template: template)
 
             feedback?.model.stage = .inserting

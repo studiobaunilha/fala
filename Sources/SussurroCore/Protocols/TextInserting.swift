@@ -5,4 +5,5 @@ import Foundation
 /// The insert method is @MainActor because it uses NSPasteboard and CGEventPost.
 public protocol TextInserting: Sendable {
     @MainActor func insert(_ text: String)
+    @MainActor func saveToClipboard(_ text: String)
 }

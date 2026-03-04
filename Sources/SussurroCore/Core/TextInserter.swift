@@ -13,6 +13,12 @@ public struct TextInserter: TextInserting {
 
     public init() {}
 
+    public func saveToClipboard(_ text: String) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
     public func insert(_ text: String) {
         // AXIsProcessTrustedWithOptions(prompt:true) both checks the permission AND
         // triggers the system dialog asking the user to grant Accessibility access.
