@@ -240,7 +240,11 @@ struct SettingsView: View {
                 }
                 
                 Section(L10n("Modos")) {
-                    ForEach(DictationTemplate.allCases.filter { !$0.isCreativeMode }, id: \.self) { template in
+                    ForEach(DictationTemplate.allCases.filter { template in
+                        if template.isCreativeMode { return false }
+                        if template == .translate && settings.language == "en" { return false }
+                        return true
+                    }, id: \.self) { template in
                         Label(template.localizedName, systemImage: template.icon)
                             .tag(SettingsSelection.template(template))
                     }

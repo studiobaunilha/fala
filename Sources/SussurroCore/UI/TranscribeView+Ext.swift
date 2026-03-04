@@ -63,8 +63,12 @@ extension TranscribeView {
             }
 
             Section(L10n("Modo de Processamento")) {
+                let effectiveLang = job.overrideLanguage ?? job.appSettings.language
                 Picker(L10n("Modo"), selection: $job.selectedTemplate) {
-                    ForEach(DictationTemplate.allCases, id: \.self) { template in
+                    ForEach(DictationTemplate.allCases.filter { template in
+                        if template == .translate && effectiveLang == "en" { return false }
+                        return true
+                    }, id: \.self) { template in
                         Label(template.localizedName, systemImage: template.icon)
                             .tag(template)
                     }
