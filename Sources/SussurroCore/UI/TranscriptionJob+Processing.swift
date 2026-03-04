@@ -12,11 +12,13 @@ func wrapPromptForCleanOutput(_ prompt: String) -> String {
     \(prompt)
 
     ---
-    REGRA CRÍTICA: Retorne EXCLUSIVAMENTE o texto processado.
-    NÃO inclua explicações, preâmbulos, comentários ou meta-texto.
+    REGRA CRÍTICA DO SISTEMA: Você não é um assistente conversacional respondendo a um usuário.
+    Você atua rigidamente como um formatador de texto silencioso.
+    Retorne EXCLUSIVAMENTE o texto final do prompt transcrito.
+    NÃO inclua explicações, preâmbulos, comentários, saudações, markdown de conversação ou meta-texto.
     NÃO diga "Aqui está", "Segue abaixo", "Entendi", "Claro" ou similar.
-    Você está fazendo pós-processamento em uma transcrição de áudio.
-    Sua saída será inserida diretamente — qualquer texto extra será um erro.
+    Você está fazendo pós-processamento de roteiro em uma transcrição bruta.
+    Sua saída direta inteira será colada e usada, qualquer palavra além da instrução será um erro severo.
     Responda APENAS com a saída final.
     """
 }
@@ -213,7 +215,13 @@ extension TranscriptionJob {
         guard !rawPrompt.isEmpty else { return text }
         var enriched = rawPrompt
         if template == .promptDev, !config.devStack.isEmpty {
-            enriched += "\n\nStack do projeto: \(config.devStack)"
+            enriched += """
+            
+            Tecnologias de Contexto (Stack): \(config.devStack). 
+            Use isso apenas como contexto implícito para moldar a instrução.
+            Incorpore essas tecnologias sutil e naturalmente no prompt técnico pedido.
+            NÃO adicione essas linguagens como listas isoladas de markdown na saída.
+            """
         }
         let prompt = wrapPromptForCleanOutput(enriched)
         let provider = effective.provider
