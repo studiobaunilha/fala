@@ -13,7 +13,7 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     public init() {}
 
     /// Loads the Parakeet V3 model if not already loaded.
-    public func loadIfNeeded() async throws {
+    public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         if lock.withLock({ manager != nil }) { return }
         let downloaded = try await AsrModels.downloadAndLoad(version: .v3)
         let mgr = AsrManager()

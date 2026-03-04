@@ -164,6 +164,15 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
     }
 
+    public func setLoadingTooltip(_ message: String?) {
+        statusItem.button?.toolTip = message
+    }
+
+    public func setDownloadProgress(_ fraction: Double, modelName: String) {
+        let pct = Int(fraction * 100)
+        statusItem.button?.toolTip = "Baixando \(modelName)… \(pct)%"
+    }
+
     public func showTemporaryWarning(_ message: String) {
         statusItem.button?.image = NSImage(
             systemSymbolName: "exclamationmark.triangle",

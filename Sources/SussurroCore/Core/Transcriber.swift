@@ -22,11 +22,18 @@ public actor Transcriber: AudioTranscribing {
     }
 
     /// Loads the model if not already loaded. Safe to call multiple times.
-    public func loadIfNeeded() async throws {
+    public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         guard pipe == nil else { return }
         // Resolve short id (e.g. "large-v3-turbo") to full variant name
         // (e.g. "openai_whisper-large-v3_turbo") that WhisperKit expects.
         let variant = knownModels.first { $0.id == modelName }?.variant ?? modelName
+        
+        if let progress {
+            _ = try await WhisperKit.download(variant: variant) { progressUpdate in
+                progress(progressUpdate.fractionCompleted)
+            }
+        }
+        
         pipe = try await WhisperKit(model: variant)
     }
 
