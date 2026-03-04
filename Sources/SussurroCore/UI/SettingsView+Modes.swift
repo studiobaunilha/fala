@@ -45,6 +45,10 @@ struct ModeDetailView: View {
         return prompt != (template.defaultSystemPrompt ?? "")
     }
 
+    private var isStackModified: Bool {
+        return settings.devStack != "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
+    }
+
     var body: some View {
         Form {
             descriptionSection
@@ -212,6 +216,22 @@ struct ModeDetailView: View {
         Section {
             TextField("Stack / Tecnologias", text: $settings.devStack)
                 .onChange(of: settings.devStack) { debouncedSave() }
+            
+            HStack {
+                Button("Restaurar Padrão") {
+                    settings.devStack = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
+                    debouncedSave()
+                }
+                .disabled(!isStackModified)
+                
+                Spacer()
+                
+                if isStackModified {
+                    Label("Modificado", systemImage: "pencil.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
         } header: {
             Text("Stack do Projeto")
         } footer: {

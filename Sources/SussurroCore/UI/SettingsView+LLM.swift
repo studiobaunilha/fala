@@ -28,9 +28,8 @@ extension SettingsView {
                 appleIntelligenceSection
             } else if settings.llmProvider == "mlx" {
                 mlxConfigSection
+                mlxModelsSection
             }
-
-            mlxModelsSection
         }
         .formStyle(.grouped)
         .navigationTitle("IA & LLM")
