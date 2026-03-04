@@ -12,14 +12,6 @@ struct DictationFeedbackView: View {
                 levels: model.rmsHistory,
                 isRecording: model.stage == .recording
             )
-            if !model.transcriptionText.isEmpty {
-                Text(model.transcriptionText)
-                    .font(Typography.body)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-            }
         }
         .padding(.horizontal, Spacing.xl)
         .padding(.vertical, Spacing.lg)
@@ -27,7 +19,6 @@ struct DictationFeedbackView: View {
         .background(.clear)
         .overlay { GlowBorder(isActive: model.stage == .recording) }
         .animation(AnimationConfig.spring, value: model.stage)
-        .animation(AnimationConfig.spring, value: model.transcriptionText)
     }
 }
 

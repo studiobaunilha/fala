@@ -27,7 +27,6 @@ final class DictationFeedbackModelTests: XCTestCase {
     func testResetClearsAllState() {
         let model = DictationFeedbackModel()
         model.stage = .transcribing
-        model.transcriptionText = "Hello world"
         model.pushRMS(0.05)
         model.isVisible = true
 
@@ -35,7 +34,6 @@ final class DictationFeedbackModelTests: XCTestCase {
 
         XCTAssertEqual(model.stage, .recording)
         XCTAssertEqual(model.rmsLevel, 0)
-        XCTAssertEqual(model.transcriptionText, "")
         XCTAssertFalse(model.isVisible)
         XCTAssertEqual(model.rmsHistory.count, 12)
         XCTAssertTrue(model.rmsHistory.allSatisfy { $0 == 0 })

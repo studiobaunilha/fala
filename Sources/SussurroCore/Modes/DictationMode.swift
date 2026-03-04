@@ -108,7 +108,6 @@ public final class DictationMode {
 
             let task = template == .translate ? "translate" : "transcribe"
             let text = try await transcriber.transcribe(samples: samples, task: task)
-            feedback?.model.transcriptionText = text
 
             // Filter short noise hallucinations (e.g. "the", "okay", "um")
             let words = text.split(separator: " ")
