@@ -16,7 +16,6 @@ struct DictationFeedbackView: View {
         .padding(.horizontal, Spacing.xl)
         .padding(.vertical, Spacing.lg)
         .frame(width: 280)
-        .background(.clear)
         .overlay { GlowBorder(isActive: model.stage == .recording) }
         .animation(AnimationConfig.spring, value: model.stage)
     }
@@ -114,7 +113,7 @@ private struct WaveformBars: View {
                         )
                     )
                     .frame(width: 4, height: height)
-                    .animation(AnimationConfig.spring, value: level)
+                    .animation(.linear(duration: 0.1), value: level)
             }
         }
         .frame(height: 44)

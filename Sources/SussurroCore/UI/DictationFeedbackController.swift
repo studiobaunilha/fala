@@ -27,6 +27,8 @@ public final class DictationFeedbackController {
 
     private func makePanel() {
         let feedbackView = DictationFeedbackView(model: model)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        
         let hostingView = NSHostingView(rootView: feedbackView)
         hostingView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -46,24 +48,7 @@ public final class DictationFeedbackController {
         newPanel.hasShadow = true
         newPanel.isReleasedWhenClosed = false
 
-        // Vibrancy background — matches macOS HUD appearance
-        let visualEffect = NSVisualEffectView(frame: panelRect)
-        visualEffect.material = .hudWindow
-        visualEffect.blendingMode = .behindWindow
-        visualEffect.state = .active
-        visualEffect.wantsLayer = true
-        visualEffect.layer?.cornerRadius = 20
-        visualEffect.layer?.masksToBounds = true
-
-        visualEffect.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.topAnchor.constraint(equalTo: visualEffect.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visualEffect.bottomAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: visualEffect.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visualEffect.trailingAnchor)
-        ])
-
-        newPanel.contentView = visualEffect
+        newPanel.contentView = hostingView
 
         // Position: center-bottom of screen, above dock
         if let screen = NSScreen.main {
