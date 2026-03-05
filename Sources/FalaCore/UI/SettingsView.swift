@@ -245,6 +245,8 @@ struct SettingsView: View {
                         llmView
                     case .license:
                         licenseView
+                    case .about:
+                        aboutView
                     }
                 case .template(let template):
                     ModeDetailView(template: template, settings: settings)
