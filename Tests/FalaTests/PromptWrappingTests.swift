@@ -29,7 +29,7 @@ final class PromptWrappingTests: XCTestCase {
         let result = wrapPromptForAppleIntelligence("Clean the text")
         XCTAssertTrue(result.contains("Clean the text"))
         XCTAssertTrue(result.contains("transcrição"))
-        XCTAssertTrue(result.contains("SOMENTE"))
+        XCTAssertTrue(result.contains("APENAS"))
     }
 
     func testWrapPromptForAppleIntelligenceDoesNotContainGlobalPrompt() {
@@ -132,8 +132,8 @@ final class PromptWrappingTests: XCTestCase {
             XCTFail("clean should have a default prompt")
             return
         }
-        // clean prompt should instruct the model NOT to respond
-        XCTAssertTrue(prompt.contains("NÃO é uma pergunta"),
+        // clean prompt should instruct the model to return only text
+        XCTAssertTrue(prompt.contains("SOMENTE"),
                       "clean prompt should prevent conversational responses")
     }
 

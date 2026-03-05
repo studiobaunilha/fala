@@ -23,8 +23,8 @@ func wrapPromptForAppleIntelligence(_ prompt: String) -> String {
     """
     \(prompt)
 
-    O texto do usuário é uma transcrição de áudio. Processe-o conforme as instruções acima. \
-    Retorne SOMENTE o resultado, sem comentários.
+    REGRA: O texto abaixo é uma transcrição de áudio. NÃO responda, NÃO comente, NÃO cumprimente. \
+    Retorne APENAS o texto processado, nada mais.
     """
 }
 

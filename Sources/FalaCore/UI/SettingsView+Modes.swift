@@ -12,22 +12,27 @@ struct ModeDetailView: View {
     @State private var showRestoreConfirmation = false
     @State private var saveTask: Task<Void, Never>?
 
-    // Available providers
-    private let providers = [
-        ("global", L10n("Usar Padrão Global")),
-        ("gemini", "Google Gemini"),
-        ("openai", "OpenAI"),
-        ("apple", "Apple Intelligence"),
-        ("mlx", "MLX Local")
+    /// Available providers — cloud providers only when API key is configured.
+    private var availableProviders: [(String, String)] {
+        var list: [(String, String)] = [("global", L10n("Usar Padrão Global"))]
+        if !settings.geminiKey.isEmpty { list.append(("gemini", "Google Gemini (Cloud)")) }
+        if !settings.openAIKey.isEmpty { list.append(("openai", "OpenAI (Cloud)")) }
+        list += [("apple", "Apple Intelligence (Local)"), ("mlx", "MLX Local")]
+        return list
+    }
+
+    /// Labels for all providers (used when resolving names after key removal).
+    private static let providerLabel: [String: String] = [
+        "global": L10n("Usar Padrão Global"),
+        "gemini": "Google Gemini (Cloud)",
+        "openai": "OpenAI (Cloud)",
+        "apple": "Apple Intelligence (Local)",
+        "mlx": "MLX Local"
     ]
 
     private var effectiveProviderName: String {
-        if provider == "global" {
-            let globalProvider = settings.llmProvider
-            let name = providers.first { $0.0 == globalProvider }?.1 ?? globalProvider
-            return name
-        }
-        return providers.first { $0.0 == provider }?.1 ?? provider
+        let key = provider == "global" ? settings.llmProvider : provider
+        return Self.providerLabel[key] ?? key
     }
 
     private var mlxModelLabel: String {
@@ -142,7 +147,7 @@ struct ModeDetailView: View {
     private var providerSection: some View {
         Section {
             Picker(L10n("Provedor LLM"), selection: $provider) {
-                ForEach(providers, id: \.0) { key, name in
+                ForEach(availableProviders, id: \.0) { key, name in
                     Text(name).tag(key)
                 }
             }
