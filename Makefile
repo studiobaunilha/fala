@@ -12,7 +12,7 @@ GREY  := \033[2m
 RESET := \033[0m
 
 .DEFAULT_GOAL := help
-.PHONY: help check lint test hooks dev install kill logs clean
+.PHONY: help check lint test hooks dev install kill logs clean release release-dry
 
 help: ## Mostra este menu
 	@printf "\n  $(BOLD)Fala$(RESET)\n\n"
@@ -79,3 +79,9 @@ logs: ## Mostra logs do app em tempo real (Ctrl+C para sair)
 clean: ## Remove artefatos de build (.build/)
 	@$(SWIFT) package clean
 	@printf "$(GREEN)✓ Build limpo$(RESET)\n"
+
+release: check ## check → build release → assinar → publicar no R2
+	@bash scripts/release.sh
+
+release-dry: check ## Igual a release, mas sem fazer upload (dry-run)
+	@bash scripts/release.sh --dry-run
