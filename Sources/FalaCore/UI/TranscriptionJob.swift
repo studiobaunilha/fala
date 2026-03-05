@@ -20,7 +20,7 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var state: TranscriptionState = .idle
     @Published public var outputFormat: String
     @Published public var outputDirectory: URL?
-    @Published public var selectedTemplate: DictationTemplate = .clean
+    @Published public var batchPostPrompt: String = ""
 
     // Per-job overrides
     @Published public var overrideModel: String?
@@ -128,10 +128,11 @@ public final class TranscriptionJob: ObservableObject {
         let processingTask = createProcessingTask(
             stream: stream,
             config: config,
-            template: selectedTemplate,
+            template: batchPostPrompt.isEmpty ? .raw : .clean,
             format: format,
             outputURL: outputURL,
-            inputURL: inputURL
+            inputURL: inputURL,
+            batchPromptOverride: batchPostPrompt.isEmpty ? nil : batchPostPrompt
         )
         
         _ = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in

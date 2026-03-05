@@ -214,10 +214,13 @@ extension TranscriptionJob {
     }
     
     // swiftlint:disable:next cyclomatic_complexity function_body_length
-    static func applyLLM(to text: String, config: AppConfig, template: DictationTemplate) async -> String {
+    static func applyLLM(
+        to text: String, config: AppConfig, template: DictationTemplate,
+        promptOverride: String? = nil
+    ) async -> String {
         guard template.requiresLLM else { return text }
         let effective = config.getEffectiveConfig(for: template)
-        let rawPrompt = effective.prompt
+        let rawPrompt = promptOverride ?? effective.prompt
         guard !rawPrompt.isEmpty else { return text }
         var enriched = rawPrompt
         
@@ -281,7 +284,8 @@ extension TranscriptionJob {
         template: DictationTemplate,
         format: String,
         outputURL: URL,
-        inputURL: URL
+        inputURL: URL,
+        batchPromptOverride: String? = nil
     ) -> Task<String, Never> {
         Task {
             var fullConfirmedText = ""
@@ -295,7 +299,10 @@ extension TranscriptionJob {
                     cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
 
                     if !cleanedLast.isEmpty {
-                        let processed = await Self.applyLLM(to: cleanedLast, config: config, template: template)
+                        let processed = await Self.applyLLM(
+                            to: cleanedLast, config: config, template: template,
+                            promptOverride: batchPromptOverride
+                        )
                         fullConfirmedText += processed + "\n"
                         self.appendToFile(url: outputURL, text: processed)
                     }
@@ -324,7 +331,10 @@ extension TranscriptionJob {
             cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
 
             if !cleanedLast.isEmpty {
-                let processed = await Self.applyLLM(to: cleanedLast, config: config, template: template)
+                let processed = await Self.applyLLM(
+                    to: cleanedLast, config: config, template: template,
+                    promptOverride: batchPromptOverride
+                )
                 fullConfirmedText += processed + "\n"
                 self.appendToFile(url: outputURL, text: processed)
             }

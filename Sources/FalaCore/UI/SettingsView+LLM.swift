@@ -6,10 +6,10 @@ extension SettingsView {
         Form {
             Section {
             Picker(L10n("Provedor Padrão"), selection: $settings.llmProvider) {
-                    Text("Google Gemini (Cloud)").tag("gemini")
-                    Text("OpenAI (Cloud)").tag("openai")
                     Text("Apple Intelligence (Local)").tag("apple")
                     Text("MLX Local").tag("mlx")
+                    Text("Google Gemini (Cloud)").tag("gemini")
+                    Text("OpenAI (Cloud)").tag("openai")
                 }
             } header: {
                 Text(L10n("Provedor de IA"))
@@ -58,15 +58,15 @@ extension SettingsView {
                 }
             }
 
-            if settings.llmProvider == "gemini" {
-                geminiCredentialsSection
-            } else if settings.llmProvider == "openai" {
-                openAICredentialsSection
-            } else if settings.llmProvider == "apple" {
+            if settings.llmProvider == "apple" {
                 appleIntelligenceSection
             } else if settings.llmProvider == "mlx" {
                 mlxConfigSection
                 mlxModelsSection
+            } else if settings.llmProvider == "gemini" {
+                geminiCredentialsSection
+            } else if settings.llmProvider == "openai" {
+                openAICredentialsSection
             }
         }
         .formStyle(.grouped)
@@ -86,15 +86,16 @@ extension SettingsView {
         switch settings.llmProvider {
         case "apple":
             // swiftlint:disable:next line_length
-            return Text(L10n("Apple Intelligence roda 100% no dispositivo, sem custos. Melhor para tarefas simples (limpar, formatar)."))
+            return Text(L10n("100% offline e gratuito. Roda no Neural Engine do dispositivo. Ideal para tarefas simples como limpar e formatar transcrições."))
         case "mlx":
             // swiftlint:disable:next line_length
-            return Text(L10n("Modelos MLX rodam localmente no Apple Silicon. Suportam prompts complexos dependendo do modelo escolhido."))
+            return Text(L10n("100% offline. Roda localmente no Apple Silicon via MLX. Suporta prompts complexos — basta baixar o modelo desejado na seção abaixo."))
         case "gemini":
             // swiftlint:disable:next line_length
-            return Text(L10n("Requer chave API gratuita. Suporta todos os modos e prompts complexos com alta qualidade."))
+            return Text(L10n("On-line — requer chave API gratuita do Google. Cota generosa sem custo. Suporta todos os modos e prompts complexos com alta qualidade."))
         case "openai":
-            return Text(L10n("Requer chave API paga. Suporta todos os modos e prompts complexos com alta qualidade."))
+            // swiftlint:disable:next line_length
+            return Text(L10n("On-line — requer chave API paga da OpenAI. Alternativa premium com modelos como GPT-4. Suporta todos os modos e prompts complexos."))
         default:
             return Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
         }

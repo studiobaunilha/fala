@@ -12,12 +12,11 @@ struct ModeDetailView: View {
     @State private var showRestoreConfirmation = false
     @State private var saveTask: Task<Void, Never>?
 
-    /// Available providers — cloud providers only when API key is configured.
     private var availableProviders: [(String, String)] {
         var list: [(String, String)] = [("global", L10n("Usar Padrão Global"))]
+        list += [("apple", "Apple Intelligence (Local)"), ("mlx", "MLX Local")]
         if !settings.geminiKey.isEmpty { list.append(("gemini", "Google Gemini (Cloud)")) }
         if !settings.openAIKey.isEmpty { list.append(("openai", "OpenAI (Cloud)")) }
-        list += [("apple", "Apple Intelligence (Local)"), ("mlx", "MLX Local")]
         return list
     }
 

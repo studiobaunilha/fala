@@ -62,18 +62,36 @@ extension TranscribeView {
                 .padding(.vertical, Spacing.xs)
             }
 
-            Section(L10n("Modo de Processamento")) {
-                let effectiveLang = job.overrideLanguage ?? job.appSettings.language
-                Picker(L10n("Modo"), selection: $job.selectedTemplate) {
-                    ForEach(DictationTemplate.allCases.filter { template in
-                        if template == .translate && effectiveLang == "en" { return false }
-                        return true
-                    }, id: \.self) { template in
-                        Label(template.localizedName, systemImage: template.icon)
-                            .tag(template)
+            Section {
+                TextEditor(text: $job.batchPostPrompt)
+                    .frame(minHeight: 80)
+                    .font(.body.monospaced())
+                    .scrollContentBackground(.hidden)
+                    .padding(Spacing.xs)
+                    .background(Color(nsColor: .textBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
+                            .stroke(Color(nsColor: .separatorColor))
+                    )
+                    .disabled(isWorking)
+                    .overlay(alignment: .topLeading) {
+                        if job.batchPostPrompt.isEmpty {
+                            Text(L10n("Ex: Corrija pontuação e gramática..."))
+                                .foregroundStyle(.tertiary)
+                                .font(.body.monospaced())
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.xs + 4)
+                                .allowsHitTesting(false)
+                        }
                     }
-                }
-                .disabled(isWorking)
+            } header: {
+                Text(L10n("Pós-processamento com IA (opcional)"))
+            } footer: {
+                // swiftlint:disable:next line_length
+                Text(L10n("Deixe vazio para transcrição pura. Preencha com instruções para processar o texto via IA após a transcrição."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section(L10n("Modelo & Qualidade")) {
