@@ -23,3 +23,10 @@ Sobre o pós-processamento, a gente criou um "system prompt" que ele serve para 
 ---
 
 Muitas das coisas que às vezes parecem parar de funcionar quando mexemos em algo, eu gostaria que a gente desse uma olhada melhor, porque deveria ter testes automatizados, né, cara, para garantir que isso não vai acontecer, regressão, end to end, sabe? Pra eu não ter que ficar testando cada vez que a gente faz uma modificação, garantir essas coisas através de testes, né?
+
+
+----
+
+Sobre as atualizações, eu não acho que elas deveriam estar com uma opção no menu. Eu acredito que elas deveriam estar dentro dos ajustes, lá uma opção de atualizações, onde você marca inclusive atualizações automáticas, verificar se tem atualizações em tempo real e mostra a versão e tudo como geralmente se usa nesse tipo de aplicação.
+
+Ainda dentro da questão dos prompt, eu quero que você me explique como está funcionando. Porque, na verdade, o prompt é formado por mais de uma coisa, né? Vou dar um exemplo: o prompt de desenvolvimento. Ele é formado por um prompt geral de sistema que a gente configura num outro lugar, a lista da stack que a pessoa utiliza para desenvolver e o prompt em si de desenvolvimento. Como que isso é usado dentro da aplicação hoje? Como que é montado esse prompt final para poder fazer o pós-processamento na transcrição?

@@ -34,7 +34,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let appSettings = AppSettings(
             config: config,
             transcriber: whisperTranscriber,
-            modelManager: modelManager
+            modelManager: modelManager,
+            updater: updaterController?.updater
         )
 
         let settingsCtrl = SettingsWindowController(settings: appSettings)
@@ -45,7 +46,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let bar = StatusBarController(
             settings: appSettings,
-            updater: updaterController?.updater,
             onSettings: { settingsCtrl.show() },
             onTranscribe: { transcribeCtrl.show() }
         )

@@ -1,5 +1,7 @@
 # Fala
 
+![Fala](./MyIcon.iconset/icon_128x128.png)
+
 O **Fala** é uma ferramenta nativa, unificada e privada de transcrição de áudio e ditado inteligente para macOS. Foi construída do zero para **Apple Silicon (M1 ou superior)**, focando em entregar o máximo de performance, privacidade e utilidade sem depender de serviços externos na nuvem.
 
 Seja você um advogado analisando depoimentos, um médico documentando diagnósticos, ou um executivo lidando com reuniões confidenciais: seus áudios **nunca saem do seu Mac**.

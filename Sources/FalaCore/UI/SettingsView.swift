@@ -1,5 +1,6 @@
 import SwiftUI
 import KeyboardShortcuts
+import Sparkle
 
 // MARK: – Supporting types
 
@@ -43,6 +44,7 @@ public final class AppSettings: ObservableObject {
 
     public let modelManager: ModelManager
     public let mlxModelManager = MLXModelManager()
+    public let updater: SPUUpdater?
     private let transcriber: Transcriber
     private var config: AppConfig
 
@@ -99,7 +101,8 @@ public final class AppSettings: ObservableObject {
     public init(
         config: AppConfig,
         transcriber: Transcriber,
-        modelManager: ModelManager
+        modelManager: ModelManager,
+        updater: SPUUpdater? = nil
     ) {
         self.config = config
         self.transcriptionEngine = config.transcriptionEngine
@@ -128,6 +131,7 @@ public final class AppSettings: ObservableObject {
 
         self.transcriber = transcriber
         self.modelManager = modelManager
+        self.updater = updater
     }
 
     /// Persists current values and updates the Transcriber without requiring a restart.
@@ -245,6 +249,8 @@ struct SettingsView: View {
                         llmView
                     case .license:
                         licenseView
+                    case .updates:
+                        updatesView
                     case .about:
                         aboutView
                     }
