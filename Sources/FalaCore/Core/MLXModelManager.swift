@@ -1,4 +1,5 @@
 import Foundation
+import Hub
 import MLXLMCommon
 import MLXLLM
 
@@ -102,7 +103,8 @@ public final class MLXModelManager: ObservableObject {
 
     // MARK: - Download
 
-    /// Downloads a model. Uses loadModel which auto-downloads from Hub.
+    /// Downloads a model. Uses downloadModel which only fetches files
+    /// without loading weights into memory (avoids OOM crashes).
     public func download(_ shortId: String) {
         guard !downloads.keys.contains(shortId) else { return }
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
@@ -122,10 +124,14 @@ public final class MLXModelManager: ObservableObject {
             self?.scanLocal()
         }
 
-        // Download in detached task.
+        // Download in detached task — only fetches files, does NOT load
+        // model weights into memory (~2 GB+).
         Task.detached {
             do {
-                _ = try await loadModel(id: repoID) { progress in
+                let configuration = ModelConfiguration(id: repoID)
+                _ = try await downloadModel(
+                    hub: HubApi(), configuration: configuration
+                ) { progress in
                     let fraction = progress.fractionCompleted
                     continuation.yield(fraction)
                 }
