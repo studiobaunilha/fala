@@ -16,6 +16,18 @@ func wrapPromptForCleanOutput(_ prompt: String, globalPrompt: String) -> String 
     """
 }
 
+/// Short version for Apple Intelligence (~3B, 4096 tokens).
+/// The full globalSystemPrompt overwhelms the on-device model.
+/// Apple recommends concise, focused instructions.
+func wrapPromptForAppleIntelligence(_ prompt: String) -> String {
+    """
+    \(prompt)
+
+    O texto do usuário é uma transcrição de áudio. Processe-o conforme as instruções acima. \
+    Retorne SOMENTE o resultado, sem comentários.
+    """
+}
+
 /// Strips common LLM preamble patterns from the response.
 func stripLLMPreamble(_ text: String) -> String {
     let patterns = [
@@ -225,7 +237,7 @@ extension TranscriptionJob {
         // Apple Intelligence (~3B, 4096 tokens) echoes complex meta-instructions
         let isAppleIntelligence = effective.provider == "apple"
         let prompt = isAppleIntelligence
-            ? enriched
+            ? wrapPromptForAppleIntelligence(enriched)
             : wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
         let provider = effective.provider
         let model = effective.model
