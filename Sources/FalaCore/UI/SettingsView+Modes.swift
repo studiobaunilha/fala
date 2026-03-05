@@ -304,22 +304,32 @@ struct ModeDetailView: View {
 
     private var appleIntelligencePromptNote: some View {
         Section {
-            Label {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(L10n("Prompt interno"))
-                        .font(.body)
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text(prompt)
+                    .font(.body.monospaced())
+                    .foregroundStyle(.secondary)
+                    .padding(Spacing.xs)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
+                            .stroke(Color(nsColor: .separatorColor))
+                    )
+
+                Label {
                     // swiftlint:disable:next line_length
-                    Text(L10n("O Apple Intelligence usa prompts otimizados internamente. A edição de prompt está disponível para outros provedores (Gemini, OpenAI, MLX)."))
+                    Text(L10n("Prompt somente-leitura. O Apple Intelligence usa prompts simplificados otimizados para o modelo compacto (~3B). Para editar prompts, use outro provedor."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                } icon: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
                 }
-            } icon: {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(.secondary)
             }
-            .padding(.vertical, Spacing.xs)
         } header: {
-            Text(L10n("Prompt do Sistema"))
+            Text(L10n("Prompt do Sistema (Somente Leitura)"))
         }
     }
 

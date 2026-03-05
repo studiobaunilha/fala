@@ -41,7 +41,7 @@ public let knownMLXModels: [MLXModelInfo] = [
 @MainActor
 public final class MLXModelManager: ObservableObject {
 
-    /// Repo IDs found in the local HuggingFace cache.
+    /// Repo IDs found in the local cache.
     @Published public var localModels: Set<String> = []
 
     /// Download progress per short model id (0.0–1.0).
@@ -50,11 +50,18 @@ public final class MLXModelManager: ObservableObject {
     /// Loading status message per short model id.
     @Published public var loadingStatus: [String: String] = [:]
 
-    /// Root of the HuggingFace Hub cache.
-    public static let cacheDir: URL = {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        return home.appendingPathComponent(".cache/huggingface/hub")
-    }()
+    /// Error status per short model id (shown in UI when download fails).
+    @Published public var downloadErrors: [String: String] = [:]
+
+    /// Shared HubApi instance — all download, scan and load operations use
+    /// the same base directory to avoid path mismatches.
+    static let hub: HubApi = defaultHubApi
+
+    /// Model directory for a given repo ID, consistent with HubApi.snapshot.
+    static func modelDir(for repoID: String) -> URL {
+        let repo = Hub.Repo(id: repoID)
+        return hub.localRepoLocation(repo)
+    }
 
     public init() {
         scanLocal()
@@ -62,24 +69,23 @@ public final class MLXModelManager: ObservableObject {
 
     // MARK: - Scan
 
-    /// Scans the HuggingFace cache for downloaded MLX models.
+    /// Scans for downloaded MLX models using the same HubApi paths.
     public func scanLocal() {
-        localModels = Self.scanCache(Self.cacheDir, knownModels: knownMLXModels)
+        localModels = Self.scanDownloaded(knownModels: knownMLXModels)
     }
 
-    /// Returns repo IDs of known models present in the cache.
-    static func scanCache(_ cacheDir: URL, knownModels: [MLXModelInfo]) -> Set<String> {
+    /// Returns repo IDs of known models present locally.
+    static func scanDownloaded(knownModels: [MLXModelInfo]) -> Set<String> {
         let fm = FileManager.default
         var found: Set<String> = []
         for model in knownModels {
-            let dirName = "models--" + model.repoID.replacingOccurrences(of: "/", with: "--")
-            let modelDir = cacheDir.appendingPathComponent(dirName)
-            let snapshotsDir = modelDir.appendingPathComponent("snapshots")
-            // Model is downloaded if snapshots directory exists with content
-            if let snapshots = try? fm.contentsOfDirectory(
-                at: snapshotsDir,
-                includingPropertiesForKeys: nil
-            ), !snapshots.isEmpty {
+            let dir = modelDir(for: model.repoID)
+            // Model is downloaded if directory contains safetensor files
+            if let files = try? fm.contentsOfDirectory(
+                at: dir, includingPropertiesForKeys: nil
+            ), files.contains(where: {
+                $0.pathExtension == "safetensors" || $0.lastPathComponent == "config.json"
+            }) {
                 found.insert(model.repoID)
             }
         }
@@ -109,7 +115,8 @@ public final class MLXModelManager: ObservableObject {
         guard !downloads.keys.contains(shortId) else { return }
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
         downloads[shortId] = 0.0
-        loadingStatus[shortId] = "Preparando download..."
+        downloadErrors.removeValue(forKey: shortId)
+        loadingStatus[shortId] = L10n("Preparando download...")
 
         let repoID = info.repoID
         let (stream, continuation) = AsyncStream<Double>.makeStream()
@@ -130,27 +137,48 @@ public final class MLXModelManager: ObservableObject {
             do {
                 let configuration = ModelConfiguration(id: repoID)
                 _ = try await downloadModel(
-                    hub: HubApi(), configuration: configuration
+                    hub: MLXModelManager.hub, configuration: configuration
                 ) { progress in
                     let fraction = progress.fractionCompleted
                     continuation.yield(fraction)
                 }
                 continuation.finish()
             } catch {
-                NSLog("[Fala] MLX download failed for %@: %@",
-                      shortId, error.localizedDescription)
+                NSLog(
+                    "[Fala] MLX download failed for %@: %@",
+                    shortId, error.localizedDescription
+                )
+                await MainActor.run {
+                    MLXModelManager.notifyDownloadError(
+                        shortId: shortId,
+                        message: error.localizedDescription
+                    )
+                }
                 continuation.finish()
             }
         }
     }
 
+    /// Called when a download fails; updates observable state on MainActor.
+    @MainActor
+    private static var sharedInstance: MLXModelManager?
+
+    @MainActor
+    static func notifyDownloadError(shortId: String, message: String) {
+        // Post a notification so any active MLXModelManager can pick it up
+        NotificationCenter.default.post(
+            name: .mlxDownloadFailed,
+            object: nil,
+            userInfo: ["shortId": shortId, "message": message]
+        )
+    }
+
     // MARK: - Delete
 
-    /// Deletes a downloaded model from the HuggingFace cache.
+    /// Deletes a downloaded model.
     public func delete(_ shortId: String) throws {
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
-        let dirName = "models--" + info.repoID.replacingOccurrences(of: "/", with: "--")
-        let dir = Self.cacheDir.appendingPathComponent(dirName)
+        let dir = Self.modelDir(for: info.repoID)
         try FileManager.default.removeItem(at: dir)
         // Evict from in-memory cache
         Task {
@@ -162,8 +190,7 @@ public final class MLXModelManager: ObservableObject {
     /// Calculates the on-disk size of a downloaded model.
     public func diskSize(for shortId: String) -> String? {
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return nil }
-        let dirName = "models--" + info.repoID.replacingOccurrences(of: "/", with: "--")
-        let dir = Self.cacheDir.appendingPathComponent(dirName)
+        let dir = Self.modelDir(for: info.repoID)
         guard let bytes = Self.directorySize(dir) else { return nil }
         return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
     }
@@ -183,6 +210,12 @@ public final class MLXModelManager: ObservableObject {
         }
         return total
     }
+}
+
+// MARK: - Notification
+
+extension Notification.Name {
+    static let mlxDownloadFailed = Notification.Name("mlxDownloadFailed")
 }
 
 // MARK: - Model Cache (Actor)
@@ -212,19 +245,19 @@ public actor MLXModelCache {
     private func getOrLoad(_ repoID: String) async throws -> ModelContext {
         if let hit = cache[repoID] { return hit }
         // Check if model is downloaded before trying to load (~2GB into RAM)
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let cacheDir = home.appendingPathComponent(".cache/huggingface/hub")
-        let dirName = "models--" + repoID.replacingOccurrences(of: "/", with: "--")
-        let snapshotsDir = cacheDir
-            .appendingPathComponent(dirName)
-            .appendingPathComponent("snapshots")
-        let hasSnapshots = (try? FileManager.default.contentsOfDirectory(
-            at: snapshotsDir, includingPropertiesForKeys: nil
-        ))?.isEmpty == false
-        guard hasSnapshots else {
+        let modelDir = await MLXModelManager.modelDir(for: repoID)
+        let fm = FileManager.default
+        let hasSafetensors = (try? fm.contentsOfDirectory(
+            at: modelDir, includingPropertiesForKeys: nil
+        ))?.contains(where: { $0.pathExtension == "safetensors" }) ?? false
+        guard hasSafetensors else {
             throw LLMError.mlxModelNotDownloaded(repoID)
         }
-        let context = try await loadModel(id: repoID)
+        // Use the same HubApi for loading so it finds the downloaded files.
+        let hub = await MLXModelManager.hub
+        let context = try await loadModel(
+            hub: hub, id: repoID
+        )
         cache[repoID] = context
         return context
     }

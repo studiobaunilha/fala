@@ -19,41 +19,43 @@ extension SettingsView {
                     .foregroundStyle(.secondary)
             }
             
-            Section {
-                TextEditor(text: $settings.globalSystemPrompt)
-                    .frame(minHeight: 120)
-                    .font(.body.monospaced())
-                    .scrollContentBackground(.hidden)
-                    .padding(Spacing.xs)
-                    .background(Color(nsColor: .textBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                            .stroke(Color(nsColor: .separatorColor))
-                    )
-                
-                let isModified = settings.globalSystemPrompt != AppConfig.defaultGlobalSystemPrompt
-                HStack {
-                    Button(L10n("Restaurar Padrão")) {
-                        settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
-                    }
-                    .disabled(!isModified)
+            if settings.llmProvider != "apple" {
+                Section {
+                    TextEditor(text: $settings.globalSystemPrompt)
+                        .frame(minHeight: 120)
+                        .font(.body.monospaced())
+                        .scrollContentBackground(.hidden)
+                        .padding(Spacing.xs)
+                        .background(Color(nsColor: .textBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
+                                .stroke(Color(nsColor: .separatorColor))
+                        )
                     
-                    Spacer()
-                    
-                    if isModified {
-                        Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
+                    let isModified = settings.globalSystemPrompt != AppConfig.defaultGlobalSystemPrompt
+                    HStack {
+                        Button(L10n("Restaurar Padrão")) {
+                            settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
+                        }
+                        .disabled(!isModified)
+                        
+                        Spacer()
+                        
+                        if isModified {
+                            Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
                     }
+                } header: {
+                    Text(L10n("Prompt de Sistema Global (Pós-processamento)"))
+                } footer: {
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Anexado no final de todas as instruções. Serve para forçar a IA a agir estritamente como formatadora, sem preâmbulos."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-            } header: {
-                Text(L10n("Prompt de Sistema Global (Pós-processamento)"))
-            } footer: {
-                // swiftlint:disable:next line_length
-                Text(L10n("Anexado no final de todas as instruções. Serve para forçar a IA a agir estritamente como formatadora, sem preâmbulos."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             if settings.llmProvider == "gemini" {
