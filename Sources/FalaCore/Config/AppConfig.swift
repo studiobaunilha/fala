@@ -1,7 +1,7 @@
 import Foundation
 
 public struct AppConfig: Codable, Sendable {
-    public var transcriptionEngine: String = "whisper" // "whisper" or "parakeet"
+    public var transcriptionEngine: String = "parakeet" // "whisper" or "parakeet"
     public var dictationModel: String = "large-v3-turbo"
     public var batchModel: String     = "large-v3-turbo"
     public var outputFormat: String   = "txt"
@@ -16,7 +16,7 @@ public struct AppConfig: Codable, Sendable {
     ).first?.path ?? ""
     
     public var selectedDictationTemplate: DictationTemplate = .clean
-    public var llmProvider: String = "gemini"
+    public var llmProvider: String = "apple"
     public var llmPrompt: String =
         L10n("Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação.")
     public var openAIKey: String = ""
@@ -46,7 +46,7 @@ public struct AppConfig: Codable, Sendable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        transcriptionEngine = (try? container.decode(String.self, forKey: .transcriptionEngine)) ?? "whisper"
+        transcriptionEngine = (try? container.decode(String.self, forKey: .transcriptionEngine)) ?? "parakeet"
         dictationModel = (try? container.decode(String.self, forKey: .dictationModel)) ?? "large-v3-turbo"
         batchModel     = (try? container.decode(String.self, forKey: .batchModel))     ?? "large-v3-turbo"
         outputFormat   = (try? container.decode(String.self, forKey: .outputFormat))   ?? "txt"
@@ -75,7 +75,7 @@ public struct AppConfig: Codable, Sendable {
         let decodedTemplate = try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate)
         selectedDictationTemplate = decodedTemplate ?? .clean
         
-        llmProvider = (try? container.decode(String.self, forKey: .llmProvider)) ?? "gemini"
+        llmProvider = (try? container.decode(String.self, forKey: .llmProvider)) ?? "apple"
         
         // swiftlint:disable:next line_length
         let defaultPrompt = L10n("Formate e corrija a transcrição abaixo, mantendo o idioma original e corrigindo pontuação.")
