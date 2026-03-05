@@ -10,6 +10,7 @@ let package = Package(
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts.git", exact: "1.15.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", from: "2.29.1"),
         .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.7.9"),
+        .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.6.4"),
     ],
     targets: [
         // All testable business logic lives here.
@@ -21,6 +22,7 @@ let package = Package(
                 .product(name: "MLXLLM", package: "mlx-swift-lm"),
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
                 .product(name: "FluidAudio", package: "FluidAudio"),
+                .product(name: "Sparkle", package: "Sparkle"),
             ],
             path: "Sources/FalaCore",
             resources: [

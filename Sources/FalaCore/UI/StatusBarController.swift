@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Sparkle
 
 public enum AppState {
     case idle
@@ -17,8 +18,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private let axItem: NSMenuItem
     private let axSeparator = NSMenuItem.separator()
     private let settingsItem: NSMenuItem
+    private let updateItem: NSMenuItem
     
     private let settings: AppSettings
+    private let updater: SPUUpdater?
 
     private var onSettings: (() -> Void)?
     private var onTranscribe: (() -> Void)?
@@ -27,10 +30,12 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     public init(
         settings: AppSettings,
+        updater: SPUUpdater?,
         onSettings: @escaping () -> Void,
         onTranscribe: @escaping () -> Void
     ) {
         self.settings = settings
+        self.updater = updater
         self.onSettings = onSettings
         self.onTranscribe = onTranscribe
 
@@ -40,6 +45,12 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             title: L10n("Ajustes…"),
             action: #selector(StatusBarController.showSettings),
             keyEquivalent: ","
+        )
+
+        updateItem = NSMenuItem(
+            title: L10n("Buscar Atualizações…"),
+            action: #selector(StatusBarController.checkForUpdates),
+            keyEquivalent: ""
         )
 
         axItem = NSMenuItem(
@@ -63,6 +74,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         
         settingsItem.target = self
         menu.addItem(settingsItem)
+        if updater != nil {
+            updateItem.target = self
+            menu.addItem(updateItem)
+        }
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
@@ -188,6 +203,10 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func showSettings() {
         onSettings?()
+    }
+
+    @objc private func checkForUpdates() {
+        updater?.checkForUpdates()
     }
 
     @objc private func showTranscribe() {

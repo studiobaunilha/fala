@@ -1,9 +1,11 @@
 import AppKit
 import AVFoundation
 import ApplicationServices
+import Sparkle
 
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var updaterController: SPUStandardUpdaterController?
     private var statusBar: StatusBarController?
     private var dictationMode: DictationMode?
     private var settingsController: SettingsWindowController?
@@ -11,6 +13,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var feedbackController: DictationFeedbackController?
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+        
         // Run as a background app — no Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
@@ -37,6 +45,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let bar = StatusBarController(
             settings: appSettings,
+            updater: updaterController?.updater,
             onSettings: { settingsCtrl.show() },
             onTranscribe: { transcribeCtrl.show() }
         )

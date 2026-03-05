@@ -20,5 +20,9 @@
     <string>Fala needs microphone access to transcribe speech to text.</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
+    <key>SUPublicEDKey</key>
+    <string>EC6cjGYZE01Pu9cwFtigfdQFspcXEFJDIKGriBXMTU0=</string>
+    <key>SUFeedURL</key>
+    <string>https://studio.baunilha.dev/fala/appcast.xml</string>
 </dict>
 </plist>
