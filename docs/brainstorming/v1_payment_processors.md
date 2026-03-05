@@ -45,6 +45,6 @@ O clássico gateway de pagamento direto. Você integra a API deles e recebe paga
 ---
 
 ### Conclusão e Próximos Passos
-Para um lançamento de $39 (com descontos locais PPP e Early Bird para $29) em um app macOS com Licença Perpétua + 1 Ano de Updates, **a recomendação absoluta é o Lemon Squeezy**.
+Para um lançamento de $39 (com descontos locais PPP e Early Bird para $29) em um app macOS com Licença Perpétua + 1 Ano de Updates, **a plataforma escolhida foi o Polar**.
 
-Eles vão te dar o painel de vendas, resolver os impostos automáticos na conversão pra Reais, Dólares ou Euros, e de quebra ainda geram a "Chave de Ativação" que a gente vai codificar dentro do app do Fala em Swift para bater na API deles e garantir que só quem comprou consegue usar o produto offline.
+Eles vão fornecer o painel de vendas, resolver os impostos automáticos na conversão para múltiplas moedas, e de quebra ainda geram a "Chave de Ativação" que a gente vai codificar dentro do app do Fala em Swift para validar a licença e garantir que só quem comprou consegue usar o produto.

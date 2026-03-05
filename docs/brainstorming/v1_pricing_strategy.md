@@ -26,13 +26,13 @@ Para definir um preço justo que não desvalorize o produto, mas seja atrativo, 
 ## 3. Tiers de Preço Sugeridos
 - **Sustentável (Preço Padrão):** `$39 USD`
   - Mais barato que MacWhisper e Superwhisper, quebrando a barreira de entrada, mas mantendo o status de ferramenta "Pro".
-  - Permite margem para promoções como **Desconto de Estudante (50% off - $19.50)** e ativação de Paridade de Poder de Compra (PPP) para países emergentes como o Brasil (via LemonSqueezy).
+  - Permite margem para promoções como **Desconto de Estudante (50% off - $19.50)** e ativação de Paridade de Poder de Compra (PPP) para países emergentes como o Brasil (via Polar).
 - **Early Bird (Lançamento):** `$29 USD`
   - Desconto promocional temporário para gerar tração inicial no ProductHunt, X (Twitter) e Reddit.
 
 ## 4. Distribuição
 - Fora da Mac App Store (evitando taxas de 15-30% e sandboxing restritivo da Apple).
-- Vendas processadas via **LemonSqueezy** ou **Paddle**, que gerenciam a infraestrutura de chaves de licença (License Keys) e bloqueio de updates pós-1-ano automaticamente.
+- Vendas processadas via **Polar**, que gerencia a infraestrutura de chaves de licença (License Keys) e bloqueio de updates pós-1-ano automaticamente.
 - O App vai precisar de uma integração leve para validar a License Key (pode usar a API da plataforma que cuidará do DRM).
 
 ## 5. Gatilhos de Marketing

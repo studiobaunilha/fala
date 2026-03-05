@@ -107,7 +107,7 @@ extension SettingsView {
             }
             
             Text(
-                "Insira sua chave de licença do Lemon Squeezy ou Polar.sh " +
+                "Insira sua chave de licença do Polar " +
                 "para liberar as funcionalidades Pro do Fala de forma permanente."
             )
                 .font(.body)

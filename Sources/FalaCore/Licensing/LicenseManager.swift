@@ -16,7 +16,7 @@ public final class LicenseManager: ObservableObject {
     public var isActivated: Bool { isPro || isTrialActive }
     @Published public private(set) var isPro: Bool = false
 
-    // Replace with your actual Polar.sh or LemonSqueezy public verification key.
+    // Replace with your actual Polar.sh public verification key.
     // For EdDSA, it's typically a raw 32-byte string or base64.
     private let providerPublicKeyBase64 = "REPLACE_ME_WITH_REAL_BASE64_PUBLIC_KEY"
     
@@ -41,7 +41,7 @@ public final class LicenseManager: ObservableObject {
         errorMessage = nil
         defer { isActivating = false }
 
-        // Implement actual API call to Polar.sh or Lemon Squeezy to activate the key.
+        // Implement actual API call to Polar.sh to activate the key.
         // The API should return a JWT (JSON Web Token) that proves activation.
         // For now, this is a placeholder mimicking a successful activation.
         

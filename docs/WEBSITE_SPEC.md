@@ -6,7 +6,7 @@ A landing page oficial do **Fala** servirá como o principal e único canal de d
 Em vez de um monorepo, o formato adotado foi o **"Studio Umbrella"**. O código-fonte do website viverá em um repositório isolado e centralizado em `~/Dev/website`, que atuará como o portfólio/estúdio do desenvolvedor, abrigando landing pages individuais para o Fala (`/fala`), CapyNotch (`/capynotch`) e jogos futuros.
 
 ## 2. Objetivos Principais
-- **Conversão Direta:** Explicar rapidamente o valor do produto e levar ao checkout via LemonSqueezy/Paddle.
+- **Conversão Direta:** Explicar rapidamente o valor do produto e levar ao checkout via Polar.
 - **Transmissão de Confiança:** Deixar explícito que o aplicativo é 100% nativo, seguro, offline e focado em privacidade.
 - **Performance Extrema:** O site deve carregar instantaneamente, servindo como um espelho da velocidade e otimização do próprio aplicativo.
 
@@ -14,7 +14,7 @@ Em vez de um monorepo, o formato adotado foi o **"Studio Umbrella"**. O código-
 - **Framework:** Astro (Zero-JS by default, focado em alta performance para conteúdo estático).
 - **Estilização:** Tailwind CSS (Utilitário para construção rápida e manutenção simplificada).
 - **Hospedagem:** Cloudflare Pages (Deploy direto do repositório GitHub, CDN global, SSL gratuito).
-- **Integração de Pagamento:** LemonSqueezy (via link de checkout direto ou overlay modal).
+- **Integração de Pagamento:** Polar (via link de checkout direto ou overlay modal).
 
 ## 4. UI/UX e Identidade Visual (Design System)
 - **Tema:** Prioritariamente Dark Mode ("Apple Modern" / macOS Tahoe aesthetics).
@@ -57,5 +57,5 @@ A página será composta pelas seguintes seções (descendo no scroll):
 
 ## 6. Workflow do Estúdio (Guarda-chuva)
 - O código reside em `~/Dev/website`.
-- A estilização, footer e componentes (ex: botão de compra LemonSqueezy) serão construídos genericamente para serem reutilizados nos próximos apps.
+- A estilização, footer e componentes (ex: botão de compra Polar) serão construídos genericamente para serem reutilizados nos próximos apps.
 - O deploy na Cloudflare Pages apontará para este repositório centralizado, publicando todo o portfólio simultaneamente.
