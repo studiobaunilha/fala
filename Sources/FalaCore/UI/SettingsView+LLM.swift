@@ -14,7 +14,7 @@ extension SettingsView {
             } header: {
                 Text(L10n("Provedor de IA"))
             } footer: {
-                Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
+                providerFooterText
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -78,11 +78,44 @@ extension SettingsView {
         }
     }
 
-    // MARK: - Apple Intelligence
+    // MARK: - Provider Descriptions
+
+    private var providerFooterText: Text {
+        switch settings.llmProvider {
+        case "apple":
+            // swiftlint:disable:next line_length
+            return Text(L10n("Apple Intelligence roda 100% no dispositivo, sem custos. Melhor para tarefas simples (limpar, formatar)."))
+        case "mlx":
+            // swiftlint:disable:next line_length
+            return Text(L10n("Modelos MLX rodam localmente no Apple Silicon. Suportam prompts complexos dependendo do modelo escolhido."))
+        case "gemini":
+            // swiftlint:disable:next line_length
+            return Text(L10n("Requer chave API gratuita. Suporta todos os modos e prompts complexos com alta qualidade."))
+        case "openai":
+            return Text(L10n("Requer chave API paga. Suporta todos os modos e prompts complexos com alta qualidade."))
+        default:
+            return Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
+        }
+    }
 
     private var appleIntelligenceSection: some View {
         Section(L10n("Apple Intelligence")) {
             appleAvailabilityRow
+
+            Label {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(L10n("Modelo compacto (~3B parâmetros)"))
+                        .font(.body)
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Ideal para tarefas simples como limpar e formatar texto. Para prompts criativos ou complexos (Dev, Sumário), considere Gemini, OpenAI ou MLX."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(.blue)
+            }
+            .padding(.vertical, Spacing.xs)
         }
     }
 

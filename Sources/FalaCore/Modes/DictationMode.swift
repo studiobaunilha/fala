@@ -173,13 +173,13 @@ public final class DictationMode {
             if template == .promptDev, !config.devStack.isEmpty {
                 enriched += "\n\nStack do projeto: \(config.devStack)"
             }
-            // On-device models (Apple Intelligence, MLX) can't handle complex
-            // meta-instructions — they echo the prompt back. Only wrap with
-            // globalSystemPrompt for cloud providers (Gemini, OpenAI).
-            let isCloudProvider = ["gemini", "openai"].contains(modeConfig.provider)
-            let prompt = isCloudProvider
-                ? wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
-                : enriched
+            // Apple Intelligence (~3B, 4096 tokens) can't handle complex
+            // meta-instructions — it echoes the prompt. Cloud and MLX models
+            // are robust enough for the full globalSystemPrompt.
+            let isAppleIntelligence = modeConfig.provider == "apple"
+            let prompt = isAppleIntelligence
+                ? enriched
+                : wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
             do {
                 let result = try await dispatchLLM(
                     text: text, prompt: prompt, config: config,

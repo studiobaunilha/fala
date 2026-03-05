@@ -222,11 +222,11 @@ extension TranscriptionJob {
             NÃO adicione essas linguagens como listas isoladas na saída, apenas utilize-as no contexto.
             """
         }
-        // On-device models echo the globalSystemPrompt — only wrap for cloud providers
-        let isCloudProvider = ["gemini", "openai"].contains(effective.provider)
-        let prompt = isCloudProvider
-            ? wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
-            : enriched
+        // Apple Intelligence (~3B, 4096 tokens) echoes complex meta-instructions
+        let isAppleIntelligence = effective.provider == "apple"
+        let prompt = isAppleIntelligence
+            ? enriched
+            : wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
         let provider = effective.provider
         let model = effective.model
 
