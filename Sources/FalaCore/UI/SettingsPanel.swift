@@ -6,6 +6,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
     case advanced = "Avançado"
     case llm = "IA & LLM"
     case license = "Licença"
+    case updates = "Atualizações"
     case about = "Sobre"
     
     var id: String { self.rawValue }
@@ -17,6 +18,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
         case .advanced: return "gearshape.2"
         case .llm: return "wand.and.stars"
         case .license: return "key.fill"
+        case .updates: return "arrow.triangle.2.circlepath"
         case .about: return "info.circle"
         }
     }
@@ -28,6 +30,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
         case .advanced: return L10n("Avançado")
         case .llm: return L10n("IA & LLM")
         case .license: return L10n("Licença")
+        case .updates: return L10n("Atualizações")
         case .about: return L10n("Sobre")
         }
     }
