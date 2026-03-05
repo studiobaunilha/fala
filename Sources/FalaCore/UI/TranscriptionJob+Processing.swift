@@ -213,6 +213,7 @@ extension TranscriptionJob {
         return nil
     }
     
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     static func applyLLM(to text: String, config: AppConfig, template: DictationTemplate) async -> String {
         guard template.requiresLLM else { return text }
         let effective = config.getEffectiveConfig(for: template)
@@ -234,11 +235,14 @@ extension TranscriptionJob {
             NÃO adicione essas linguagens como listas isoladas na saída, apenas utilize-as no contexto.
             """
         }
-        // Apple Intelligence (~3B, 4096 tokens) echoes complex meta-instructions
-        let isAppleIntelligence = effective.provider == "apple"
-        let prompt = isAppleIntelligence
-            ? wrapPromptForAppleIntelligence(enriched)
-            : wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
+        let prompt: String
+        if template.isConversational {
+            prompt = enriched
+        } else if effective.provider == "apple" {
+            prompt = wrapPromptForAppleIntelligence(enriched)
+        } else {
+            prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
+        }
         let provider = effective.provider
         let model = effective.model
 

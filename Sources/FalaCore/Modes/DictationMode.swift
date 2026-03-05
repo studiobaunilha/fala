@@ -173,12 +173,18 @@ public final class DictationMode {
             if template == .promptDev, !config.devStack.isEmpty {
                 enriched += "\n\nStack do projeto: \(config.devStack)"
             }
-            // Apple Intelligence (~3B, 4096 tokens) can't handle the full
-            // globalSystemPrompt — use a short, focused suffix instead.
-            let isAppleIntelligence = modeConfig.provider == "apple"
-            let prompt = isAppleIntelligence
-                ? wrapPromptForAppleIntelligence(enriched)
-                : wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
+            // Conversational modes (askAI) skip anti-response wrapping —
+            // the whole point is for the AI to respond to the question.
+            let prompt: String
+            if template.isConversational {
+                prompt = enriched
+            } else if modeConfig.provider == "apple" {
+                // Apple Intelligence (~3B, 4096 tokens) can't handle the
+                // full globalSystemPrompt — use a short, focused suffix.
+                prompt = wrapPromptForAppleIntelligence(enriched)
+            } else {
+                prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
+            }
             do {
                 let result = try await dispatchLLM(
                     text: text, prompt: prompt, config: config,
