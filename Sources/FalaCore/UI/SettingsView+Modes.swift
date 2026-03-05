@@ -15,10 +15,10 @@ struct ModeDetailView: View {
     // Available providers
     private let providers = [
         ("global", L10n("Usar Padrão Global")),
-        ("gemini", L10n("Google Gemini")),
-        ("openai", L10n("OpenAI GPT")),
-        ("apple", L10n("Apple Intelligence")),
-        ("mlx", L10n("MLX Local"))
+        ("gemini", "Google Gemini"),
+        ("openai", "OpenAI"),
+        ("apple", "Apple Intelligence"),
+        ("mlx", "MLX Local")
     ]
 
     private var effectiveProviderName: String {
@@ -91,7 +91,11 @@ struct ModeDetailView: View {
 
             if template.requiresLLM {
                 providerSection
-                promptSection
+                if !isEffectiveProviderAppleIntelligence {
+                    promptSection
+                } else {
+                    appleIntelligencePromptNote
+                }
             } else {
                 noLLMSection
             }
@@ -291,6 +295,33 @@ struct ModeDetailView: View {
     }
 
     // MARK: - Logic
+
+    /// Whether the effective provider (after resolving "global") is Apple Intelligence.
+    private var isEffectiveProviderAppleIntelligence: Bool {
+        let effectiveProvider = (provider == "global") ? settings.llmProvider : provider
+        return effectiveProvider == "apple"
+    }
+
+    private var appleIntelligencePromptNote: some View {
+        Section {
+            Label {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(L10n("Prompt interno"))
+                        .font(.body)
+                    // swiftlint:disable:next line_length
+                    Text(L10n("O Apple Intelligence usa prompts otimizados internamente. A edição de prompt está disponível para outros provedores (Gemini, OpenAI, MLX)."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, Spacing.xs)
+        } header: {
+            Text(L10n("Prompt do Sistema"))
+        }
+    }
 
     private var effectiveDefaultPrompt: String {
         if template == .custom {

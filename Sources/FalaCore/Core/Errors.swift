@@ -38,6 +38,7 @@ public enum LLMError: Error, LocalizedError {
     case deviceNotEligible
     case appleIntelligenceModelNotReady
     case mlxModelNotLoaded(String)
+    case mlxModelNotDownloaded(String)
 
     public var errorDescription: String? {
         switch self {
@@ -55,6 +56,9 @@ public enum LLMError: Error, LocalizedError {
             L10n("Modelo Apple Intelligence ainda sendo baixado")
         case .mlxModelNotLoaded(let modelID):
             String(format: L10n("Não foi possível carregar o modelo local '%@'"), modelID)
+        case .mlxModelNotDownloaded(let modelID):
+            // swiftlint:disable:next line_length
+            String(format: L10n("Modelo '%@' não está baixado. Baixe-o em Ajustes > IA & LLM > Modelos MLX Locais."), modelID)
         }
     }
 }

@@ -43,10 +43,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         )
 
         axItem = NSMenuItem(
-            title: L10n("⚠️ Habilitar Acessibilidade…"),
+            title: L10n("Habilitar Acessibilidade…"),
             action: #selector(StatusBarController.openAccessibilitySettings),
             keyEquivalent: ""
         )
+        axItem.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill",
+                               accessibilityDescription: L10n("Alerta"))
+        axItem.image?.isTemplate = false
 
         super.init()
 
@@ -130,10 +133,19 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                     let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
                     item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
                 }
-                // Show ⚠️ on translate when engine is not Whisper
+                // Show warning icon on translate when engine is not Whisper
                 if modeRaw == DictationTemplate.translate.rawValue {
                     let baseName = DictationTemplate.translate.localizedName
-                    item.title = isWhisper ? baseName : "⚠️ \(baseName)"
+                    item.title = baseName
+                    if !isWhisper {
+                        item.image = NSImage(
+                            systemSymbolName: "exclamationmark.triangle.fill",
+                            accessibilityDescription: L10n("Incompatível")
+                        )
+                        item.image?.isTemplate = false
+                    } else {
+                        item.image = nil
+                    }
                 }
             }
         }

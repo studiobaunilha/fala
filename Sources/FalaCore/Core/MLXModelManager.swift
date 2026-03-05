@@ -208,8 +208,22 @@ public actor MLXModelCache {
     }
 
     /// Returns a loaded model, using the cache when available.
+    /// Throws `LLMError.mlxModelNotDownloaded` if the model files don't exist.
     private func getOrLoad(_ repoID: String) async throws -> ModelContext {
         if let hit = cache[repoID] { return hit }
+        // Check if model is downloaded before trying to load (~2GB into RAM)
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let cacheDir = home.appendingPathComponent(".cache/huggingface/hub")
+        let dirName = "models--" + repoID.replacingOccurrences(of: "/", with: "--")
+        let snapshotsDir = cacheDir
+            .appendingPathComponent(dirName)
+            .appendingPathComponent("snapshots")
+        let hasSnapshots = (try? FileManager.default.contentsOfDirectory(
+            at: snapshotsDir, includingPropertiesForKeys: nil
+        ))?.isEmpty == false
+        guard hasSnapshots else {
+            throw LLMError.mlxModelNotDownloaded(repoID)
+        }
         let context = try await loadModel(id: repoID)
         cache[repoID] = context
         return context

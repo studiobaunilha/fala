@@ -193,7 +193,7 @@ public final class DictationMode {
                 finalText = stripLLMPreamble(result)
             } catch let error as LLMError {
                 let msg = error.localizedDescription
-                print("[Fala] ⚠️ \(msg) — modo '\(template.localizedName)' requer LLM.")
+                print("[Fala] \(msg) — modo '\(template.localizedName)' requer LLM.")
                 statusBar?.showTemporaryWarning(msg)
             } catch {
                 print("[Fala] LLM processing error: \(error.localizedDescription)")
