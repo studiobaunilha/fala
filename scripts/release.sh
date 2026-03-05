@@ -200,6 +200,10 @@ else
     wrangler r2 object put "${BUCKET}/${DMG_NAME}" --file "$DMG_PATH" --content-type "application/octet-stream" --remote
     ok "DMG enviado"
 
+    info "Fazendo upload de Fala-latest.dmg…"
+    wrangler r2 object put "${BUCKET}/Fala-latest.dmg" --file "$DMG_PATH" --content-type "application/octet-stream" --remote
+    ok "Fala-latest.dmg atualizado"
+
     info "Fazendo upload de appcast.xml…"
     wrangler r2 object put "${BUCKET}/appcast.xml" --file "$APPCAST_PATH" --content-type "application/xml" --remote
     ok "appcast.xml enviado"
