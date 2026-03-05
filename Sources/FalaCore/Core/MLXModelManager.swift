@@ -253,11 +253,8 @@ public actor MLXModelCache {
         guard hasSafetensors else {
             throw LLMError.mlxModelNotDownloaded(repoID)
         }
-        // Use the same HubApi for loading so it finds the downloaded files.
-        let hub = await MLXModelManager.hub
-        let context = try await loadModel(
-            hub: hub, id: repoID
-        )
+        // Load from local directory — avoids re-downloading via hub.snapshot
+        let context = try await loadModel(directory: modelDir)
         cache[repoID] = context
         return context
     }
