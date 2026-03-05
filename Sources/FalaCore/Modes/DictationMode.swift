@@ -58,6 +58,10 @@ public final class DictationMode {
 
     func startRecording() async {
         guard !isRecording else { return }
+        guard LicenseManager.shared.isActivated else {
+            statusBar?.showTemporaryWarning(L10n("Fala Pro Necessário: Ative sua licença nos Ajustes."))
+            return
+        }
         do {
             // Wire RMS levels to the floating feedback panel
             if let feedback {

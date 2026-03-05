@@ -1,0 +1,100 @@
+import Foundation
+import Security
+
+/// Helper to securely store, read, and delete strings (like License Keys and JWTs) in the macOS Keychain.
+public enum KeychainHelper {
+    private static let serviceName = "dev.fala.app.license"
+
+    public static func save(token: String, for account: String) throws {
+        guard let data = token.data(using: .utf8) else { return }
+
+        // Secure baseline matching query
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: account
+        ]
+
+        // Check if item already exists
+        let status = SecItemCopyMatching(query as CFDictionary, nil)
+        
+        switch status {
+        case errSecSuccess:
+            // Update existing item
+            let attributesToUpdate: [String: Any] = [
+                kSecValueData as String: data
+            ]
+            let updateStatus = SecItemUpdate(query as CFDictionary, attributesToUpdate as CFDictionary)
+            guard updateStatus == errSecSuccess else {
+                throw KeychainError.unhandledError(status: updateStatus)
+            }
+        case errSecItemNotFound:
+            // Add new item
+            var newQuery = query
+            newQuery[kSecValueData as String] = data
+            // Restrict access to when the device is unlocked
+            newQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            
+            let addStatus = SecItemAdd(newQuery as CFDictionary, nil)
+            guard addStatus == errSecSuccess else {
+                throw KeychainError.unhandledError(status: addStatus)
+            }
+        default:
+            throw KeychainError.unhandledError(status: status)
+        }
+    }
+
+    public static func read(account: String) throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        
+        guard status != errSecItemNotFound else {
+            return nil
+        }
+        
+        guard status == errSecSuccess else {
+            throw KeychainError.unhandledError(status: status)
+        }
+
+        guard let data = item as? Data, let token = String(data: data, encoding: .utf8) else {
+            throw KeychainError.unexpectedData
+        }
+
+        return token
+    }
+
+    public static func delete(account: String) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: account
+        ]
+
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.unhandledError(status: status)
+        }
+    }
+}
+
+public enum KeychainError: Error, LocalizedError {
+    case unhandledError(status: OSStatus)
+    case unexpectedData
+
+    public var errorDescription: String? {
+        switch self {
+        case .unhandledError(let status):
+            return "Keychain error: \(status)"
+        case .unexpectedData:
+            return "Unexpected data format in Keychain"
+        }
+    }
+}

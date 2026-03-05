@@ -85,6 +85,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         // DictationMode.init is @MainActor. XCTest runs setUp on the main
         // thread, so assumeIsolated is safe here.
         MainActor.assumeIsolated {
+            LicenseManager.shared.setTestActivated(true)
             mode = DictationMode(
                 recorder: recorder,
                 transcriber: transcriber,

@@ -183,38 +183,6 @@ public final class AppSettings: ObservableObject {
 
 // MARK: – View Components
 
-enum SettingsPanel: String, CaseIterable, Identifiable {
-    case general = "Geral"
-    case models = "Modelos"
-    case advanced = "Avançado"
-    case llm = "IA & LLM"
-    
-    var id: String { self.rawValue }
-    
-    var icon: String {
-        switch self {
-        case .general: return "gearshape"
-        case .models: return "cpu"
-        case .advanced: return "gearshape.2"
-        case .llm: return "wand.and.stars"
-        }
-    }
-    
-    var localizedName: String {
-        switch self {
-        case .general: return L10n("Geral")
-        case .models: return L10n("Modelos")
-        case .advanced: return L10n("Avançado")
-        case .llm: return L10n("IA & LLM")
-        }
-    }
-}
-
-enum SettingsSelection: Hashable {
-    case panel(SettingsPanel)
-    case template(DictationTemplate)
-}
-
 // MARK: – Settings View
 
 struct SettingsView: View {
@@ -275,6 +243,8 @@ struct SettingsView: View {
                         advancedView
                     case .llm:
                         llmView
+                    case .license:
+                        licenseView
                     }
                 case .template(let template):
                     ModeDetailView(template: template, settings: settings)

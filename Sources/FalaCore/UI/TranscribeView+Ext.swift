@@ -127,12 +127,36 @@ extension TranscribeView {
     var statusView: some View {
         switch job.state {
         case .idle:
-            Button(L10n("Iniciar Transcrição")) {
-                job.transcribe()
+            if licenseManager.isActivated {
+                VStack(spacing: 8) {
+                    Button(L10n("Iniciar Transcrição")) {
+                        job.transcribe()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
+                    
+                    if licenseManager.isTrialActive {
+                        Text(L10n("Modo Trial (\(licenseManager.trialDaysRemaining) dias restantes)"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            } else {
+                VStack(spacing: 4) {
+                    Text(L10n("Período de Teste Esgotado"))
+                        .font(.headline)
+                        .foregroundColor(.red)
+                    Text(L10n("Ative sua licença Fala Pro nos Ajustes para voltar a transcrever arquivos."))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.red.opacity(0.1))
+                .cornerRadius(8)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .frame(maxWidth: .infinity)
 
         case .converting:
             HStack {
