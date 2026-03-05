@@ -25,13 +25,13 @@ struct GlowBorder: View {
         ZStack {
             // Diffuse glow
             shape
-                .stroke(gradient, lineWidth: 36)
+                .strokeBorder(gradient, lineWidth: 46)
                 .blur(radius: 64)
                 .opacity(0.8)
             
             // Sharp inner edge
             shape
-                .stroke(gradient, lineWidth: 16)
+                .strokeBorder(gradient, lineWidth: 22)
                 .opacity(0.9)
         }
     }
