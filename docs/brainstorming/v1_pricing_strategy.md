@@ -17,11 +17,11 @@ O aplicativo adotará o **Modelo Mac de Software (Pay-Once com licença de atual
 ## 2. Análise de Concorrentes (Mercado Mac AI Dictation)
 Para definir um preço justo que não desvalorize o produto, mas seja atrativo, mapeamos os três grandes players atuais que resolvem problemas similares no macOS:
 
-- **MacWhisper Pro:** Focado principalmente em arquivos (Batch). Como o Sussurro, é um pagamento único de licença anual. Custa em média **$64 a $79 USD**.
+- **MacWhisper Pro:** Focado principalmente em arquivos (Batch). Como o Fala, é um pagamento único de licença anual. Custa em média **$64 a $79 USD**.
 - **Superwhisper:** O concorrente mais direto em termos de "ditado em tempo real offline". Trabalha com assinatura de **$85 USD / ano** ou licença vitalícia absurdamente cara de **$250 USD**.
 - **Wispr Flow:** Focado em ditado, mas depende da nuvem (não é offline/privado). Trabalha no modelo SaaS cobrando em média **$144 USD / ano**.
 
-**Conclusão do Mapeamento:** O Sussurro entrega o melhor dos dois mundos (Ditado Global + Transcrição Batch) com formatação de IA integrada, 100% offline. O mercado cobra entre $60 a $144 anuais por isso. Jogar o preço muito abaixo de $30 pode passar a impressão de um aplicativo de baixa qualidade ("cheap tool"). O valor de $39 anuais posiciona o Sussurro como uma alternativa Premium, porém muito mais acessível que a concorrência.
+**Conclusão do Mapeamento:** O Fala entrega o melhor dos dois mundos (Ditado Global + Transcrição Batch) com formatação de IA integrada, 100% offline. O mercado cobra entre $60 a $144 anuais por isso. Jogar o preço muito abaixo de $30 pode passar a impressão de um aplicativo de baixa qualidade ("cheap tool"). O valor de $39 anuais posiciona o Fala como uma alternativa Premium, porém muito mais acessível que a concorrência.
 
 ## 3. Tiers de Preço Sugeridos
 - **Sustentável (Preço Padrão):** `$39 USD`

@@ -1,9 +1,9 @@
-# Sussurro — Website Specification (v1)
+# Fala — Website Specification (v1)
 
 ## 1. Visão Geral do Projeto
-A landing page oficial do **Sussurro** servirá como o principal e único canal de distribuição e vendas (visto que o app operará fora da Mac App Store). 
+A landing page oficial do **Fala** servirá como o principal e único canal de distribuição e vendas (visto que o app operará fora da Mac App Store). 
 
-Em vez de um monorepo, o formato adotado foi o **"Studio Umbrella"**. O código-fonte do website viverá em um repositório isolado e centralizado em `~/Dev/website`, que atuará como o portfólio/estúdio do desenvolvedor, abrigando landing pages individuais para o Sussurro (`/sussurro`), CapyNotch (`/capynotch`) e jogos futuros.
+Em vez de um monorepo, o formato adotado foi o **"Studio Umbrella"**. O código-fonte do website viverá em um repositório isolado e centralizado em `~/Dev/website`, que atuará como o portfólio/estúdio do desenvolvedor, abrigando landing pages individuais para o Fala (`/fala`), CapyNotch (`/capynotch`) e jogos futuros.
 
 ## 2. Objetivos Principais
 - **Conversão Direta:** Explicar rapidamente o valor do produto e levar ao checkout via LemonSqueezy/Paddle.

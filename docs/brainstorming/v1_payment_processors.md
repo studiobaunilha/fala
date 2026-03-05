@@ -14,7 +14,7 @@ A queridinha atual da comunidade Indie (recém-adquirida pela Stripe). Focaram p
 
 *   **Modelo:** Merchant of Record (Eles lidam com todos os impostos globais).
 *   **Recursos Matadores:**
-    *   **Geração de Licenças Nativas:** O Lemon Squeezy possui um sistema de *License Keys* interno. Quando o cliente compra, a API deles já gera uma chave de ativação única. Você pode validar essa chave direto no Swift do Sussurro de forma muito fácil.
+    *   **Geração de Licenças Nativas:** O Lemon Squeezy possui um sistema de *License Keys* interno. Quando o cliente compra, a API deles já gera uma chave de ativação única. Você pode validar essa chave direto no Swift do Fala de forma muito fácil.
     *   Checkout muito bonito e fácil de embedar ou linkar direto.
     *   Paridade de Poder de Compra (PPP) programável via API/Link.
 *   **Taxas:** ~5% + $0.50 centavos por transação.
@@ -29,7 +29,7 @@ O dinossauro mais robusto do mercado de MoR. Quase todos os apps grandes de Mac 
     *   Extremamente confiável, infraestrutura parruda de assinaturas (SaaS).
     *   Lida muito bem com faturamento de empresas (B2B invoices).
 *   **Taxas:** ~5% + $0.50 centavos por transação.
-*   **Desvantagens para o Sussurro:** O processo de aprovação da conta é **muito chato**, lento e às vezes recusam novos apps pequenos. Eles são muito focados em assinaturas recorrentes B2B e o dashboard é bem menos amigável (mais feio) que o Lemon Squeezy. Além disso, os saques demoram semanas.
+*   **Desvantagens para o Fala:** O processo de aprovação da conta é **muito chato**, lento e às vezes recusam novos apps pequenos. Eles são muito focados em assinaturas recorrentes B2B e o dashboard é bem menos amigável (mais feio) que o Lemon Squeezy. Além disso, os saques demoram semanas.
 *   **Veredito:** Ótimo para SaaS corporativo, exagerado e muito burocrático para apps Indie.
 
 ## 3. Stripe Checkout (Puro)
@@ -47,4 +47,4 @@ O clássico gateway de pagamento direto. Você integra a API deles e recebe paga
 ### Conclusão e Próximos Passos
 Para um lançamento de $39 (com descontos locais PPP e Early Bird para $29) em um app macOS com Licença Perpétua + 1 Ano de Updates, **a recomendação absoluta é o Lemon Squeezy**.
 
-Eles vão te dar o painel de vendas, resolver os impostos automáticos na conversão pra Reais, Dólares ou Euros, e de quebra ainda geram a "Chave de Ativação" que a gente vai codificar dentro do app do Sussurro em Swift para bater na API deles e garantir que só quem comprou consegue usar o produto offline.
+Eles vão te dar o painel de vendas, resolver os impostos automáticos na conversão pra Reais, Dólares ou Euros, e de quebra ainda geram a "Chave de Ativação" que a gente vai codificar dentro do app do Fala em Swift para bater na API deles e garantir que só quem comprou consegue usar o produto offline.

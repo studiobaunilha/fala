@@ -1,7 +1,7 @@
-# Sussurro — Especificações do Produto (v1)
+# Fala — Especificações do Produto (v1)
 
 ## 1. Visão Geral do Produto
-O **Sussurro** é uma ferramenta nativa de transcrição e pós-processamento de áudio para macOS (focada em Apple Silicon). Desenvolvida sem necessidade de nuvem para a transcrição central, ela garante máxima privacidade e performance, ideal para profissionais que lidam com informações sensíveis (advogados, médicos, jornalistas, executivos).
+O **Fala** é uma ferramenta nativa de transcrição e pós-processamento de áudio para macOS (focada em Apple Silicon). Desenvolvida sem necessidade de nuvem para a transcrição central, ela garante máxima privacidade e performance, ideal para profissionais que lidam com informações sensíveis (advogados, médicos, jornalistas, executivos).
 
 ## 2. Proposta de Valor
 - **100% Offline no Core:** A transcrição de áudio ocorre inteiramente de forma local na máquina (via Neural Engine), garantindo que dados de voz nunca sejam enviados a servidores de terceiros.

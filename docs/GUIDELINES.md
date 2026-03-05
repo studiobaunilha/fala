@@ -1,7 +1,7 @@
-# Sussurro — Diretrizes de Documentação
+# Fala — Diretrizes de Documentação
 
 ## 1. Tom e Seriedade
-A documentação do **Sussurro** (incluindo o README, SPECs e Notas de Lançamento) deve manter sempre um tom **profissional, direto e sério**. Evite linguagem excessivamente coloquial e não simule conversas com o usuário nos guias técnicos.
+A documentação do **Fala** (incluindo o README, SPECs e Notas de Lançamento) deve manter sempre um tom **profissional, direto e sério**. Evite linguagem excessivamente coloquial e não simule conversas com o usuário nos guias técnicos.
 
 ## 2. Expressividade Visual e Uso de Emojis
 **Regra Mestra: NENHUM EMOJI DEVE SER UTILIZADO NA DOCUMENTAÇÃO TÉCNICA OU PÚBLICA.**
@@ -30,7 +30,7 @@ Tudo o que fugir da regra acima (ideias soltas, planos de alterações, notas n�
 Este é um diretório iterativo e descartável. O que não é oficial ainda, fica lá aguardando validação ou deleção futura.
 
 ## 4. UI, UX e Identidade Visual (Design System)
-O Sussurro é, e sempre deve parecer, um **Aplicativo Nativo do macOS**. Nossa identidade visual e experiência do usuário são estritamente regidas pelas **Apple Human Interface Guidelines (HIG)**.
+O Fala é, e sempre deve parecer, um **Aplicativo Nativo do macOS**. Nossa identidade visual e experiência do usuário são estritamente regidas pelas **Apple Human Interface Guidelines (HIG)**.
 
 Sempre que propormos, revisarmos ou implementarmos qualquer alteração de interface (SwiftUI), devemos garantir que:
 - O design pareça pertencer organicamente ao macOS moderno (**Tahoe / Liquid Glass**).
