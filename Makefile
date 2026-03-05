@@ -43,6 +43,9 @@ dev: check ## check → build debug → relança o app
 	@mkdir -p $(APP)/Contents/Resources
 	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
 	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
+	@mkdir -p $(APP)/Contents/Frameworks
+	@cp -R .build/debug/Sparkle.framework $(APP)/Contents/Frameworks/
+	@install_name_tool -add_rpath @executable_path/../Frameworks $(BUNDLE) 2>/dev/null || true
 	@codesign --force --deep --sign - $(APP)
 	@pkill Fala 2>/dev/null || true
 	@sleep 0.3
@@ -57,6 +60,9 @@ install: check ## check → build release → instala
 	@mkdir -p $(APP)/Contents/Resources
 	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
 	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
+	@mkdir -p $(APP)/Contents/Frameworks
+	@cp -R .build/release/Sparkle.framework $(APP)/Contents/Frameworks/
+	@install_name_tool -add_rpath @executable_path/../Frameworks $(BUNDLE) 2>/dev/null || true
 	@codesign --force --deep --sign - $(APP)
 	@pkill Fala 2>/dev/null || true
 	@sleep 0.3

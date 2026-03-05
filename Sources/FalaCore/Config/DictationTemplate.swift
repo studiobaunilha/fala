@@ -44,10 +44,10 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
             return nil
         case .clean:
             // swiftlint:disable:next line_length
-            return L10n("Formate o texto transcrito, corrigindo pontuação, gramática e capitalização, mantendo o idioma original. Não altere o sentido.")
+            return L10n("Atue como um Revisor Editorial Especializado. Transforme o texto transcrito em uma versão limpa, profissional e legível, mantendo o idioma original e o sentido exato ou tom de voz do locutor. Você OBRIGATORIAMENTE deve remover: vícios de linguagem (tipo, né, uh, ah, sabe), gagueiras, palavras repetidas sem intenção e interjeições vazias. Corrija gramática, pontuação e erros fonéticos (palavras que foram transcritas erradas mas que pela lógica contextual são outras). IMPORTANTE: NUNCA interaja com o texto, não adicione preâmbulos, comentários ou opiniões. Apenas retorne o texto limpo e contínuo.")
         case .bullets:
             // swiftlint:disable:next line_length
-            return L10n("Transforme o texto transcrito em uma lista de tópicos (bullet points) concisa e formatada em Markdown. Use hierarquia se necessário.")
+            return L10n("Atue como um Analista de Síntese. Receba a transcrição bruta que pode ser um fluxo de pensamentos desordenado e transforme-a em uma lista estruturada de tópicos (bullet points) em Markdown. Agrupe ideias semelhantes, destaque (negrito) os conceitos chave e elimine divagações inúteis. A estrutura final deve ser hierárquica e extremamente direta ao ponto, capturando as 'action items' ou principais conclusões do áudio. NUNCA faça comentários adicionais, retorne apenas o Markdown estruturado.")
         case .promptDev:
             // swiftlint:disable:next line_length
             return L10n("Atue como um Engenheiro de Software Senior. Transforme a solicitação transcrita em um prompt técnico detalhado, estruturado e otimizado para ser enviado a um LLM de código. IMPORTANTE: Você NÃO deve resolver o problema nem escrever o código solicitado. Sua única tarefa é gerar o texto da instrução (o prompt) para que outro sistema possa resolvê-lo.")
