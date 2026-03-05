@@ -10,6 +10,7 @@ import Foundation
 public final class DictationMode {
     private let recorder: any AudioRecording
     private let transcriber: any AudioTranscribing
+    private let whisperFallback: (any AudioTranscribing)?
     private let inserter: any TextInserting
     private weak var statusBar: StatusBarController?
     private let feedback: DictationFeedbackController?
@@ -34,10 +35,12 @@ public final class DictationMode {
         inserter: any TextInserting,
         statusBar: StatusBarController? = nil,
         feedback: DictationFeedbackController? = nil,
-        config: AppConfig? = nil
+        config: AppConfig? = nil,
+        whisperFallback: (any AudioTranscribing)? = nil
     ) {
         self.recorder = recorder
         self.transcriber = transcriber
+        self.whisperFallback = whisperFallback
         self.inserter = inserter
         self.statusBar = statusBar
         self.feedback = feedback
@@ -114,7 +117,11 @@ public final class DictationMode {
             let template = config.selectedDictationTemplate
 
             let task = template == .translate ? "translate" : "transcribe"
-            let text = try await transcriber.transcribe(samples: samples, task: task)
+            // Parakeet doesn't support translate — fall back to Whisper
+            let activeTranscriber = (task == "translate" && transcriber is ParakeetTranscriber)
+                ? (whisperFallback ?? transcriber)
+                : transcriber
+            let text = try await activeTranscriber.transcribe(samples: samples, task: task)
 
             // Filter short noise hallucinations (e.g. "the", "okay", "um")
             let words = text.split(separator: " ")
