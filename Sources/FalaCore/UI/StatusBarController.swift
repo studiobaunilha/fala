@@ -121,6 +121,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     public func menuWillOpen(_ menu: NSMenu) {
         // Update Checkmarks and dynamic titles for Modes
         let currentMode = settings.selectedDictationTemplate
+        let isWhisper = settings.transcriptionEngine == "whisper"
         for item in modeItems {
             if let modeRaw = item.representedObject as? String {
                 item.state = (modeRaw == currentMode.rawValue) ? .on : .off
@@ -128,6 +129,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 if modeRaw == DictationTemplate.custom.rawValue {
                     let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
                     item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
+                }
+                // Show ⚠️ on translate when engine is not Whisper
+                if modeRaw == DictationTemplate.translate.rawValue {
+                    let baseName = DictationTemplate.translate.localizedName
+                    item.title = isWhisper ? baseName : "⚠️ \(baseName)"
                 }
             }
         }
@@ -149,7 +155,28 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     @objc private func selectMode(_ sender: NSMenuItem) {
         if let modeRaw = sender.representedObject as? String,
            let mode = DictationTemplate(rawValue: modeRaw) {
+            // Warn if selecting translate without Whisper
+            if mode == .translate && settings.transcriptionEngine != "whisper" {
+                showTranslateAlert()
+                return
+            }
             settings.selectedDictationTemplate = mode
+            settings.save()
+        }
+    }
+
+    private func showTranslateAlert() {
+        let alert = NSAlert()
+        alert.messageText = L10n("Motor incompatível")
+        // swiftlint:disable:next line_length
+        alert.informativeText = L10n("A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução. Deseja trocar para o Whisper?")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: L10n("Trocar para Whisper"))
+        alert.addButton(withTitle: L10n("Cancelar"))
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            settings.transcriptionEngine = "whisper"
+            settings.selectedDictationTemplate = .translate
             settings.save()
         }
     }
