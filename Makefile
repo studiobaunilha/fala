@@ -80,8 +80,8 @@ clean: ## Remove artefatos de build (.build/)
 	@$(SWIFT) package clean
 	@printf "$(GREEN)✓ Build limpo$(RESET)\n"
 
-release: check ## check → build release → assinar → publicar no R2
-	@bash scripts/release.sh
+release: ## Publica uma release (uso: make release BUMP=patch|minor|major)
+	@bash scripts/release.sh $(BUMP)
 
-release-dry: check ## Igual a release, mas sem fazer upload (dry-run)
-	@bash scripts/release.sh --dry-run
+release-dry: ## Dry-run de release (uso: make release-dry BUMP=patch)
+	@bash scripts/release.sh $(BUMP) --dry-run

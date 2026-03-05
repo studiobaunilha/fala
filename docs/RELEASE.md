@@ -47,45 +47,32 @@ CFBundleVersion            = "5"      ← build number (sempre incrementa)
 
 ## Como Publicar uma Release
 
-### 1. Bumpe a versão
-
-Edite `Sources/Fala/Resources/Info.plist`:
-
-```xml
-<key>CFBundleShortVersionString</key>
-<string>1.1</string>        <!-- versão visível -->
-<key>CFBundleVersion</key>
-<string>2</string>           <!-- build number -->
-```
-
-### 2. Commit da versão
+Um único comando faz tudo:
 
 ```bash
-git add Sources/Fala/Resources/Info.plist
-git commit -m "chore: bump version to 1.1 (build 2)"
+make release BUMP=patch    # 1.0 → 1.0.1 (bug fix)
+make release BUMP=minor    # 1.0 → 1.1   (nova feature)
+make release BUMP=major    # 1.0 → 2.0   (breaking change)
 ```
 
-### 3. Publique
+O script automaticamente:
+1. ✅ Verifica que a working tree está limpa
+2. ✅ Verifica chave EdDSA e wrangler
+3. ✅ Bumpa a versão + build em `Info.plist`
+4. ✅ Commita e cria tag `vX.Y`
+5. ✅ Builda release otimizado
+6. ✅ Cria `.app` + `.dmg`
+7. ✅ Assina com EdDSA
+8. ✅ Gera e faz upload do `appcast.xml` + `.dmg` para o R2
+9. ✅ Push do commit + tag
+
+### Testar sem publicar
 
 ```bash
-make release
+make release-dry BUMP=patch
 ```
 
-Isso faz tudo automaticamente:
-1. Lint + testes (preflight)
-2. Build release otimizado
-3. Cria `.app` bundle com Sparkle framework
-4. Empacota um `.dmg`
-5. Assina com a chave EdDSA
-6. Gera `appcast.xml` com versão, assinatura e URL
-7. Faz upload do `.dmg` e `appcast.xml` para o R2
-
-### 4. Tag no Git (bom hábito)
-
-```bash
-git tag v1.1
-git push origin main --tags
-```
+Faz tudo localmente mas **não faz upload** e **reverte** o commit/tag automaticamente.
 
 ---
 
@@ -161,11 +148,8 @@ Cloudflare R2 (bucket: fala-updates)
 ## Checklist Rápido de Release
 
 ```
-□ Código testado e commitado
-□ Versão bumpada em Info.plist (version + build)
-□ Commit da versão
-□ make release
-□ Tag no git (git tag vX.Y && git push --tags)
+□ Código testado e commitado (working tree limpa)
+□ make release BUMP=patch|minor|major
 □ Testar: abrir o app antigo → Ajustes → Atualizações → Verificar Agora
 ```
 
