@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "Sussurro",
+    name: "Fala",
     defaultLocalization: "pt-BR",
     platforms: [.macOS(.v14)],
     dependencies: [
@@ -14,7 +14,7 @@ let package = Package(
     targets: [
         // All testable business logic lives here.
         .target(
-            name: "SussurroCore",
+            name: "FalaCore",
             dependencies: [
                 .product(name: "WhisperKit", package: "WhisperKit"),
                 .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
@@ -22,31 +22,31 @@ let package = Package(
                 .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
                 .product(name: "FluidAudio", package: "FluidAudio"),
             ],
-            path: "Sources/SussurroCore",
+            path: "Sources/FalaCore",
             resources: [
                 .process("Resources/Localizable.xcstrings")
             ]
         ),
         // Thin executable shell: only main.swift + linker-embedded Info.plist.
         .executableTarget(
-            name: "Sussurro",
-            dependencies: ["SussurroCore"],
-            path: "Sources/Sussurro",
+            name: "Fala",
+            dependencies: ["FalaCore"],
+            path: "Sources/Fala",
             exclude: ["Resources"],
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
-                    "-Xlinker", "Sources/Sussurro/Resources/Info.plist",
+                    "-Xlinker", "Sources/Fala/Resources/Info.plist",
                 ])
             ]
         ),
         // Unit + integration tests.
         .testTarget(
-            name: "SussurroTests",
-            dependencies: ["SussurroCore"],
-            path: "Tests/SussurroTests"
+            name: "FalaTests",
+            dependencies: ["FalaCore"],
+            path: "Tests/FalaTests"
         ),
     ]
 )

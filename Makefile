@@ -1,7 +1,7 @@
 XCODE   := /Applications/Xcode.app/Contents/Developer
 SWIFT   := DEVELOPER_DIR=$(XCODE) swift
-BUNDLE  := $(HOME)/Applications/Sussurro.app/Contents/MacOS/Sussurro
-APP     := $(HOME)/Applications/Sussurro.app
+BUNDLE  := $(HOME)/Applications/Fala.app/Contents/MacOS/Fala
+APP     := $(HOME)/Applications/Fala.app
 HOOK    := .git/hooks/pre-commit
 
 # ── Cores ──────────────────────────────────────────────────────────────────────
@@ -15,7 +15,7 @@ RESET := \033[0m
 .PHONY: help check lint test hooks dev install kill logs clean
 
 help: ## Mostra este menu
-	@printf "\n  $(BOLD)Sussurro$(RESET)\n\n"
+	@printf "\n  $(BOLD)Fala$(RESET)\n\n"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN {FS = ":.*?## "}; \
 	         {printf "  $(CYAN)make %-10s$(RESET) %s\n", $$1, $$2}'
@@ -39,12 +39,12 @@ dev: check ## check → build debug → relança o app
 	@printf "$(GREY)▶ swift build$(RESET)\n"
 	@$(SWIFT) build
 	@mkdir -p $(APP)/Contents/MacOS
-	@cp .build/debug/Sussurro $(BUNDLE)
+	@cp .build/debug/Fala $(BUNDLE)
 	@mkdir -p $(APP)/Contents/Resources
-	@cp Sources/Sussurro/Resources/AppIcon.icns $(APP)/Contents/Resources/
-	@cp Sources/Sussurro/Resources/Info.plist $(APP)/Contents/
+	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
+	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
 	@codesign --force --deep --sign - $(APP)
-	@pkill Sussurro 2>/dev/null || true
+	@pkill Fala 2>/dev/null || true
 	@sleep 0.3
 	@open $(APP)
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
@@ -53,22 +53,22 @@ install: check ## check → build release → instala
 	@printf "$(GREY)▶ swift build -c release$(RESET)\n"
 	@$(SWIFT) build -c release
 	@mkdir -p $(APP)/Contents/MacOS
-	@cp .build/release/Sussurro $(BUNDLE)
+	@cp .build/release/Fala $(BUNDLE)
 	@mkdir -p $(APP)/Contents/Resources
-	@cp Sources/Sussurro/Resources/AppIcon.icns $(APP)/Contents/Resources/
-	@cp Sources/Sussurro/Resources/Info.plist $(APP)/Contents/
+	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
+	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
 	@codesign --force --deep --sign - $(APP)
-	@pkill Sussurro 2>/dev/null || true
+	@pkill Fala 2>/dev/null || true
 	@sleep 0.3
 	@open $(APP)
 	@printf "$(GREEN)✓ Release instalado e rodando$(RESET)\n"
 
 kill: ## Encerra o app
-	@pkill Sussurro 2>/dev/null && printf "$(GREEN)✓ Sussurro encerrado$(RESET)\n" || printf "$(GREY)App não estava rodando$(RESET)\n"
+	@pkill Fala 2>/dev/null && printf "$(GREEN)✓ Fala encerrado$(RESET)\n" || printf "$(GREY)App não estava rodando$(RESET)\n"
 
 logs: ## Mostra logs do app em tempo real (Ctrl+C para sair)
-	@printf "$(GREY)Aguardando logs de Sussurro… (Ctrl+C para sair)$(RESET)\n"
-	@log stream --predicate 'process == "Sussurro"' --level debug
+	@printf "$(GREY)Aguardando logs de Fala… (Ctrl+C para sair)$(RESET)\n"
+	@log stream --predicate 'process == "Fala"' --level debug
 
 clean: ## Remove artefatos de build (.build/)
 	@$(SWIFT) package clean

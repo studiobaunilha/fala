@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUNDLE_BINARY="$HOME/Applications/Sussurro.app/Contents/MacOS/Sussurro"
+BUNDLE_BINARY="$HOME/Applications/Fala.app/Contents/MacOS/Fala"
 
 echo "▶ Running tests…"
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
@@ -13,11 +13,11 @@ echo "▶ Building (debug)…"
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift build
 
 echo "▶ Copying to bundle…"
-cp "$REPO_DIR/.build/debug/Sussurro" "$BUNDLE_BINARY"
+cp "$REPO_DIR/.build/debug/Fala" "$BUNDLE_BINARY"
 
 echo "▶ Relaunching…"
-pkill Sussurro 2>/dev/null || true
+pkill Fala 2>/dev/null || true
 sleep 0.3
-open "$HOME/Applications/Sussurro.app"
+open "$HOME/Applications/Fala.app"
 
 echo "✓ Running. Check menu bar."

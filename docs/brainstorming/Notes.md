@@ -19,3 +19,7 @@ Se o idioma da aplicação estiver selecionado para inglês, a gente deveria tir
 
 Sobre o pós-processamento, a gente criou um "system prompt" que ele serve para qualquer um dos modos, né? Independente do pós-processamento que está selecionado ali. Eu fiquei pensando que isso está hard-coded no sistema. E a gente deveria deixar isso para o usuário poder modificar, sabe? Que é o prompt de sistema, digamos assim, né? Que dá a atribuição para IA qual que é o objetivo dela, o que ela deve fazer e tudo mais. Eu não vejo por que a gente travar e esconder isso do usuário, sabe?
 
+
+---
+
+Muitas das coisas que às vezes parecem parar de funcionar quando mexemos em algo, eu gostaria que a gente desse uma olhada melhor, porque deveria ter testes automatizados, né, cara, para garantir que isso não vai acontecer, regressão, end to end, sabe? Pra eu não ter que ficar testando cada vez que a gente faz uma modificação, garantir essas coisas através de testes, né?
