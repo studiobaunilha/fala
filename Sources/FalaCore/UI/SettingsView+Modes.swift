@@ -53,6 +53,34 @@ struct ModeDetailView: View {
         Form {
             descriptionSection
 
+            if template == .translate && settings.transcriptionEngine != "whisper" {
+                Section {
+                    Label {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                            Text(L10n("Motor incompatível"))
+                                .font(.headline)
+                            // swiftlint:disable:next line_length
+                            Text(L10n("A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução."))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Button(L10n("Trocar para Whisper")) {
+                                settings.transcriptionEngine = "whisper"
+                                settings.save()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.orange)
+                            .padding(.top, Spacing.xs)
+                        }
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.orange)
+                            .frame(width: 28)
+                    }
+                    .padding(.vertical, Spacing.xs)
+                }
+            }
+
             if template == .custom {
                 customNameSection
             }

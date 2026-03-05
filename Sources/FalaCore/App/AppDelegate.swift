@@ -62,8 +62,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             transcriber: activeTranscriber,
             inserter: TextInserter(),
             statusBar: bar,
-            feedback: feedbackCtrl,
-            whisperFallback: activeTranscriber is ParakeetTranscriber ? whisperTranscriber : nil
+            feedback: feedbackCtrl
         )
 
         statusBar = bar

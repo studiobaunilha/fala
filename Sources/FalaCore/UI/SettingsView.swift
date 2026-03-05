@@ -220,8 +220,17 @@ struct SettingsView: View {
                         if template == .translate && settings.language == "en" { return false }
                         return true
                     }, id: \.self) { template in
-                        Label(template.localizedName, systemImage: template.icon)
-                            .tag(SettingsSelection.template(template))
+                        HStack {
+                            Label(template.localizedName, systemImage: template.icon)
+                            if template == .translate && settings.transcriptionEngine != "whisper" {
+                                Spacer()
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                    .font(.caption)
+                                    .help(L10n("Tradução requer o motor Whisper"))
+                            }
+                        }
+                        .tag(SettingsSelection.template(template))
                     }
                 }
 
