@@ -86,10 +86,14 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         // thread, so assumeIsolated is safe here.
         MainActor.assumeIsolated {
             LicenseManager.shared.setTestActivated(true)
+            // Inject a clean config so tests never depend on user state
+            var testConfig = AppConfig()
+            testConfig.selectedDictationTemplate = .raw
             mode = DictationMode(
                 recorder: recorder,
                 transcriber: transcriber,
-                inserter: inserter
+                inserter: inserter,
+                config: testConfig
             )
         }
     }

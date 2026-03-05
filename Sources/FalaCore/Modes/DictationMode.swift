@@ -13,6 +13,7 @@ public final class DictationMode {
     private let inserter: any TextInserting
     private weak var statusBar: StatusBarController?
     private let feedback: DictationFeedbackController?
+    private let configOverride: AppConfig?
 
     private var isRecording = false
 
@@ -32,13 +33,15 @@ public final class DictationMode {
         transcriber: any AudioTranscribing,
         inserter: any TextInserting,
         statusBar: StatusBarController? = nil,
-        feedback: DictationFeedbackController? = nil
+        feedback: DictationFeedbackController? = nil,
+        config: AppConfig? = nil
     ) {
         self.recorder = recorder
         self.transcriber = transcriber
         self.inserter = inserter
         self.statusBar = statusBar
         self.feedback = feedback
+        self.configOverride = config
     }
 
     /// Binds global keyboard shortcut handlers. Call once at app startup.
@@ -107,7 +110,7 @@ public final class DictationMode {
                 return
             }
 
-            let config = AppConfig.load()
+            let config = configOverride ?? AppConfig.load()
             let template = config.selectedDictationTemplate
 
             let task = template == .translate ? "translate" : "transcribe"
