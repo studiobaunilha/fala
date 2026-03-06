@@ -49,6 +49,7 @@ dev: check ## check → build debug → relança o app
 	@codesign --force --deep --sign - $(APP)
 	@pkill Fala 2>/dev/null || true
 	@sleep 0.3
+	@tccutil reset Accessibility dev.fala.app 2>/dev/null || true
 	@open $(APP)
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
 
@@ -66,6 +67,7 @@ install: check ## check → build release → instala
 	@codesign --force --deep --sign - $(APP)
 	@pkill Fala 2>/dev/null || true
 	@sleep 0.3
+	@tccutil reset Accessibility dev.fala.app 2>/dev/null || true
 	@open $(APP)
 	@printf "$(GREEN)✓ Release instalado e rodando$(RESET)\n"
 
