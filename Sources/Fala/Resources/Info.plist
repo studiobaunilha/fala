@@ -2,27 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleIdentifier</key>
-    <string>dev.fala.app</string>
-    <key>CFBundleName</key>
-    <string>Fala</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>LSUIElement</key>
-    <true/>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Fala needs microphone access to transcribe speech to text.</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>SUPublicEDKey</key>
-    <string>EC6cjGYZE01Pu9cwFtigfdQFspcXEFJDIKGriBXMTU0=</string>
-    <key>SUFeedURL</key>
-    <string>https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev/appcast.xml</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>dev.fala.app</string>
+	<key>CFBundleName</key>
+	<string>Fala</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.1</string>
+	<key>CFBundleVersion</key>
+	<string>2</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Fala needs microphone access to transcribe speech to text.</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>SUFeedURL</key>
+	<string>https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>EC6cjGYZE01Pu9cwFtigfdQFspcXEFJDIKGriBXMTU0=</string>
 </dict>
 </plist>
