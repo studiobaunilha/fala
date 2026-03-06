@@ -1,5 +1,4 @@
-XCODE   := /Applications/Xcode.app/Contents/Developer
-SWIFT   := DEVELOPER_DIR=$(XCODE) swift
+SWIFT   := bash scripts/swift-env.sh
 BUNDLE  := $(HOME)/Applications/Fala.app/Contents/MacOS/Fala
 APP     := $(HOME)/Applications/Fala.app
 HOOK    := .git/hooks/pre-commit
@@ -26,7 +25,7 @@ help: ## Mostra este menu
 check: hooks lint test ## Preflight completo: hooks + lint + testes (roda antes de dev/install)
 
 lint: ## Roda SwiftLint (--strict)
-	@DEVELOPER_DIR=$(XCODE) swiftlint --strict
+	@DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swiftlint --strict
 
 test: ## Roda os testes unitários
 	@printf "$(GREY)▶ swift test$(RESET)\n"

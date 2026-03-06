@@ -27,15 +27,14 @@ final class ModelManagerTests: XCTestCase, @unchecked Sendable {
         try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmpDir) }
 
-        try makeFakeModel(named: "openai_whisper-medium", in: tmpDir)
-        try makeFakeModel(named: "openai_whisper-base", in: tmpDir)
+        _ = try makeFakeModel(named: "openai_whisper-medium", in: tmpDir)
+        _ = try makeFakeModel(named: "openai_whisper-base", in: tmpDir)
 
         // Create a directory WITHOUT AudioEncoder.mlmodelc (incomplete download)
         let incomplete = tmpDir.appendingPathComponent("openai_whisper-tiny")
         try FileManager.default.createDirectory(at: incomplete, withIntermediateDirectories: true)
 
         MainActor.assumeIsolated {
-            let manager = ModelManager()
             // Use internal scan that takes a directory parameter
             let found = ModelManager.scanDirectory(tmpDir)
             XCTAssertEqual(found.count, 2)

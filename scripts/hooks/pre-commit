@@ -4,12 +4,7 @@
 set -euo pipefail
 
 REPO_DIR="$(git rev-parse --show-toplevel)"
-# DEVELOPER_DIR garante o toolchain do Xcode (PreviewsMacros, etc.).
-# SDKROOT pode apontar para a CLT via VS Code / mise — unset força o swift
-# a derivar o SDK correto do DEVELOPER_DIR, em vez do SDK da CLT.
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-export DEVELOPER_DIR
-unset SDKROOT
+SWIFT_WRAPPER="$REPO_DIR/scripts/swift-env.sh"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,7 +21,7 @@ cd "$REPO_DIR"
 # ── 1. SwiftLint ─────────────────────────────────────────────────────────────
 printf "\n${BOLD}[1/2] SwiftLint${RESET}\n"
 if command -v swiftlint &>/dev/null; then
-    if swiftlint --strict 2>&1; then
+    if DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swiftlint --strict 2>&1; then
         pass "SwiftLint — sem violações"
     else
         fail "SwiftLint encontrou violações. Corrija antes de commitar."
@@ -37,7 +32,7 @@ fi
 
 # ── 2. Testes ────────────────────────────────────────────────────────────────
 printf "\n${BOLD}[2/2] Testes${RESET}\n"
-if /usr/bin/swift test 2>&1; then
+if bash "$SWIFT_WRAPPER" test 2>&1; then
     pass "Todos os testes passaram"
 else
     fail "Testes falharam. Corrija antes de commitar."

@@ -1,5 +1,41 @@
 // swift-tools-version: 6.0
 import PackageDescription
+import Foundation
+
+let defaultDeveloperDir = "/Applications/Xcode.app/Contents/Developer"
+let configuredDeveloperDir = ProcessInfo.processInfo.environment["DEVELOPER_DIR"]?
+    .trimmingCharacters(in: .whitespacesAndNewlines)
+let developerDir = (configuredDeveloperDir?.isEmpty == false ? configuredDeveloperDir : defaultDeveloperDir) ?? defaultDeveloperDir
+
+let macOSXCTestSettings: [SwiftSetting] = [
+    .unsafeFlags(
+        [
+            "-I\(developerDir)/Platforms/MacOSX.platform/Developer/usr/lib",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks"
+        ],
+        .when(platforms: [.macOS])
+    )
+]
+
+let macOSXCTestLinkerSettings: [LinkerSetting] = [
+    .unsafeFlags(
+        [
+            "-L\(developerDir)/Platforms/MacOSX.platform/Developer/usr/lib",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks",
+            "-F\(developerDir)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/PrivateFrameworks",
+            "-Xlinker", "-rpath",
+            "-Xlinker", "\(developerDir)/Platforms/MacOSX.platform/Developer/usr/lib",
+            "-Xlinker", "-rpath",
+            "-Xlinker", "\(developerDir)/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+            "-Xlinker", "-rpath",
+            "-Xlinker", "\(developerDir)/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks"
+        ],
+        .when(platforms: [.macOS])
+    )
+]
 
 let package = Package(
     name: "Fala",
@@ -48,7 +84,9 @@ let package = Package(
         .testTarget(
             name: "FalaTests",
             dependencies: ["FalaCore"],
-            path: "Tests/FalaTests"
+            path: "Tests/FalaTests",
+            swiftSettings: macOSXCTestSettings,
+            linkerSettings: macOSXCTestLinkerSettings
         ),
     ]
 )

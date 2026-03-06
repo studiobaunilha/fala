@@ -1,7 +1,6 @@
 import XCTest
 @testable import FalaCore
 
-@MainActor
 final class AppSettingsTests: XCTestCase {
 
     // swiftlint:disable:next implicitly_unwrapped_optional
@@ -20,6 +19,7 @@ final class AppSettingsTests: XCTestCase {
         super.tearDown()
     }
 
+    @MainActor
     func testInitFromConfig() {
         var config = AppConfig()
         config.dictationModel = "test-dictation"
@@ -40,6 +40,7 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(settings.language, "es")
     }
 
+    @MainActor
     func testSaveUpdatesTranscriber() {
         var config = AppConfig()
         config.dictationModel = "test-dictation"
