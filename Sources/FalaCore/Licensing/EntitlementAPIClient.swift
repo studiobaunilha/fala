@@ -228,7 +228,23 @@ private struct APIGrantResponse: Codable {
             return nil
         }
 
-        return ISO8601DateFormatter().date(from: raw)
+        let fractionalSecondFormatter = ISO8601DateFormatter()
+        fractionalSecondFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let parsed = fractionalSecondFormatter.date(from: raw) {
+            return parsed
+        }
+
+        let internetDateTimeFormatter = ISO8601DateFormatter()
+        internetDateTimeFormatter.formatOptions = [.withInternetDateTime]
+        if let parsed = internetDateTimeFormatter.date(from: raw) {
+            return parsed
+        }
+
+        if let unixSeconds = TimeInterval(raw) {
+            return Date(timeIntervalSince1970: unixSeconds)
+        }
+
+        return nil
     }
 }
 
