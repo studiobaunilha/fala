@@ -213,7 +213,6 @@ extension TranscriptionJob {
         return nil
     }
     
-    // swiftlint:disable:next cyclomatic_complexity function_body_length
     static func applyLLM(
         to text: String, config: AppConfig, template: DictationTemplate,
         promptOverride: String? = nil
@@ -229,15 +228,6 @@ extension TranscriptionJob {
             enriched += "\n\n" + L10n("IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).")
         }
         
-        if template == .promptDev, !config.devStack.isEmpty {
-            enriched += """
-            
-            Tecnologias de Contexto (Stack): \(config.devStack). 
-            Use isso apenas para moldar a instrução/prompt que você está criando.
-            Lembre-se: Você está ESCREVENDO UM PROMPT, NÃO tentando resolver a tarefa ou gerar código.
-            NÃO adicione essas linguagens como listas isoladas na saída, apenas utilize-as no contexto.
-            """
-        }
         let prompt: String
         if template.isConversational {
             prompt = enriched

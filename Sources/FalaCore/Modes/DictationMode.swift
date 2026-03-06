@@ -170,9 +170,6 @@ public final class DictationMode {
 
         if template.requiresLLM, !basePrompt.isEmpty {
             var enriched = basePrompt
-            if template == .promptDev, !config.devStack.isEmpty {
-                enriched += "\n\nStack do projeto: \(config.devStack)"
-            }
             // Conversational modes (askAI) skip anti-response wrapping —
             // the whole point is for the AI to respond to the question.
             let prompt: String

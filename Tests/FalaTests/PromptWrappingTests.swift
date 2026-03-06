@@ -63,12 +63,7 @@ final class PromptWrappingTests: XCTestCase {
     func testRequiresLLMForProcessingModes() {
         XCTAssertFalse(DictationTemplate.raw.requiresLLM)
         XCTAssertFalse(DictationTemplate.translate.requiresLLM)
-        XCTAssertTrue(DictationTemplate.clean.requiresLLM)
-        XCTAssertTrue(DictationTemplate.bullets.requiresLLM)
         XCTAssertTrue(DictationTemplate.askAI.requiresLLM)
-        XCTAssertTrue(DictationTemplate.promptDev.requiresLLM)
-        XCTAssertTrue(DictationTemplate.promptImage.requiresLLM)
-        XCTAssertTrue(DictationTemplate.promptVideo.requiresLLM)
         XCTAssertTrue(DictationTemplate.custom.requiresLLM)
     }
 
@@ -84,31 +79,15 @@ final class PromptWrappingTests: XCTestCase {
         }
     }
 
-    func testIsCreativeModeForPromptTemplates() {
-        XCTAssertTrue(DictationTemplate.promptDev.isCreativeMode)
-        XCTAssertTrue(DictationTemplate.promptImage.isCreativeMode)
-        XCTAssertTrue(DictationTemplate.promptVideo.isCreativeMode)
-        XCTAssertFalse(DictationTemplate.clean.isCreativeMode)
-        XCTAssertFalse(DictationTemplate.askAI.isCreativeMode)
-    }
-
-    func testDefaultSystemPromptNotNilForProcessingModes() {
-        // Processing modes that use LLM should have a default prompt
-        let modesWithPrompt: [DictationTemplate] = [
-            .clean, .bullets, .promptDev, .promptImage, .promptVideo, .askAI
-        ]
-        for mode in modesWithPrompt {
-            let prompt = mode.defaultSystemPrompt
-            XCTAssertNotNil(prompt,
-                            "\(mode) should have a default system prompt")
-            if let prompt {
-                XCTAssertFalse(prompt.isEmpty,
-                               "\(mode) default prompt should not be empty")
-            }
+    func testDefaultSystemPromptNotNilForAskAI() {
+        let prompt = DictationTemplate.askAI.defaultSystemPrompt
+        XCTAssertNotNil(prompt, "askAI should have a default system prompt")
+        if let prompt {
+            XCTAssertFalse(prompt.isEmpty, "askAI default prompt should not be empty")
         }
     }
 
-    func testDefaultSystemPromptNilForRawAndTranslate() {
+    func testDefaultSystemPromptNilForOtherModes() {
         XCTAssertNil(DictationTemplate.raw.defaultSystemPrompt)
         XCTAssertNil(DictationTemplate.translate.defaultSystemPrompt)
         XCTAssertNil(DictationTemplate.custom.defaultSystemPrompt)
@@ -125,16 +104,6 @@ final class PromptWrappingTests: XCTestCase {
         // It should NOT contain anti-response instructions
         XCTAssertFalse(prompt.contains("NUNCA deve responder"))
         XCTAssertFalse(prompt.contains("NÃO é uma pergunta"))
-    }
-
-    func testCleanPromptIsNotConversational() {
-        guard let prompt = DictationTemplate.clean.defaultSystemPrompt else {
-            XCTFail("clean should have a default prompt")
-            return
-        }
-        // clean prompt should instruct the model to return only text
-        XCTAssertTrue(prompt.contains("SOMENTE"),
-                      "clean prompt should prevent conversational responses")
     }
 
     // MARK: - LLMError

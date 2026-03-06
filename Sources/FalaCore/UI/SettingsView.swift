@@ -40,7 +40,6 @@ public final class AppSettings: ObservableObject {
     @Published public var customModeName: String
     @Published public var customModePrompt: String
     @Published public var globalSystemPrompt: String
-    @Published public var devStack: String
 
     public let modelManager: ModelManager
     public let mlxModelManager = MLXModelManager()
@@ -127,7 +126,6 @@ public final class AppSettings: ObservableObject {
         self.customModeName = config.customModeName
         self.customModePrompt = config.customModePrompt
         self.globalSystemPrompt = config.globalSystemPrompt
-        self.devStack = config.devStack
 
         self.transcriber = transcriber
         self.modelManager = modelManager
@@ -158,7 +156,6 @@ public final class AppSettings: ObservableObject {
         config.customModeName = String(customModeName.prefix(30))
         config.customModePrompt = customModePrompt
         config.globalSystemPrompt = globalSystemPrompt
-        config.devStack = devStack
 
         // Native macOS persistence via UserDefaults
         config.save()
@@ -216,9 +213,7 @@ struct SettingsView: View {
                 
                 Section(L10n("Modos")) {
                     ForEach(DictationTemplate.allCases.filter { template in
-                        if template.isCreativeMode { return false }
                         if template == .translate && settings.language == "en" { return false }
-                        // Hide custom mode for Apple Intelligence — it can't handle custom prompts
                         if template == .custom && settings.llmProvider == "apple" { return false }
                         return true
                     }, id: \.self) { template in
@@ -233,15 +228,6 @@ struct SettingsView: View {
                             }
                         }
                         .tag(SettingsSelection.template(template))
-                    }
-                }
-
-                if settings.llmProvider != "apple" {
-                    Section(L10n("Prompts Criativos")) {
-                        ForEach(DictationTemplate.allCases.filter { $0.isCreativeMode }, id: \.self) { template in
-                            Label(template.localizedName, systemImage: template.icon)
-                                .tag(SettingsSelection.template(template))
-                        }
                     }
                 }
             }

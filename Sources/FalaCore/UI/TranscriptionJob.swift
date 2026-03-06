@@ -128,7 +128,7 @@ public final class TranscriptionJob: ObservableObject {
         let processingTask = createProcessingTask(
             stream: stream,
             config: config,
-            template: batchPostPrompt.isEmpty ? .raw : .clean,
+            template: batchPostPrompt.isEmpty ? .raw : .custom,
             format: format,
             outputURL: outputURL,
             inputURL: inputURL,

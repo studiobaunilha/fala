@@ -49,10 +49,6 @@ struct ModeDetailView: View {
         return prompt != (template.defaultSystemPrompt ?? "")
     }
 
-    private var isStackModified: Bool {
-        return settings.devStack != "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
-    }
-
     var body: some View {
         Form {
             descriptionSection
@@ -87,10 +83,6 @@ struct ModeDetailView: View {
 
             if template == .custom {
                 customNameSection
-            }
-
-            if template == .promptDev {
-                stackSection
             }
 
             if template.requiresLLM {
@@ -243,36 +235,6 @@ struct ModeDetailView: View {
             Text(L10n("Nome Personalizado"))
         } footer: {
             Text(L10n("Este nome aparece no menu da barra de status. Máximo 30 caracteres."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var stackSection: some View {
-        Section {
-            TextField(L10n("Stack / Tecnologias"), text: $settings.devStack)
-                .onChange(of: settings.devStack) { debouncedSave() }
-            
-            HStack {
-                Button(L10n("Restaurar Padrão")) {
-                    settings.devStack = "Swift 6, SwiftUI, AppKit, WhisperKit, CoreML"
-                    debouncedSave()
-                }
-                .disabled(!isStackModified)
-                
-                Spacer()
-                
-                if isStackModified {
-                    Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-            }
-        } header: {
-            Text(L10n("Stack do Projeto"))
-        } footer: {
-            // swiftlint:disable:next line_length
-            Text(L10n("Tecnologias do projeto atual. Incluída automaticamente no prompt para gerar código contextualizado."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
