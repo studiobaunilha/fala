@@ -133,14 +133,22 @@ extension TranscribeView {
                 .disabled(isWorking)
                 
                 Toggle(L10n("Identificar múltiplos locutores (Diarization)"), isOn: $job.appSettings.enableDiarization)
-                    .disabled(isWorking)
+                    .disabled(isWorking || job.appSettings.llmProvider == "apple")
             } header: {
                 Text(L10n("Modelo & Qualidade"))
             } footer: {
-                // swiftlint:disable:next line_length
-                Text(L10n("A identificação de locutores funciona via pós-processamento com IA — não é detecção acústica. A qualidade depende do modelo de IA selecionado. Requer o campo de pós-processamento preenchido."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    // swiftlint:disable:next line_length
+                    Text(L10n("A identificação de locutores funciona via pós-processamento com IA — não é detecção acústica. A qualidade depende do modelo de IA selecionado. Requer o campo de pós-processamento preenchido."))
+                        .foregroundStyle(.secondary)
+                    
+                    if job.appSettings.llmProvider == "apple" {
+                        // swiftlint:disable:next line_length
+                        Label(L10n("Indisponível com Apple Intelligence (requer modelo mais avançado)"), systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption)
             }
 
             Section(L10n("Saída")) {

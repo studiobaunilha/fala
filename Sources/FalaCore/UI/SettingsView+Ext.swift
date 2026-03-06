@@ -113,13 +113,22 @@ extension SettingsView {
             
             Section {
                 Toggle(L10n("Reconhecer múltiplos locutores"), isOn: $settings.enableDiarization)
+                    .disabled(settings.llmProvider == "apple")
             } header: {
                 Text(L10n("Diarization (Identificação de Vozes)"))
             } footer: {
-                // swiftlint:disable:next line_length
-                Text(L10n("Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado."))
+                        .foregroundStyle(.secondary)
+                    
+                    if settings.llmProvider == "apple" {
+                        // swiftlint:disable:next line_length
+                        Label(L10n("Indisponível com Apple Intelligence (requer modelo mais avançado)"), systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+                .font(.caption)
             }
             
             Section {
