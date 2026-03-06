@@ -32,7 +32,7 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
             return nil
         case .askAI:
             // swiftlint:disable:next line_length
-            return L10n("Você é um assistente inteligente. A mensagem do usuário é uma pergunta ou solicitação transcrita por voz. Responda de forma clara, útil e concisa no mesmo idioma do usuário.")
+            return L10n("Você é um assistente inteligente. A mensagem do usuário é uma pergunta ou solicitação transcrita por voz. Responda de forma clara, útil e concisa.")
         }
     }
 

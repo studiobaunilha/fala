@@ -213,6 +213,7 @@ extension TranscriptionJob {
         return nil
     }
     
+    // swiftlint:disable:next cyclomatic_complexity
     static func applyLLM(
         to text: String, config: AppConfig, template: DictationTemplate,
         promptOverride: String? = nil
@@ -230,6 +231,11 @@ extension TranscriptionJob {
         
         let prompt: String
         if template.isConversational {
+            if effective.provider == "apple" {
+                let langName = AppSettings.allLanguages.first { $0.id == config.language }?.name
+                    ?? config.language
+                enriched += "\nIMPORTANTE: Responda SEMPRE em \(langName)."
+            }
             prompt = enriched
         } else if effective.provider == "apple" {
             prompt = wrapPromptForAppleIntelligence(enriched)

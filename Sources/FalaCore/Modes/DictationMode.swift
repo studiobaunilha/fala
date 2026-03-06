@@ -174,6 +174,12 @@ public final class DictationMode {
             // the whole point is for the AI to respond to the question.
             let prompt: String
             if template.isConversational {
+                // Apple Intelligence's compact model needs explicit language guidance
+                if modeConfig.provider == "apple" {
+                    let langName = AppSettings.allLanguages.first { $0.id == config.language }?.name
+                        ?? config.language
+                    enriched += "\nIMPORTANTE: Responda SEMPRE em \(langName)."
+                }
                 prompt = enriched
             } else if modeConfig.provider == "apple" {
                 // Apple Intelligence (~3B, 4096 tokens) can't handle the
