@@ -95,7 +95,7 @@ extension SettingsView {
             return Text(L10n("On-line — requer chave API gratuita do Google. Cota generosa sem custo. Suporta todos os modos e prompts complexos com alta qualidade."))
         case "openai":
             // swiftlint:disable:next line_length
-            return Text(L10n("On-line — requer chave API paga da OpenAI. Alternativa premium com modelos como GPT-4. Suporta todos os modos e prompts complexos."))
+            return Text(L10n("On-line — requer chave API paga da OpenAI. Alternativa premium com modelos como GPT-5. Suporta todos os modos e prompts complexos."))
         default:
             return Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
         }
