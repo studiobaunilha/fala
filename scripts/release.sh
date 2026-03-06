@@ -196,7 +196,7 @@ if $DRY_RUN; then
     git checkout "$PLIST"
     ok "Revertido — nenhuma alteração permanente"
 else
-    info "Fazendo upload de $DMG_NAME…"
+    info "Fazendo upload de $DMG_NAME..."
     wrangler r2 object put "${BUCKET}/${DMG_NAME}" --file "$DMG_PATH" --content-type "application/octet-stream" --remote
     ok "DMG enviado"
 
