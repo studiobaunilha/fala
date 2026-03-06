@@ -9,6 +9,7 @@ public enum AppState {
 }
 
 @MainActor
+// swiftlint:disable:next type_body_length
 public final class StatusBarController: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
@@ -132,6 +133,16 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 if modeRaw == DictationTemplate.custom.rawValue {
                     let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
                     item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
+                    // Show warning icon when Apple Intelligence is the provider
+                    if settings.llmProvider == "apple" {
+                        item.image = NSImage(
+                            systemSymbolName: "exclamationmark.triangle.fill",
+                            accessibilityDescription: L10n("Incompatível")
+                        )
+                        item.image?.isTemplate = false
+                    } else {
+                        item.image = nil
+                    }
                 }
                 // Show warning icon on translate when engine is not Whisper
                 if modeRaw == DictationTemplate.translate.rawValue {
@@ -172,6 +183,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 showTranslateAlert()
                 return
             }
+            // Warn if selecting custom with Apple Intelligence
+            if mode == .custom && settings.llmProvider == "apple" {
+                showCustomModeAlert()
+                return
+            }
             settings.selectedDictationTemplate = mode
             settings.save()
         }
@@ -191,6 +207,16 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             settings.selectedDictationTemplate = .translate
             settings.save()
         }
+    }
+
+    private func showCustomModeAlert() {
+        let alert = NSAlert()
+        alert.messageText = L10n("Provedor incompatível")
+        // swiftlint:disable:next line_length
+        alert.informativeText = L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Troque o provedor de IA nos Ajustes para usar este modo.")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: L10n("OK"))
+        alert.runModal()
     }
 
     public func setState(_ state: AppState) {

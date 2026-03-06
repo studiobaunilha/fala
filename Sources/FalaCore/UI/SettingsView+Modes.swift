@@ -85,6 +85,27 @@ struct ModeDetailView: View {
                 customNameSection
             }
 
+            if template == .custom && isEffectiveProviderAppleIntelligence {
+                Section {
+                    Label {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                            Text(L10n("Provedor incompatível"))
+                                .font(.headline)
+                            // swiftlint:disable:next line_length
+                            Text(L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Selecione outro provedor abaixo."))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.orange)
+                            .frame(width: 28)
+                    }
+                    .padding(.vertical, Spacing.xs)
+                }
+            }
+
             if template.requiresLLM {
                 providerSection
                 if !isEffectiveProviderAppleIntelligence {

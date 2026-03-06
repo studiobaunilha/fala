@@ -214,7 +214,6 @@ struct SettingsView: View {
                 Section(L10n("Modos")) {
                     ForEach(DictationTemplate.allCases.filter { template in
                         if template == .translate && settings.language == "en" { return false }
-                        if template == .custom && settings.llmProvider == "apple" { return false }
                         return true
                     }, id: \.self) { template in
                         HStack {
@@ -225,6 +224,13 @@ struct SettingsView: View {
                                     .foregroundColor(.orange)
                                     .font(.caption)
                                     .help(L10n("Tradução requer o motor Whisper"))
+                            }
+                            if template == .custom && settings.llmProvider == "apple" {
+                                Spacer()
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                    .font(.caption)
+                                    .help(L10n("Modo personalizado requer provedor diferente do Apple Intelligence"))
                             }
                         }
                         .tag(SettingsSelection.template(template))
