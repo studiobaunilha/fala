@@ -116,7 +116,8 @@ extension SettingsView {
             } header: {
                 Text(L10n("Diarization (Identificação de Vozes)"))
             } footer: {
-                Text(L10n("Apenas para transcrição de arquivos. Tenta separar o texto por locutores diferentes."))
+                // swiftlint:disable:next line_length
+                Text(L10n("Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

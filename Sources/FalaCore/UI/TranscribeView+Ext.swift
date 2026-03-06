@@ -4,6 +4,18 @@ import SwiftUI
 
 extension TranscribeView {
     
+    private var defaultModelLabel: String {
+        let modelName = knownModels.first { $0.id == job.appSettings.batchModel }?.label
+            ?? job.appSettings.batchModel
+        return "\(L10n("Usar Padrão do Sistema")) (\(modelName))"
+    }
+    
+    private var defaultLanguageLabel: String {
+        let langName = AppSettings.allLanguages.first { $0.id == job.appSettings.language }?.name
+            ?? job.appSettings.language
+        return "\(L10n("Usar Padrão do Sistema")) (\(langName))"
+    }
+    
     var emptyStateView: some View {
         VStack(spacing: Spacing.lg) {
             Image(systemName: "waveform.badge.plus")
@@ -94,18 +106,25 @@ extension TranscribeView {
                     .foregroundStyle(.secondary)
             }
 
-            Section(L10n("Modelo & Qualidade")) {
-                Picker(L10n("Modelo"), selection: $job.overrideModel) {
-                    Text(L10n("Usar Padrão do Sistema")).tag(nil as String?)
-                    Divider()
-                    ForEach(knownModels) { model in
-                        Text(model.label).tag(model.id as String?)
+            Section {
+                if job.appSettings.transcriptionEngine == "whisper" {
+                    Picker(L10n("Modelo"), selection: $job.overrideModel) {
+                        Text(defaultModelLabel).tag(nil as String?)
+                        Divider()
+                        ForEach(knownModels) { model in
+                            Text(model.label).tag(model.id as String?)
+                        }
+                    }
+                    .disabled(isWorking)
+                } else {
+                    LabeledContent(L10n("Motor")) {
+                        Text(L10n("Parakeet V3"))
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(isWorking)
                 
                 Picker(L10n("Idioma"), selection: $job.overrideLanguage) {
-                    Text(L10n("Usar Padrão do Sistema")).tag(nil as String?)
+                    Text(defaultLanguageLabel).tag(nil as String?)
                     Divider()
                     ForEach(job.appSettings.availableLanguagesForEngine) { lang in
                         Text(lang.name).tag(lang.id as String?)
@@ -113,8 +132,15 @@ extension TranscribeView {
                 }
                 .disabled(isWorking)
                 
-                Toggle(L10n("Identificar múltiplos locutores (Diarization)"), isOn: $job.enableDiarization)
+                Toggle(L10n("Identificar múltiplos locutores (Diarization)"), isOn: $job.appSettings.enableDiarization)
                     .disabled(isWorking)
+            } header: {
+                Text(L10n("Modelo & Qualidade"))
+            } footer: {
+                // swiftlint:disable:next line_length
+                Text(L10n("A identificação de locutores funciona via pós-processamento com IA — não é detecção acústica. A qualidade depende do modelo de IA selecionado. Requer o campo de pós-processamento preenchido."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section(L10n("Saída")) {

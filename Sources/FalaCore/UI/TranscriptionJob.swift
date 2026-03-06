@@ -25,7 +25,6 @@ public final class TranscriptionJob: ObservableObject {
     // Per-job overrides
     @Published public var overrideModel: String?
     @Published public var overrideLanguage: String?
-    @Published public var enableDiarization: Bool
     
     // Dependency
     @Published public var appSettings: AppSettings
@@ -38,7 +37,6 @@ public final class TranscriptionJob: ObservableObject {
         if !config.defaultExportPath.isEmpty {
             self.outputDirectory = URL(fileURLWithPath: config.defaultExportPath)
         }
-        self.enableDiarization = config.enableDiarization
     }
 
     public func selectFile() {
@@ -104,7 +102,7 @@ public final class TranscriptionJob: ObservableObject {
     
     private func executeTranscription(wavURL: URL, inputURL: URL) async throws {
         var config = AppConfig.load()
-        config.enableDiarization = self.enableDiarization
+        config.enableDiarization = appSettings.enableDiarization
         let format = outputFormat
         
         let baseDir = outputDirectory ?? inputURL.deletingLastPathComponent()
@@ -117,12 +115,14 @@ public final class TranscriptionJob: ObservableObject {
         let effectiveModel = overrideModel ?? config.batchModel
         let effectiveLanguage = overrideLanguage ?? config.language
 
-        let transcriber = Transcriber(
-            modelName: effectiveModel,
-            language: effectiveLanguage,
-            temperature: config.batchTemperature,
-            prompt: ""
-        )
+        let transcriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
+            ? ParakeetTranscriber()
+            : Transcriber(
+                modelName: effectiveModel,
+                language: effectiveLanguage,
+                temperature: config.batchTemperature,
+                prompt: ""
+            )
         
         let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
         let processingTask = createProcessingTask(
@@ -146,15 +146,6 @@ public final class TranscriptionJob: ObservableObject {
         await MainActor.run {
             withAnimation(AnimationConfig.standard) { state = .done(outputURL.path) }
         }
-    }
-    
-    private func createTranscriber(config: AppConfig) -> Transcriber {
-        Transcriber(
-            modelName: overrideModel ?? config.batchModel,
-            language: overrideLanguage ?? config.language,
-            temperature: config.batchTemperature,
-            prompt: ""
-        )
     }
     
     public func cancel() {
