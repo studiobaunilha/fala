@@ -1,7 +1,29 @@
 import Foundation
 import Security
 
-/// Helper to securely store, read, and delete strings (like License Keys and JWTs) in the macOS Keychain.
+public protocol SecureStringStore: Sendable {
+    func save(token: String, for account: String) throws
+    func read(account: String) throws -> String?
+    func delete(account: String) throws
+}
+
+public struct KeychainSecureStore: SecureStringStore {
+    public init() {}
+
+    public func save(token: String, for account: String) throws {
+        try KeychainHelper.save(token: token, for: account)
+    }
+
+    public func read(account: String) throws -> String? {
+        try KeychainHelper.read(account: account)
+    }
+
+    public func delete(account: String) throws {
+        try KeychainHelper.delete(account: account)
+    }
+}
+
+/// Helper to securely store, read, and delete strings in the macOS Keychain.
 public enum KeychainHelper {
     private static let serviceName = "dev.fala.app.license"
 

@@ -62,7 +62,13 @@ public final class DictationMode {
     func startRecording() async {
         guard !isRecording else { return }
         guard LicenseManager.shared.isActivated else {
-            statusBar?.showTemporaryWarning(L10n("Fala Pro Necessário: Ative sua licença nos Ajustes."))
+            let blockedMessage: String
+            if LicenseManager.shared.accessState == .needsConnection {
+                blockedMessage = L10n("Conexão necessária: Conecte este Mac para validar a licença nos Ajustes.")
+            } else {
+                blockedMessage = L10n("Fala Pro Necessário: Ative o Fala Pro nos Ajustes.")
+            }
+            statusBar?.showTemporaryWarning(blockedMessage)
             return
         }
         do {

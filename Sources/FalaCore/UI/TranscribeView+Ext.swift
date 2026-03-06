@@ -196,10 +196,20 @@ extension TranscribeView {
                 }
             } else {
                 VStack(spacing: 4) {
-                    Text(L10n("Período de Teste Esgotado"))
+                    Text(
+                        licenseManager.accessState == .needsConnection
+                            ? L10n("Conexão Necessária")
+                            : L10n("Período de Teste Esgotado")
+                    )
                         .font(.headline)
                         .foregroundColor(.red)
-                    Text(L10n("Ative sua licença Fala Pro nos Ajustes para voltar a transcrever arquivos."))
+                    Text(
+                        licenseManager.accessState == .needsConnection
+                            ? L10n(
+                                "Conecte este Mac e valide a licença nos Ajustes para voltar a transcrever arquivos."
+                            )
+                            : L10n("Ative o Fala Pro nos Ajustes para voltar a transcrever arquivos.")
+                    )
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

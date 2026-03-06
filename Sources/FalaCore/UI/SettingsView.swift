@@ -192,6 +192,7 @@ struct SettingsView: View {
     @State private var selection: SettingsSelection? = .panel(.general)
     @State var newIncorrect: String = ""
     @State var newCorrect: String = ""
+    @State var activationCode: String = ""
     
     // Key testing state
     @State var isTestingKey = false

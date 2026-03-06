@@ -4,229 +4,295 @@ import Combine
 
 @MainActor
 public final class LicenseManager: ObservableObject {
-    @Published public private(set) var licenseEmail: String?
-    @Published public private(set) var errorMessage: String?
-    @Published public var isActivating: Bool = false
-    
-    // Trial logic
-    @Published public private(set) var trialDaysRemaining: Int = 0
-    public var isTrialActive: Bool { trialDaysRemaining > 0 && !isPro }
-    
-    // Core state
-    public var isActivated: Bool { isPro || isTrialActive }
-    @Published public private(set) var isPro: Bool = false
+    @Published public internal(set) var licenseEmail: String?
+    @Published public internal(set) var errorMessage: String?
+    @Published public var isActivating = false
+    @Published public var isDeactivating = false
+    @Published public internal(set) var trialDaysRemaining = 0
+    @Published public internal(set) var isPro = false
+    @Published public internal(set) var accessState: LicenseAccessState = .unlicensed
+    @Published public internal(set) var nextOnlineValidationAt: Date?
+    @Published public internal(set) var trialEndsAt: Date?
+    @Published public internal(set) var gracePeriodEndsAt: Date?
+    @Published public internal(set) var requiresOnlineValidation = false
 
-    // Replace with your actual Polar.sh public verification key.
-    // For EdDSA, it's typically a raw 32-byte string or base64.
-    private let providerPublicKeyBase64 = "REPLACE_ME_WITH_REAL_BASE64_PUBLIC_KEY"
-    
-    // Replace with your actual product ID / organization name
-    private let productId = "fala-pro"
-    
-    // The account identifiers used in Keychain
-    private let keychainAccount = "fala-license-token"
-    private let trialStartDateAccount = "fala-trial-start"
-    private let trialDurationDays: Double = 7
+    public var isTrialActive: Bool { accessState == .trialActive }
+    public var isActivated: Bool {
+        accessState == .trialActive || accessState == .proActive || accessState == .proGracePeriod
+    }
+    public var canActivate: Bool { activationAvailabilityMessage == nil }
+    public var activationAvailabilityMessage: String? {
+        if !licensingClient.isBackendConfigured {
+            return LicenseError.missingBackendConfiguration.errorDescription
+        }
+
+        if LicensingConfiguration.entitlementPublicKey == nil {
+            return LicenseError.missingVerificationKey.errorDescription
+        }
+
+        return nil
+    }
+
+    let productId = "fala-pro"
+    let entitlementTokenAccount = "fala-entitlement-token"
+    let entitlementEmailAccount = "fala-entitlement-email"
+    let legacyLicenseTokenAccount = "fala-license-token"
+    let lastKnownServerTimeAccount = "fala-license-server-time"
+    let licensingClient: any LicensingAPIClientProtocol
+    let secureStore: any SecureStringStore
+    let deviceFingerprintProvider: any DeviceFingerprintProviding
+    let now: @Sendable () -> Date
+
+    private var backgroundRefreshTask: Task<Void, Never>?
 
     public static let shared = LicenseManager()
 
-    private init() {
-        validateLocalToken()
-        checkTrialStatus()
+    init(
+        licensingClient: any LicensingAPIClientProtocol = EntitlementAPIClient(),
+        secureStore: any SecureStringStore = KeychainSecureStore(),
+        deviceFingerprintProvider: any DeviceFingerprintProviding = MacDeviceFingerprintProvider(),
+        now: @escaping @Sendable () -> Date = Date.init,
+        shouldRestoreStateOnLaunch: Bool = true
+    ) {
+        self.licensingClient = licensingClient
+        self.secureStore = secureStore
+        self.deviceFingerprintProvider = deviceFingerprintProvider
+        self.now = now
+
+        migrateLegacyEntitlementIfNeeded()
+
+        if shouldRestoreStateOnLaunch {
+            restoreEntitlementState(scheduleRefreshIfNeeded: true)
+        } else {
+            applyUnlicensedState()
+        }
     }
 
-    /// Called by the UI when the user enters a license key
-    public func activate(key: String) async {
+    public func activate(activationCode: String) async {
         isActivating = true
         errorMessage = nil
         defer { isActivating = false }
 
-        // Implement actual API call to Polar.sh to activate the key.
-        // The API should return a JWT (JSON Web Token) that proves activation.
-        // For now, this is a placeholder mimicking a successful activation.
-        
-        /*
-         Example Flow:
-         let url = URL(string: "https://api.polar.sh/v1/licenses/activate")!
-         var request = URLRequest(url: url)
-         request.httpMethod = "POST"
-         request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-         
-         let (data, response) = try await URLSession.shared.data(for: request)
-         // Parse the JWT from 'data'
-         let jwtToken = parsed.token
-         
-         // Save to keychain
-         try KeychainHelper.save(token: jwtToken, for: keychainAccount)
-         */
-
         do {
-            // Fake successful activation for boilerplate
-            // try KeychainHelper.save(token: "fake.jwt.token", for: keychainAccount)
-            
-            // In a real scenario, after saving, we immediately validate it locally:
-            // validateLocalToken()
-            
-            // Temporary Fake Success:
-            self.isPro = true
-            self.licenseEmail = "user@example.com"
-            self.trialDaysRemaining = 0 // Once Pro, trial is irrelevant
+            let normalizedCode = activationCode.trimmedNonEmpty
+            guard let normalizedCode else {
+                throw LicenseError.emptyActivationCode
+            }
+
+            if let activationAvailabilityMessage {
+                throw LicenseError.configurationIssue(message: activationAvailabilityMessage)
+            }
+
+            let deviceFingerprint = try resolveDeviceFingerprint()
+            let grant = try await licensingClient.activate(
+                activationCode: normalizedCode,
+                deviceFingerprint: deviceFingerprint,
+                machineName: LicensingConfiguration.machineName(),
+                appVersion: LicensingConfiguration.appVersion()
+            )
+            let payload = try validateEntitlementToken(
+                grant.entitlementToken,
+                allowExpired: false,
+                expectedDeviceFingerprint: deviceFingerprint
+            )
+
+            try saveEntitlement(grant: grant, email: grant.email ?? payload.email)
+            applyValidatedEntitlement(payload)
         } catch {
-            errorMessage = "Falha ao salvar a licença no sistema: \(error.localizedDescription)"
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            clearLocalEntitlementAndReset()
         }
     }
 
-    /// Validates the token stored in the local Keychain without needing Internet access.
     public func validateLocalToken() {
+        restoreEntitlementState(scheduleRefreshIfNeeded: true)
+    }
+
+    public func deactivate() async {
+        isDeactivating = true
+        errorMessage = nil
+        defer { isDeactivating = false }
+
         do {
-            guard let token = try KeychainHelper.read(account: keychainAccount) else {
-                isPro = false
+            guard let token = try readStoredEntitlementToken() else {
+                throw LicenseError.missingStoredEntitlement
+            }
+
+            if let activationAvailabilityMessage {
+                throw LicenseError.configurationIssue(message: activationAvailabilityMessage)
+            }
+
+            let deviceFingerprint = try resolveDeviceFingerprint()
+            _ = try validateEntitlementToken(token, allowExpired: true, expectedDeviceFingerprint: deviceFingerprint)
+            try await licensingClient.deactivate(entitlementToken: token, deviceFingerprint: deviceFingerprint)
+
+            try clearStoredEntitlement()
+            applyUnlicensedState()
+        } catch {
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    public func refreshEntitlement() async {
+        await refreshStoredEntitlement(silently: false)
+    }
+
+    #if DEBUG
+    public func setTestActivated(_ activated: Bool) {
+        accessState = activated ? .proActive : .unlicensed
+        isPro = activated
+        if activated {
+            nextOnlineValidationAt = now().addingTimeInterval(14 * 24 * 60 * 60)
+            trialEndsAt = nil
+            gracePeriodEndsAt = nil
+            trialDaysRemaining = 0
+            requiresOnlineValidation = false
+        } else {
+            applyUnlicensedState()
+        }
+    }
+    #endif
+}
+
+private extension LicenseManager {
+    func restoreEntitlementState(scheduleRefreshIfNeeded: Bool) {
+        backgroundRefreshTask?.cancel()
+
+        do {
+            if isClockRollbackDetected() {
+                if let payload = try loadStoredPayload() {
+                    applyClockRollbackState(for: payload)
+                    if scheduleRefreshIfNeeded {
+                        scheduleBackgroundRefresh()
+                    }
+                } else {
+                    applyNeedsConnectionState(clearEmail: true)
+                }
                 return
             }
 
-            // 1. Split JWT into Header, Payload, Signature
-            let parts = token.components(separatedBy: ".")
-            guard parts.count == 3 else {
-                throw LicenseError.invalidTokenFormat
+            guard let token = try readStoredEntitlementToken() else {
+                applyUnlicensedState()
+                if scheduleRefreshIfNeeded && shouldAutoStartTrial() {
+                    scheduleTrialBootstrap()
+                }
+                return
             }
-            
-            // 2. Decode the Payload to check expiration
-            guard let payloadData = base64URLDecode(parts[1]) else {
-                throw LicenseError.invalidTokenFormat
-            }
-            
-            let payload = try JSONDecoder().decode(JWTPayload.self, from: payloadData)
-            
-            // Allow a small clock skew (e.g., 5 minutes)
-            let now = Date().timeIntervalSince1970
-            if payload.exp < now {
-                throw LicenseError.tokenExpired
-            }
-            
-            // 3. Cryptographic Signature Verification
-            // Note: In production, uncomment the CryptoKit EdDSA/RSA verification below.
-            /*
-            guard let signatureData = base64URLDecode(parts[2]),
-                  let publicKeyData = Data(base64Encoded: providerPublicKeyBase64) else {
-                throw LicenseError.invalidSignature
-            }
-            
-            let signedData = "\(parts[0]).\(parts[1])".data(using: .utf8)!
-            let publicKey = try Curve25519.Signing.PublicKey(rawRepresentation: publicKeyData)
-            
-            guard publicKey.isValidSignature(signatureData, for: signedData) else {
-                throw LicenseError.invalidSignature
-            }
-            */
 
-            // 4. If all checks pass, we are activated!
-            self.isPro = true
-            self.licenseEmail = payload.email
-            self.trialDaysRemaining = 0
+            let deviceFingerprint = try resolveDeviceFingerprint()
 
+            do {
+                let payload = try validateEntitlementToken(
+                    token,
+                    allowExpired: false,
+                    expectedDeviceFingerprint: deviceFingerprint
+                )
+                applyValidatedEntitlement(payload)
+                if scheduleRefreshIfNeeded && shouldScheduleBackgroundRefresh(for: payload) {
+                    scheduleBackgroundRefresh()
+                }
+                return
+            } catch LicenseError.tokenExpired {
+                let payload = try validateEntitlementToken(
+                    token,
+                    allowExpired: true,
+                    expectedDeviceFingerprint: deviceFingerprint
+                )
+                applyNeedsConnectionState(from: payload)
+                if scheduleRefreshIfNeeded {
+                    scheduleBackgroundRefresh()
+                }
+            }
         } catch {
-            self.isPro = false
-            self.licenseEmail = nil
-            // If the token is invalid or expired, we should ideally wipe it
-            try? KeychainHelper.delete(account: keychainAccount)
             NSLog("[Fala] Local license validation failed: \(error.localizedDescription)")
+            clearLocalEntitlementAndReset()
         }
     }
 
-    public func deactivate() {
-        try? KeychainHelper.delete(account: keychainAccount)
-        isPro = false
-        licenseEmail = nil
-        errorMessage = nil
-        checkTrialStatus() // Resume trial if unexpired
-    }
-    
-#if DEBUG
-    public func setTestActivated(_ activated: Bool) {
-        self.isPro = activated
-        if activated {
-            self.trialDaysRemaining = 0
-        }
-    }
-#endif
-
-    // MARK: - Trial Logic
-
-    private func checkTrialStatus() {
-        guard !isPro else {
-            trialDaysRemaining = 0
+    func scheduleBackgroundRefresh() {
+        guard licensingClient.isBackendConfigured,
+              LicensingConfiguration.entitlementPublicKey != nil
+        else {
             return
         }
 
-        let now = Date().timeIntervalSince1970
-        let trialStartString = try? KeychainHelper.read(account: trialStartDateAccount)
-        
-        var startDate: Double
-        
-        if let trialStartString, let storedDate = Double(trialStartString) {
-            startDate = storedDate
-        } else {
-            // First time opening the app, start trial
-            startDate = now
-            try? KeychainHelper.save(token: String(startDate), for: trialStartDateAccount)
-            NSLog("[Fala] Trial started at \(Date(timeIntervalSince1970: startDate))")
+        backgroundRefreshTask?.cancel()
+        backgroundRefreshTask = Task { [weak self] in
+            await self?.refreshStoredEntitlement(silently: true)
         }
-        
-        let elapsedDays = (now - startDate) / (60 * 60 * 24)
-        
-        // Prevent reverse-clock tampering (if now is wildly before startDate)
-        if elapsedDays < -1.0 {
-            trialDaysRemaining = 0
-            NSLog("[Fala] Invalid system clock detected. Trial disabled.")
+    }
+
+    func scheduleTrialBootstrap() {
+        guard licensingClient.isBackendConfigured,
+              LicensingConfiguration.entitlementPublicKey != nil
+        else {
+            applyNeedsConnectionState(clearEmail: true)
             return
         }
-        
-        let remaining = Int(ceil(trialDurationDays - elapsedDays))
-        trialDaysRemaining = max(0, remaining)
-    }
 
-    // MARK: - Helpers
-
-    private func base64URLDecode(_ value: String) -> Data? {
-        var base64 = value
-            .replacingOccurrences(of: "-", with: "+")
-            .replacingOccurrences(of: "_", with: "/")
-        
-        let length = Double(base64.lengthOfBytes(using: .utf8))
-        let requiredLength = 4 * ceil(length / 4.0)
-        let paddingLength = requiredLength - length
-        if paddingLength > 0 {
-            let padding = String(repeating: "=", count: Int(paddingLength))
-            base64 += padding
+        backgroundRefreshTask?.cancel()
+        backgroundRefreshTask = Task { [weak self] in
+            await self?.beginVerifiedTrial(silently: true)
         }
-        return Data(base64Encoded: base64, options: .ignoreUnknownCharacters)
     }
-}
 
-// MARK: - Models
+    func beginVerifiedTrial(silently: Bool) async {
+        if !silently {
+            errorMessage = nil
+        }
 
-struct JWTPayload: Codable {
-    let exp: TimeInterval
-    let iat: TimeInterval
-    let productId: String?
-    let email: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case exp, iat, email
-        case productId = "product_id"
+        do {
+            let deviceFingerprint = try resolveDeviceFingerprint()
+            let grant = try await licensingClient.startTrial(
+                deviceFingerprint: deviceFingerprint,
+                machineName: LicensingConfiguration.machineName(),
+                appVersion: LicensingConfiguration.appVersion()
+            )
+            let payload = try validateEntitlementToken(
+                grant.entitlementToken,
+                allowExpired: false,
+                expectedDeviceFingerprint: deviceFingerprint
+            )
+
+            try saveEntitlement(grant: grant, email: nil)
+            applyValidatedEntitlement(payload)
+        } catch {
+            let licenseError = mapLicensingError(error)
+            if !silently {
+                errorMessage = licenseError.errorDescription
+            }
+            if case .apiFailure(let code, _) = licenseError,
+               code == "trial_expired" || code == "trial_already_used" {
+                applyExpiredState(from: nil)
+            } else {
+                applyNeedsConnectionState(clearEmail: true)
+            }
+        }
     }
-}
 
-public enum LicenseError: Error, LocalizedError {
-    case invalidTokenFormat
-    case invalidSignature
-    case tokenExpired
+    func refreshStoredEntitlement(silently: Bool) async {
+        if !silently {
+            errorMessage = nil
+        }
 
-    public var errorDescription: String? {
-        switch self {
-        case .invalidTokenFormat: return "O formato da licença é inválido."
-        case .invalidSignature: return "A assinatura da licença foi corrompida ou é inválida."
-        case .tokenExpired: return "Sua sessão de licença expirou. Conecte-se à internet para revalidar."
+        do {
+            guard let token = try readStoredEntitlementToken() else {
+                if shouldAutoStartTrial() {
+                    await beginVerifiedTrial(silently: silently)
+                } else {
+                    applyUnlicensedState()
+                }
+                return
+            }
+
+            let payload = try await requestEntitlementRefresh(for: token)
+            applyValidatedEntitlement(payload)
+        } catch {
+            let licenseError = mapLicensingError(error)
+            handleRefreshFailure(licenseError)
+            if !silently || !licenseError.isTransient {
+                errorMessage = licenseError.errorDescription
+            }
         }
     }
 }
