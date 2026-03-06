@@ -259,6 +259,47 @@ final class LicenseManagerTrialTests: LicenseManagerTestCase {
     }
 
     @MainActor
+    func testManualOnlineValidationRequestsTrialEvenWhenServerTimeAlreadyExists() async throws {
+        let signer = EntitlementTokenSigner()
+        let now = Date(timeIntervalSince1970: 1_741_219_200)
+        LicensingConfiguration.setTestOverrides(
+            backendBaseURL: URL(string: "https://studio.baunilha.dev"),
+            entitlementPublicKeyBase64: signer.publicKeyBase64,
+            machineName: "Trial Retry Mac",
+            appVersion: "1.0.0"
+        )
+
+        let store = InMemorySecureStore([
+            "fala-license-server-time": String(now.timeIntervalSince1970)
+        ])
+        let client = StubLicensingClient()
+        client.trialHandler = { request in
+            let token = try signer.makeTrialToken(
+                deviceFingerprint: request.deviceFingerprint,
+                issuedAt: now,
+                expiresAt: now.addingTimeInterval(24 * 60 * 60),
+                trialEndsAt: now.addingTimeInterval(7 * 24 * 60 * 60)
+            )
+            return makeGrant(token: token, kind: .trial, serverNow: now)
+        }
+
+        let manager = LicenseManager(
+            licensingClient: client,
+            secureStore: store,
+            deviceFingerprintProvider: StubDeviceFingerprintProvider(fingerprint: "trial-retry-fingerprint"),
+            now: { now },
+            shouldRestoreStateOnLaunch: false
+        )
+
+        await manager.refreshEntitlement()
+
+        XCTAssertEqual(client.trialRequests.count, 1)
+        XCTAssertEqual(manager.accessState, .trialActive)
+        XCTAssertEqual(manager.trialDaysRemaining, 7)
+        XCTAssertEqual(manager.errorMessage, nil)
+    }
+
+    @MainActor
     func testClockRollbackRequiresOnlineValidation() async throws {
         let signer = EntitlementTokenSigner()
         let now = Date(timeIntervalSince1970: 1_741_219_200)

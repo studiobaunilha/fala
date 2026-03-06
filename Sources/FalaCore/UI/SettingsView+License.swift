@@ -103,10 +103,20 @@ extension SettingsView {
                         await licenseManager.refreshEntitlement()
                     }
                 } label: {
-                    Text("Validar online agora")
+                    HStack(spacing: 8) {
+                        if licenseManager.isRefreshingEntitlement {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Text("Validar online agora")
+                    }
                 }
                 .buttonStyle(.bordered)
-                .disabled(licenseManager.isActivating || licenseManager.isDeactivating)
+                .disabled(
+                    licenseManager.isActivating ||
+                    licenseManager.isDeactivating ||
+                    licenseManager.isRefreshingEntitlement
+                )
 
                 if licenseManager.isPro {
                     Button {
@@ -124,7 +134,7 @@ extension SettingsView {
                     }
                     .buttonStyle(.link)
                     .foregroundColor(.red)
-                    .disabled(licenseManager.isDeactivating)
+                    .disabled(licenseManager.isDeactivating || licenseManager.isRefreshingEntitlement)
                 }
             }
 
@@ -180,6 +190,7 @@ extension SettingsView {
                 activationCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                 licenseManager.isActivating ||
                 licenseManager.isDeactivating ||
+                licenseManager.isRefreshingEntitlement ||
                 !licenseManager.canActivate
             )
 

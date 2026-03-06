@@ -11,6 +11,7 @@ public final class LicenseManager: ObservableObject {
     @Published public internal(set) var trialDaysRemaining = 0
     @Published public internal(set) var isPro = false
     @Published public internal(set) var accessState: LicenseAccessState = .unlicensed
+    @Published public internal(set) var isRefreshingEntitlement = false
     @Published public internal(set) var nextOnlineValidationAt: Date?
     @Published public internal(set) var trialEndsAt: Date?
     @Published public internal(set) var gracePeriodEndsAt: Date?
@@ -272,15 +273,27 @@ private extension LicenseManager {
 
     func refreshStoredEntitlement(silently: Bool) async {
         if !silently {
+            isRefreshingEntitlement = true
+        }
+        if !silently {
             errorMessage = nil
+        }
+        defer {
+            if !silently {
+                isRefreshingEntitlement = false
+            }
         }
 
         do {
             guard let token = try readStoredEntitlementToken() else {
-                if shouldAutoStartTrial() {
-                    await beginVerifiedTrial(silently: silently)
+                if silently {
+                    if shouldAutoStartTrial() {
+                        await beginVerifiedTrial(silently: true)
+                    } else {
+                        applyUnlicensedState()
+                    }
                 } else {
-                    applyUnlicensedState()
+                    await beginVerifiedTrial(silently: false)
                 }
                 return
             }

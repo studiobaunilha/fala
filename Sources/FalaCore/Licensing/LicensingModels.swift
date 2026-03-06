@@ -105,6 +105,11 @@ public enum LicenseError: Error, LocalizedError {
                 return "Este Mac já usou o período de trial."
             case "invalid_entitlement_token":
                 return "O token local de ativação é inválido e precisa ser renovado online."
+            case "database_schema_outdated", "licensing_internal_error":
+                return """
+                O servidor de licenças está temporariamente inconsistente.
+                Tente novamente em alguns minutos ou fale com support@baunilha.dev.
+                """
             default:
                 return message
             }
