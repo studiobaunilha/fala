@@ -68,7 +68,8 @@ let package = Package(
             ],
             path: "Sources/FalaCore",
             resources: [
-                .process("Resources/Localizable.xcstrings")
+                .process("Resources/Localizable.xcstrings"),
+                .process("Resources/MLXCatalog.json")
             ]
         ),
         // Thin executable shell: only main.swift + linker-embedded Info.plist.

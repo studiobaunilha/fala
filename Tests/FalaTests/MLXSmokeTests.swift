@@ -2,7 +2,21 @@ import XCTest
 @testable import FalaCore
 
 final class MLXSmokeTests: XCTestCase {
-    func testMLXQwenSmoke() async throws {
+    func testMLXQwenCompactSmoke() async throws {
+        try await assertSmoke(modelID: "mlx-community/Qwen3-4B-4bit")
+    }
+
+    func testMLXGemmaCompactSmoke() async throws {
+        try await assertSmoke(modelID: "mlx-community/gemma-3-text-4b-it-4bit")
+    }
+
+    func testMLXLiquidCompactSmoke() async throws {
+        try await assertSmoke(modelID: "mlx-community/LFM2-1.2B-4bit")
+    }
+}
+
+private extension MLXSmokeTests {
+    func assertSmoke(modelID: String) async throws {
         let hasXcodeBundle = Bundle.allBundles.contains {
             $0.bundleURL.pathExtension == "xctest" && $0.bundleURL.path.contains(".xcodebuild-tests")
         }
@@ -14,7 +28,6 @@ final class MLXSmokeTests: XCTestCase {
             throw XCTSkip("MLX runtime ausente neste processo. Rode via xcodebuild para validar o smoke test.")
         }
 
-        let modelID = "mlx-community/Qwen2.5-3B-Instruct-4bit"
         let modelDir = await MLXModelManager.modelDir(for: modelID)
         let hasSafetensors = ((try? FileManager.default.contentsOfDirectory(
             at: modelDir,

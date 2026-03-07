@@ -23,6 +23,10 @@ public enum FalaColors {
     public static let badgeBatch = warning.opacity(0.15)
     public static let badgeActive = accent.opacity(0.15)
     public static let badgeCustom = warning.opacity(0.14)
+    public static let badgeRecommended = success.opacity(0.15)
+    public static let badgeIdeal = accent.opacity(0.18)
+    public static let badgeLegacy = Color.white.opacity(0.10)
+    public static let badgeNeutral = Color.white.opacity(0.08)
 }
 
 public enum Spacing {
@@ -83,6 +87,7 @@ public enum LayoutMetric {
     public static let compactProgressValueWidth: CGFloat = 32
     public static let compactPickerIconWidth: CGFloat = 16
     public static let leadingNoticeIconWidth: CGFloat = 28
+    public static let mlxCatalogActionMinWidth: CGFloat = 92
 
     public static let promptEditorMinHeight: CGFloat = 150
     public static let batchPromptMinHeight: CGFloat = 80

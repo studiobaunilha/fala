@@ -14,6 +14,7 @@ final class LocalizedUISourceAuditTests: XCTestCase {
             "Sources/FalaCore/UI/SettingsView.swift",
             "Sources/FalaCore/UI/SettingsView+Ext.swift",
             "Sources/FalaCore/UI/SettingsView+LLM.swift",
+            "Sources/FalaCore/UI/SettingsView+LLMProviders.swift",
             "Sources/FalaCore/UI/SettingsView+License.swift",
             "Sources/FalaCore/UI/SettingsView+Modes.swift",
             "Sources/FalaCore/UI/SettingsView+Updates.swift",

@@ -251,7 +251,7 @@ extension TranscriptionJob {
                 result = try await processWithAppleNative(text: text, prompt: prompt)
             } else if provider == "mlx" {
                 let modelID = model.isEmpty
-                    ? "mlx-community/Qwen2.5-3B-Instruct-4bit" : model
+                    ? AppConfig.defaultMLXModelRepoID : model
                 result = try await processWithMLX(
                     text: text, prompt: prompt, modelID: modelID
                 )

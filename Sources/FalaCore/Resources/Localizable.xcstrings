@@ -5953,6 +5953,438 @@
         }
       }
     },
+    "24 GB a 35 GB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 GB to 35 GB"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24 GB a 35 GB"
+          }
+        }
+      }
+    },
+    "36 GB ou mais": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "36 GB or more"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "36 GB o más"
+          }
+        }
+      }
+    },
+    "A seleção antiga %@ foi migrada para %@.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The previous selection %@ was migrated to %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La selección anterior %@ se migró a %@."
+          }
+        }
+      }
+    },
+    "A seleção atual não está mais disponível. Escolha um modelo curado abaixo para continuar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current selection is no longer available. Choose a curated model below to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La selección actual ya no está disponible. Elige un modelo curado abajo para continuar."
+          }
+        }
+      }
+    },
+    "Ajuste recomendado para a classe %@ deste Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended fit for this Mac's %@ class."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajuste recomendado para la clase %@ de este Mac."
+          }
+        }
+      }
+    },
+    "Balanceado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balanced"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balanceado"
+          }
+        }
+      }
+    },
+    "Baixar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar"
+          }
+        }
+      }
+    },
+    "Catálogo MLX atualizado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX Catalog Updated"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catálogo MLX actualizado"
+          }
+        }
+      }
+    },
+    "Catálogo MLX em modo seguro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX Catalog in Safe Mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catálogo MLX en modo seguro"
+          }
+        }
+      }
+    },
+    "Compacto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compact"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compacto"
+          }
+        }
+      }
+    },
+    "Escolha um modelo curado abaixo. O Fala só expõe modelos validados para o runtime MLX atual.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a curated model below. Fala only exposes models validated for the current MLX runtime."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un modelo curado abajo. Fala solo muestra modelos validados para el runtime MLX actual."
+          }
+        }
+      }
+    },
+    "Ideal para Macs com 24 GB a 35 GB de memória unificada.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal for Macs with 24 GB to 35 GB of unified memory."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal para Macs con 24 GB a 35 GB de memoria unificada."
+          }
+        }
+      }
+    },
+    "Ideal para Macs com 36 GB ou mais de memória unificada.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal for Macs with 36 GB or more of unified memory."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal para Macs con 36 GB o más de memoria unificada."
+          }
+        }
+      }
+    },
+    "Ideal para Macs com menos de 24 GB de memória unificada.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal for Macs with less than 24 GB of unified memory."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal para Macs con menos de 24 GB de memoria unificada."
+          }
+        }
+      }
+    },
+    "Ideal para este Mac": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal for This Mac"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal para este Mac"
+          }
+        }
+      }
+    },
+    "Legacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy"
+          }
+        }
+      }
+    },
+    "Menos de 24 GB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less than 24 GB"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos de 24 GB"
+          }
+        }
+      }
+    },
+    "Modelo incompatível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo incompatible"
+          }
+        }
+      }
+    },
+    "Modelo MLX incompatível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incompatible MLX Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo MLX incompatible"
+          }
+        }
+      }
+    },
+    "Modelo MLX migrado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX Model Migrated"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo MLX migrado"
+          }
+        }
+      }
+    },
+    "Modelo selecionado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo seleccionado"
+          }
+        }
+      }
+    },
+    "Mínimo: %d GB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum: %d GB"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mínimo: %d GB"
+          }
+        }
+      }
+    },
+    "O modelo %@ foi substituído por %@ para manter compatibilidade com o catálogo atual.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model %@ was replaced by %@ to keep compatibility with the current catalog."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modelo %@ fue sustituido por %@ para mantener compatibilidad con el catálogo actual."
+          }
+        }
+      }
+    },
+    "Recomendado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recomendado"
+          }
+        }
+      }
+    },
+    "Remover": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar"
+          }
+        }
+      }
+    },
+    "Selecionar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar"
+          }
+        }
+      }
+    },
+    "Selecione um modelo MLX válido do catálogo antes de usar este modo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a valid MLX model from the catalog before using this mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un modelo MLX válido del catálogo antes de usar este modo."
+          }
+        }
+      }
+    },
     "Valide online ou ative o Fala Pro para continuar.": {
       "localizations": {
         "en": {

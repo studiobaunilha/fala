@@ -10,6 +10,11 @@ public enum AppState {
 
 @MainActor
 public final class StatusBarController: NSObject, NSMenuDelegate {
+    private struct DownloadActivity: Equatable {
+        let modelName: String
+        let fraction: Double
+    }
+
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
 
@@ -25,9 +30,22 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     
     private var modeItems: [NSMenuItem] = []
     private var currentState: AppState = .idle
+    private var loadingMessage: String?
+    private var downloadActivity: DownloadActivity?
+    private var temporaryWarningMessage: String?
+    private var temporaryWarningTask: Task<Void, Never>?
+    private var renderedSymbolName = "mic"
 
     var settingsItemTitleForTesting: String {
         settingsItem.title
+    }
+
+    var currentTooltipForTesting: String? {
+        statusItem.button?.toolTip
+    }
+
+    var currentSymbolNameForTesting: String {
+        renderedSymbolName
     }
 
     public init(
@@ -51,103 +69,6 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         rebuildMenu()
 
         setState(.idle)
-    }
-
-    private static func makeSettingsItem() -> NSMenuItem {
-        NSMenuItem(
-            title: L10n("Ajustes…"),
-            action: #selector(StatusBarController.showSettings),
-            keyEquivalent: ","
-        )
-    }
-
-    private static func makeAccessibilityItem() -> NSMenuItem {
-        let item = NSMenuItem(
-            title: L10n("Habilitar Acessibilidade…"),
-            action: #selector(StatusBarController.openAccessibilitySettings),
-            keyEquivalent: ""
-        )
-        item.image = NSImage(
-            systemSymbolName: "exclamationmark.triangle.fill",
-            accessibilityDescription: L10n("Alerta")
-        )
-        item.image?.isTemplate = false
-        return item
-    }
-
-    private func buildStaticMenuItems() {
-        let title = NSMenuItem(title: L10n("Fala"), action: nil, keyEquivalent: "")
-        title.isEnabled = false
-        menu.addItem(title)
-        menu.addItem(.separator())
-
-        let shortcutItem = NSMenuItem(
-            title: L10n("Atalho: ⌥Espaço (segure para gravar)"),
-            action: nil,
-            keyEquivalent: ""
-        )
-        shortcutItem.isEnabled = false
-        menu.addItem(shortcutItem)
-        menu.addItem(.separator())
-    }
-
-    private func rebuildMenu() {
-        modeItems.removeAll()
-        menu.removeAllItems()
-
-        settingsItem.title = L10n("Ajustes…")
-        axItem.title = L10n("Habilitar Acessibilidade…")
-        axItem.image = NSImage(
-            systemSymbolName: "exclamationmark.triangle.fill",
-            accessibilityDescription: L10n("Alerta")
-        )
-        axItem.image?.isTemplate = false
-
-        buildStaticMenuItems()
-        buildModeItems()
-
-        let transcribeItem = NSMenuItem(
-            title: L10n("Transcrever Arquivo…"),
-            action: #selector(StatusBarController.showTranscribe),
-            keyEquivalent: "o"
-        )
-        transcribeItem.target = self
-        menu.addItem(transcribeItem)
-
-        settingsItem.target = self
-        menu.addItem(settingsItem)
-        menu.addItem(.separator())
-
-        let quitItem = NSMenuItem(
-            title: L10n("Sair do Fala"),
-            action: #selector(StatusBarController.quit),
-            keyEquivalent: "q"
-        )
-        quitItem.target = self
-        menu.addItem(quitItem)
-
-        menu.delegate = self
-        statusItem.menu = menu
-    }
-
-    private func buildModeItems() {
-        let modeHeader = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
-        modeHeader.isEnabled = false
-        menu.addItem(modeHeader)
-
-        for mode in settings.readiness.quickMenuModes() {
-            let item = NSMenuItem(
-                title: mode.localizedName,
-                action: #selector(StatusBarController.selectMode(_:)),
-                keyEquivalent: ""
-            )
-            item.target = self
-            item.representedObject = mode.rawValue
-            modeItems.append(item)
-            menu.addItem(item)
-        }
-        
-        menu.addItem(.separator())
     }
 
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
@@ -198,39 +119,40 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     public func setState(_ state: AppState) {
         currentState = state
-        let (name, description): (String, String) = switch state {
-        case .idle: ("mic", L10n("Fala — pronto"))
-        case .loading: ("arrow.down.circle", L10n("Fala — carregando modelo…"))
-        case .recording: ("mic.fill", L10n("Fala — gravando"))
-        case .transcribing: ("waveform", L10n("Fala — transcrevendo…"))
-        }
-        statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+        renderStatusItem()
     }
 
     public func reloadLocalizedContent() {
         rebuildMenu()
-        setState(currentState)
+        renderStatusItem()
     }
 
     public func setLoadingTooltip(_ message: String?) {
-        statusItem.button?.toolTip = message
+        loadingMessage = message
+        renderStatusItem()
     }
 
     public func setDownloadProgress(_ fraction: Double, modelName: String) {
-        let pct = Int(fraction * 100)
-        statusItem.button?.toolTip = String(format: L10n("Baixando %@… %d%%"), modelName, pct)
+        downloadActivity = DownloadActivity(
+            modelName: modelName,
+            fraction: max(0, min(fraction, 1))
+        )
+        renderStatusItem()
+    }
+
+    public func clearDownloadProgress() {
+        downloadActivity = nil
+        renderStatusItem()
     }
 
     public func showTemporaryWarning(_ message: String) {
-        statusItem.button?.image = NSImage(
-            systemSymbolName: "exclamationmark.triangle",
-            accessibilityDescription: message
-        )
-        statusItem.button?.toolTip = message
-        Task { @MainActor in
+        temporaryWarningTask?.cancel()
+        temporaryWarningMessage = message
+        renderStatusItem()
+        temporaryWarningTask = Task { @MainActor in
             try? await Task.sleep(for: .seconds(4))
-            self.statusItem.button?.toolTip = nil
-            self.setState(.idle)
+            self.temporaryWarningMessage = nil
+            self.renderStatusItem()
         }
     }
 
@@ -250,5 +172,199 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func quit() {
         NSApp.terminate(nil)
+    }
+}
+
+private extension StatusBarController {
+    private func renderStatusItem() {
+        if let warningMessage = temporaryWarningMessage {
+            applyWarningPresentation(message: warningMessage)
+            return
+        }
+
+        switch currentState {
+        case .recording:
+            applyIdleStatePresentation(symbolName: "mic.fill", description: L10n("Fala — gravando"))
+        case .transcribing:
+            applyIdleStatePresentation(symbolName: "waveform", description: L10n("Fala — transcrevendo…"))
+        case .idle, .loading:
+            if applyDownloadPresentationIfNeeded() {
+                return
+            }
+
+            if let loadingMessage {
+                applyPresentation(
+                    symbolName: "clock.arrow.circlepath",
+                    accessibilityDescription: loadingMessage,
+                    toolTip: loadingMessage
+                )
+                return
+            }
+
+            let description = currentState == .loading
+                ? L10n("Fala — carregando modelo…")
+                : L10n("Fala — pronto")
+            let symbolName = currentState == .loading ? "clock.arrow.circlepath" : "mic"
+            applyPresentation(
+                symbolName: symbolName,
+                accessibilityDescription: description,
+                toolTip: nil
+            )
+        }
+    }
+
+    func applyDownloadPresentationIfNeeded() -> Bool {
+        guard let downloadActivity else {
+            return false
+        }
+
+        let pct = Int(downloadActivity.fraction * 100)
+        let message = String(
+            format: L10n("Baixando %@… %d%%"),
+            downloadActivity.modelName,
+            pct
+        )
+        applyPresentation(
+            symbolName: "arrow.down.circle",
+            accessibilityDescription: message,
+            toolTip: message
+        )
+        return true
+    }
+
+    func applyWarningPresentation(message: String) {
+        applyPresentation(
+            symbolName: "exclamationmark.triangle",
+            accessibilityDescription: message,
+            toolTip: message,
+            isTemplate: true
+        )
+    }
+
+    func applyIdleStatePresentation(symbolName: String, description: String) {
+        applyPresentation(
+            symbolName: symbolName,
+            accessibilityDescription: description,
+            toolTip: nil
+        )
+    }
+
+    private func applyPresentation(
+        symbolName: String,
+        accessibilityDescription: String,
+        toolTip: String?,
+        isTemplate: Bool = true
+    ) {
+        renderedSymbolName = symbolName
+        let image = NSImage(
+            systemSymbolName: symbolName,
+            accessibilityDescription: accessibilityDescription
+        )
+        image?.isTemplate = isTemplate
+        statusItem.button?.image = image
+        statusItem.button?.toolTip = toolTip
+    }
+}
+
+private extension StatusBarController {
+    static func makeSettingsItem() -> NSMenuItem {
+        NSMenuItem(
+            title: L10n("Ajustes…"),
+            action: #selector(StatusBarController.showSettings),
+            keyEquivalent: ","
+        )
+    }
+
+    static func makeAccessibilityItem() -> NSMenuItem {
+        let item = NSMenuItem(
+            title: L10n("Habilitar Acessibilidade…"),
+            action: #selector(StatusBarController.openAccessibilitySettings),
+            keyEquivalent: ""
+        )
+        item.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle.fill",
+            accessibilityDescription: L10n("Alerta")
+        )
+        item.image?.isTemplate = false
+        return item
+    }
+
+    func rebuildMenu() {
+        modeItems.removeAll()
+        menu.removeAllItems()
+        refreshMenuLabels()
+        buildStaticMenuItems()
+        buildModeItems()
+        buildTrailingMenuItems()
+        menu.delegate = self
+        statusItem.menu = menu
+    }
+
+    func refreshMenuLabels() {
+        settingsItem.title = L10n("Ajustes…")
+        axItem.title = L10n("Habilitar Acessibilidade…")
+        axItem.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle.fill",
+            accessibilityDescription: L10n("Alerta")
+        )
+        axItem.image?.isTemplate = false
+    }
+
+    func buildStaticMenuItems() {
+        let title = NSMenuItem(title: L10n("Fala"), action: nil, keyEquivalent: "")
+        title.isEnabled = false
+        menu.addItem(title)
+        menu.addItem(.separator())
+
+        let shortcutItem = NSMenuItem(
+            title: L10n("Atalho: ⌥Espaço (segure para gravar)"),
+            action: nil,
+            keyEquivalent: ""
+        )
+        shortcutItem.isEnabled = false
+        menu.addItem(shortcutItem)
+        menu.addItem(.separator())
+    }
+
+    func buildModeItems() {
+        let modeHeader = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
+        modeHeader.isEnabled = false
+        menu.addItem(modeHeader)
+
+        for mode in settings.readiness.quickMenuModes() {
+            let item = NSMenuItem(
+                title: mode.localizedName,
+                action: #selector(StatusBarController.selectMode(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = mode.rawValue
+            modeItems.append(item)
+            menu.addItem(item)
+        }
+
+        menu.addItem(.separator())
+    }
+
+    func buildTrailingMenuItems() {
+        let transcribeItem = NSMenuItem(
+            title: L10n("Transcrever Arquivo…"),
+            action: #selector(StatusBarController.showTranscribe),
+            keyEquivalent: "o"
+        )
+        transcribeItem.target = self
+        menu.addItem(transcribeItem)
+
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(
+            title: L10n("Sair do Fala"),
+            action: #selector(StatusBarController.quit),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu.addItem(quitItem)
     }
 }

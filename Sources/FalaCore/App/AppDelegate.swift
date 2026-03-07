@@ -92,6 +92,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         dictation.setup()
         appSettings.warmupCoordinator.scheduleSelectedWarmup()
         syncWarmupUI(for: bar, coordinator: appSettings.warmupCoordinator)
+        syncDownloadUI(for: bar, settings: appSettings)
         onboardingCtrl.showIfNeeded()
     }
 
@@ -187,6 +188,29 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             bar.setLoadingTooltip(nil)
             bar.setState(.idle)
         }.store(in: &cancellables)
+    }
+
+    private func syncDownloadUI(for bar: StatusBarController, settings: AppSettings) {
+        Publishers.CombineLatest(
+            settings.modelManager.$downloads,
+            settings.mlxModelManager.$downloads
+        )
+        .sink { [weak bar, weak settings] whisperDownloads, mlxDownloads in
+            guard let bar, let settings else { return }
+
+            if let activeDownload = settings.activeModelDownload(
+                whisperDownloads: whisperDownloads,
+                mlxDownloads: mlxDownloads
+            ) {
+                bar.setDownloadProgress(
+                    activeDownload.fraction,
+                    modelName: activeDownload.modelName
+                )
+            } else {
+                bar.clearDownloadProgress()
+            }
+        }
+        .store(in: &cancellables)
     }
 
     @objc private func handleLanguageChanged() {

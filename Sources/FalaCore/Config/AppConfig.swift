@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AppConfig: Codable, Sendable {
+public struct AppConfig: Codable, Sendable, Equatable {
     enum LocalizedDefault: CaseIterable {
         case llmPrompt
         case customModeName
@@ -30,7 +30,7 @@ public struct AppConfig: Codable, Sendable {
     public var geminiKey: String = ""
     public var geminiModel: String = "gemini-2.5-flash"
     public var openAIModel: String = "gpt-4o-mini"
-    public var mlxModel: String = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+    public var mlxModel: String = AppConfig.defaultMLXModelRepoID
 
     public var customModeName: String = AppConfig.localizedDefault(for: .customModeName)
     public var customModePrompt: String = AppConfig.localizedDefault(for: .customModePrompt)
@@ -38,6 +38,8 @@ public struct AppConfig: Codable, Sendable {
     public static var defaultGlobalSystemPrompt: String {
         localizedDefault(for: .globalSystemPrompt)
     }
+
+    public static let defaultMLXModelRepoID = "mlx-community/Qwen3-4B-4bit"
 
     public var globalSystemPrompt: String = AppConfig.defaultGlobalSystemPrompt
 
@@ -226,7 +228,7 @@ extension AppConfig {
         geminiModel = (try? container.decode(String.self, forKey: .geminiModel)) ?? "gemini-2.5-flash"
         openAIModel = (try? container.decode(String.self, forKey: .openAIModel)) ?? "gpt-4o-mini"
         mlxModel = (try? container.decode(String.self, forKey: .mlxModel))
-            ?? "mlx-community/Qwen2.5-3B-Instruct-4bit"
+            ?? Self.defaultMLXModelRepoID
         customModeName = Self.migrateStoredDefault(
             try? container.decode(String.self, forKey: .customModeName),
             preset: .customModeName,

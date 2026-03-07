@@ -36,6 +36,7 @@ public final class AppSettings: ObservableObject {
     @Published public var geminiModel: String
     @Published public var openAIModel: String
     @Published public var mlxModel: String
+    @Published public var mlxCatalogMigrationNotice: MLXCatalogMigrationNotice?
     @Published public var modeConfigs: [String: ModeConfig]
     @Published public var customModeName: String
     @Published public var customModePrompt: String
@@ -76,39 +77,48 @@ public final class AppSettings: ObservableObject {
         permissionProvider: SystemPermissionProviding = SystemPermissionProvider(),
         updater: SPUUpdater? = nil
     ) {
-        self.config = config
-        self.appLanguage = config.appLanguage
-        self.transcriptionEngine = config.transcriptionEngine
-        self.dictationModel = config.dictationModel
-        self.batchModel = config.batchModel
-        self.transcriptionLanguage = config.transcriptionLanguage
-        self.dictationTemperature = config.dictationTemperature
-        self.batchTemperature = config.batchTemperature
-        self.replacements = config.replacements
-        self.replacementRules = config.replacementRules
-        self.defaultExportPath = config.defaultExportPath
-        self.enableDiarization = config.enableDiarization
-        self.selectedDictationTemplate = config.selectedDictationTemplate
-        self.llmProvider = config.llmProvider
-        self.llmPrompt = config.llmPrompt
-        self.openAIKey = config.openAIKey
-        self.geminiKey = config.geminiKey
-        self.geminiModel = config.geminiModel
-        self.openAIModel = config.openAIModel
-        self.mlxModel = config.mlxModel
-        self.modeConfigs = config.modeConfigs
-        self.customModeName = config.customModeName
-        self.customModePrompt = config.customModePrompt
-        self.globalSystemPrompt = config.globalSystemPrompt
+        let catalogService = MLXCatalogService(manager: mlxModelManager)
+        let normalization = catalogService.normalize(config: config)
+        let normalizedConfig = normalization.config
+
+        self.config = normalizedConfig
+        self.appLanguage = normalizedConfig.appLanguage
+        self.transcriptionEngine = normalizedConfig.transcriptionEngine
+        self.dictationModel = normalizedConfig.dictationModel
+        self.batchModel = normalizedConfig.batchModel
+        self.transcriptionLanguage = normalizedConfig.transcriptionLanguage
+        self.dictationTemperature = normalizedConfig.dictationTemperature
+        self.batchTemperature = normalizedConfig.batchTemperature
+        self.replacements = normalizedConfig.replacements
+        self.replacementRules = normalizedConfig.replacementRules
+        self.defaultExportPath = normalizedConfig.defaultExportPath
+        self.enableDiarization = normalizedConfig.enableDiarization
+        self.selectedDictationTemplate = normalizedConfig.selectedDictationTemplate
+        self.llmProvider = normalizedConfig.llmProvider
+        self.llmPrompt = normalizedConfig.llmPrompt
+        self.openAIKey = normalizedConfig.openAIKey
+        self.geminiKey = normalizedConfig.geminiKey
+        self.geminiModel = normalizedConfig.geminiModel
+        self.openAIModel = normalizedConfig.openAIModel
+        self.mlxModel = normalizedConfig.mlxModel
+        self.mlxCatalogMigrationNotice = normalization.migrationNotice
+        self.modeConfigs = normalizedConfig.modeConfigs
+        self.customModeName = normalizedConfig.customModeName
+        self.customModePrompt = normalizedConfig.customModePrompt
+        self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
 
         self.transcriber = transcriber
         self.parakeetTranscriber = parakeetTranscriber
         self.modelManager = modelManager
         self.mlxModelManager = mlxModelManager
-        self.mlxCatalogService = MLXCatalogService(manager: mlxModelManager)
+        self.mlxCatalogService = catalogService
         self.restartCoordinator = restartCoordinator
         self.permissionProvider = permissionProvider
         self.updater = updater
+
+        if normalization.didChange {
+            normalizedConfig.save()
+        }
     }
 }
 
@@ -270,4 +280,5 @@ public extension AppSettings {
             objectWillChange.send()
         }
     }
+
 }

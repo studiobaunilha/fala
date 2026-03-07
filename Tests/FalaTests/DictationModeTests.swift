@@ -262,7 +262,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         var liveConfig = AppConfig()
         liveConfig.selectedDictationTemplate = .askAI
         liveConfig.llmProvider = "mlx"
-        liveConfig.mlxModel = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+        liveConfig.mlxModel = AppConfig.defaultMLXModelRepoID
 
         await transcriber.setResult("Onde fica o arquivo")
 
@@ -273,7 +273,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
                 inserter: inserter,
                 configProvider: { liveConfig },
                 llmProcessor: { _, _, _, _ in
-                    throw LLMError.mlxModelNotDownloaded("mlx-community/Qwen2.5-3B-Instruct-4bit")
+                    throw LLMError.mlxModelNotDownloaded(AppConfig.defaultMLXModelRepoID)
                 }
             )
         }

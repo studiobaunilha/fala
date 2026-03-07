@@ -12,6 +12,7 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(config.outputFormat, "txt")
         XCTAssertEqual(config.appLanguage, "auto")
         XCTAssertEqual(config.transcriptionLanguage, "auto")
+        XCTAssertEqual(config.mlxModel, AppConfig.defaultMLXModelRepoID)
     }
 
     // MARK: – Backward compatibility

@@ -11,4 +11,4 @@ exec /usr/bin/env -u SDKROOT DEVELOPER_DIR="$DEVELOPER_DIR_VALUE" \
         -destination "platform=macOS" \
         -derivedDataPath "$DERIVED_DATA" \
         test \
-        -only-testing:FalaTests/MLXSmokeTests/testMLXQwenSmoke
+        -only-testing:FalaTests/MLXSmokeTests

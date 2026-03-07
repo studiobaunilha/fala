@@ -3,8 +3,6 @@ import Hub
 import MLXLMCommon
 import MLXLLM
 
-// MARK: - Known MLX Models
-
 public struct MLXModelInfo: Identifiable, Sendable {
     public let id: String
     public let repoID: String
@@ -12,39 +10,12 @@ public struct MLXModelInfo: Identifiable, Sendable {
     public let estimatedSize: String
 }
 
-public enum MLXModelCompatibility: String, Equatable, Sendable {
-    case curated
-    case customOnly
-}
-
-// swiftlint:disable trailing_comma
-public let knownMLXModels: [MLXModelInfo] = [
-    MLXModelInfo(
-        id: "qwen2.5-3b",
-        repoID: "mlx-community/Qwen2.5-3B-Instruct-4bit",
-        label: "Qwen 2.5 3B",
-        estimatedSize: "~2 GB"
-    ),
-    MLXModelInfo(
-        id: "llama3.2-3b",
-        repoID: "mlx-community/Llama-3.2-3B-Instruct-4bit",
-        label: "Llama 3.2 3B",
-        estimatedSize: "~2 GB"
-    ),
-    MLXModelInfo(
-        id: "llama3.1-8b",
-        repoID: "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit",
-        label: "Llama 3.1 8B",
-        estimatedSize: "~5 GB"
-    ),
-]
-// swiftlint:enable trailing_comma
-
 // MARK: - MLX Model Manager
 
 /// Manages MLX LLM model lifecycle: scan cache, download, delete.
 @MainActor
 public final class MLXModelManager: ObservableObject {
+    @Published public private(set) var catalogEntries: [MLXCatalogEntry] = []
 
     /// Repo IDs found in the local cache.
     @Published public var localModels: Set<String> = []
@@ -72,6 +43,16 @@ public final class MLXModelManager: ObservableObject {
         scanLocal()
     }
 
+    public func updateCatalogEntries(_ entries: [MLXCatalogEntry]) {
+        catalogEntries = entries.sorted { lhs, rhs in
+            if lhs.family.sortOrder == rhs.family.sortOrder {
+                return lhs.selectionPriority < rhs.selectionPriority
+            }
+            return lhs.family.sortOrder < rhs.family.sortOrder
+        }
+        scanLocal()
+    }
+
     public static func isRepoDownloaded(_ repoID: String) -> Bool {
         let fm = FileManager.default
         let dir = modelDir(for: repoID)
@@ -90,11 +71,11 @@ public final class MLXModelManager: ObservableObject {
 
     /// Scans for downloaded MLX models using the same HubApi paths.
     public func scanLocal() {
-        localModels = Self.scanDownloaded(knownModels: knownMLXModels)
+        localModels = Self.scanDownloaded(knownModels: catalogEntries)
     }
 
     /// Returns repo IDs of known models present locally.
-    static func scanDownloaded(knownModels: [MLXModelInfo]) -> Set<String> {
+    static func scanDownloaded(knownModels: [MLXCatalogEntry]) -> Set<String> {
         let fm = FileManager.default
         var found: Set<String> = []
         for model in knownModels {
@@ -115,7 +96,7 @@ public final class MLXModelManager: ObservableObject {
 
     /// Whether a model (by short id) is downloaded locally.
     public func isDownloaded(_ shortId: String) -> Bool {
-        guard let info = knownMLXModels.first(where: { $0.id == shortId }) else {
+        guard let info = catalogEntries.first(where: { $0.id == shortId }) else {
             return false
         }
         return localModels.contains(info.repoID)
@@ -127,7 +108,7 @@ public final class MLXModelManager: ObservableObject {
 
     /// Returns the repo ID for a short id.
     public func repoID(for shortId: String) -> String? {
-        knownMLXModels.first(where: { $0.id == shortId })?.repoID
+        catalogEntries.first(where: { $0.id == shortId })?.repoID
     }
 
     // MARK: - Download
@@ -136,13 +117,13 @@ public final class MLXModelManager: ObservableObject {
     /// without loading weights into memory (avoids OOM crashes).
     public func download(_ shortId: String) {
         guard !downloads.keys.contains(shortId) else { return }
-        guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
+        guard let info = catalogEntries.first(where: { $0.id == shortId }) else { return }
         download(repoID: info.repoID, shortID: shortId)
     }
 
     public func download(repoID: String, shortID overrideShortID: String? = nil) {
         let shortId = overrideShortID
-            ?? knownMLXModels.first(where: { $0.repoID == repoID })?.id
+            ?? catalogEntries.first(where: { $0.repoID == repoID })?.id
             ?? repoID
         downloads[shortId] = 0.0
         downloadErrors.removeValue(forKey: shortId)
@@ -210,7 +191,7 @@ public final class MLXModelManager: ObservableObject {
 
     /// Deletes a downloaded model.
     public func delete(_ shortId: String) throws {
-        guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
+        guard let info = catalogEntries.first(where: { $0.id == shortId }) else { return }
         try delete(repoID: info.repoID)
     }
 
@@ -226,7 +207,7 @@ public final class MLXModelManager: ObservableObject {
 
     /// Calculates the on-disk size of a downloaded model.
     public func diskSize(for shortId: String) -> String? {
-        guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return nil }
+        guard let info = catalogEntries.first(where: { $0.id == shortId }) else { return nil }
         return diskSize(repoID: info.repoID)
     }
 
@@ -237,7 +218,11 @@ public final class MLXModelManager: ObservableObject {
     }
 
     public func label(for repoID: String) -> String {
-        knownMLXModels.first(where: { $0.repoID == repoID })?.label ?? repoID
+        catalogEntries.first(where: { $0.repoID == repoID })?.displayName ?? repoID
+    }
+
+    public func estimatedSize(for repoID: String) -> String? {
+        catalogEntries.first(where: { $0.repoID == repoID })?.estimatedDownloadSize
     }
 
     private static func directorySize(_ url: URL) -> UInt64? {

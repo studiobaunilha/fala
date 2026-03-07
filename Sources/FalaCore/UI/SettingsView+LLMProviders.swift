@@ -73,140 +73,112 @@ extension SettingsView {
 
     var mlxConfigSection: some View {
         Section(L10n("MLX Local")) {
-            LabeledContent(L10n("Modelo Padrão")) {
-                HStack(spacing: Spacing.xs) {
-                    TextField("", text: $settings.mlxModel)
-                        .textFieldStyle(.roundedBorder)
-
-                    Menu {
-                        ForEach(settings.mlxCatalogService.curatedModels) { model in
-                            Button(model.label) {
-                                settings.mlxModel = model.repoID
-                            }
-                        }
-                        if !settings.mlxCatalogService.suggestedCustomModels.isEmpty {
-                            Divider()
-                            ForEach(settings.mlxCatalogService.suggestedCustomModels) { model in
-                                Button(model.label) {
-                                    settings.mlxCatalogService.useSuggestedCustom(model)
-                                    settings.mlxModel = model.repoID
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption)
-                    }
-                    .frame(width: LayoutMetric.compactPickerIconWidth)
-                    .help(L10n("Selecionar modelo conhecido"))
-                }
-            }
-
-            LabeledContent(L10n("Repo ID customizado")) {
-                TextField(
-                    L10n("Repo ID customizado"),
-                    text: Binding(
-                        get: { settings.mlxCatalogService.customRepoID },
-                        set: { settings.mlxCatalogService.customRepoID = $0 }
-                    )
+            if let summary = settings.mlxCatalogService.selectionSummary(for: settings.mlxModel) {
+                MLXCatalogSelectionSummaryView(summary: summary)
+            } else {
+                NoticeCard(
+                    title: L10n("Modelo MLX incompatível"),
+                    message: L10n(
+                        "A seleção atual não está mais disponível. Escolha um modelo curado abaixo para continuar."
+                    ),
+                    tone: .warning
                 )
-                .textFieldStyle(.roundedBorder)
             }
 
-            HStack {
-                Button(L10n("Usar repo customizado")) {
-                    if let repoID = settings.mlxCatalogService.normalizedCustomRepoID() {
-                        settings.mlxModel = repoID
-                    }
-                }
-                .disabled(settings.mlxCatalogService.normalizedCustomRepoID() == nil)
-
-                Spacer()
-
-                Menu(L10n("Sugestões")) {
-                    ForEach(settings.mlxCatalogService.suggestedCustomModels) { entry in
-                        Button(entry.label) {
-                            settings.mlxCatalogService.useSuggestedCustom(entry)
-                        }
-                    }
-                }
+            if let notice = settings.mlxCatalogMigrationNotice {
+                NoticeCard(
+                    title: notice.title,
+                    message: notice.message,
+                    tone: .info
+                )
             }
 
-            Text(L10n("Os modelos MLX rodam localmente no Apple Silicon. Baixe pelo menos um modelo abaixo."))
+            if let warning = settings.mlxCatalogService.validationWarnings.first {
+                NoticeCard(
+                    title: L10n("Catálogo MLX em modo seguro"),
+                    message: warning,
+                    tone: .warning
+                )
+            }
+
+            Text(
+                L10n("Escolha um modelo curado abaixo. O Fala só expõe modelos validados para o runtime MLX atual.")
+            )
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
 
     var mlxModelsSection: some View {
-        Section {
-            ForEach(settings.mlxCatalogService.curatedModels) { entry in
-                MLXModelRow(
-                    model: MLXModelInfo(
-                        id: entry.id,
-                        repoID: entry.repoID,
-                        label: entry.label,
-                        estimatedSize: entry.estimatedSize ?? L10n("Tamanho variável")
-                    ),
-                    manager: settings.mlxModelManager,
-                    isSelected: settings.mlxModel == entry.repoID
-                )
+        Group {
+            ForEach(settings.mlxCatalogService.sections(selectedRepoID: settings.mlxModel)) { section in
+                Section(section.title) {
+                    ForEach(section.entries) { entry in
+                        mlxCatalogRow(for: entry)
+                    }
+                }
             }
-
-            if let customRepoID = settings.mlxCatalogService.normalizedCustomRepoID() {
-                customMLXModelRow(repoID: customRepoID)
-            }
-        } header: {
-            Text(L10n("Modelos MLX Locais"))
-        } footer: {
-            // swiftlint:disable:next line_length
-            Text(L10n("Modelos LLM para processamento local via MLX. Rodam inteiramente no dispositivo usando Apple Silicon."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder
-    private func customMLXModelRow(repoID: String) -> some View {
-        let isDownloaded = settings.mlxCatalogService.isDownloaded(repoID: repoID)
-        let progress = settings.mlxModelManager.downloads[repoID]
+    private func mlxCatalogRow(for entry: MLXCatalogEntry) -> some View {
+        let isDownloaded = settings.mlxCatalogService.isDownloaded(repoID: entry.repoID)
+        let isSelected = settings.mlxModel == entry.repoID
+        let progress = settings.mlxModelManager.downloads[entry.id]
+            ?? settings.mlxModelManager.downloads[entry.repoID]
 
-        HStack {
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                HStack(spacing: Spacing.sm) {
-                    Text(repoID)
-                        .font(.body.monospaced())
-                    RoleBadge(title: L10n("Custom"), color: FalaColors.badgeCustom)
-                }
-
-                if let size = settings.mlxCatalogService.diskSize(repoID: repoID) {
-                    Text(size)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            if let progress {
-                ProgressView(value: progress)
-                    .frame(width: LayoutMetric.compactProgressWidth)
+        MLXCatalogModelRow(
+            entry: entry,
+            isDownloaded: isDownloaded,
+            isSelected: isSelected,
+            progress: progress,
+            isIdealForCurrentMac: settings.mlxCatalogService.isIdealForCurrentMac(entry),
+            diskSize: settings.mlxCatalogService.diskSize(repoID: entry.repoID),
+            actionTitle: mlxRowActionTitle(
+                isDownloaded: isDownloaded,
+                isSelected: isSelected
+            ),
+            actionRole: isDownloaded && isSelected ? .destructive : nil
+        ) {
+            if isDownloaded && isSelected {
+                removeMLXModel(entry)
             } else if isDownloaded {
-                Button(role: .destructive) {
-                    try? settings.mlxModelManager.delete(repoID: repoID)
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.borderless)
+                settings.mlxModel = entry.repoID
             } else {
-                Button {
-                    settings.mlxModelManager.download(repoID: repoID)
-                } label: {
-                    Image(systemName: "arrow.down.circle")
-                }
-                .buttonStyle(.borderless)
+                settings.mlxModelManager.download(repoID: entry.repoID, shortID: entry.id)
             }
         }
-        .padding(.vertical, Spacing.xs)
+    }
+
+    private func mlxRowActionTitle(
+        isDownloaded: Bool,
+        isSelected: Bool
+    ) -> String {
+        if isDownloaded && isSelected {
+            return L10n("Remover")
+        }
+        if isDownloaded {
+            return L10n("Selecionar")
+        }
+        return L10n("Baixar")
+    }
+
+    private func removeMLXModel(_ entry: MLXCatalogEntry) {
+        if settings.mlxModel == entry.repoID,
+           let fallbackRepoID = settings.mlxCatalogService.fallbackSelection(excluding: entry.repoID) {
+            settings.mlxModel = fallbackRepoID
+        }
+
+        for key in settings.modeConfigs.keys.sorted() {
+            guard var modeConfig = settings.modeConfigs[key], modeConfig.model == entry.repoID else {
+                continue
+            }
+            modeConfig.model = nil
+            settings.modeConfigs[key] = modeConfig
+        }
+
+        settings.save()
+        try? settings.mlxModelManager.delete(repoID: entry.repoID)
     }
 }

@@ -62,4 +62,68 @@ final class AppSettingsTests: XCTestCase {
         
         XCTAssertEqual(settings.dictationModel, "new-dictation")
     }
+
+    @MainActor
+    func testActiveModelDownloadPrefersSelectedWhisperModel() {
+        var config = AppConfig()
+        config.dictationModel = "small"
+        config.batchModel = "medium"
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager()
+        )
+
+        let activeDownload = settings.activeModelDownload(
+            whisperDownloads: [
+                "medium": 0.3,
+                "small": 0.6
+            ],
+            mlxDownloads: [:]
+        )
+
+        XCTAssertEqual(activeDownload?.modelName, "Small")
+        XCTAssertEqual(activeDownload?.fraction, 0.6)
+    }
+
+    @MainActor
+    func testActiveModelDownloadUsesCuratedMLXLabel() {
+        var config = AppConfig()
+        config.llmProvider = "mlx"
+        config.mlxModel = AppConfig.defaultMLXModelRepoID
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager()
+        )
+
+        let activeDownload = settings.activeModelDownload(
+            whisperDownloads: [:],
+            mlxDownloads: [AppConfig.defaultMLXModelRepoID: 0.42]
+        )
+
+        XCTAssertEqual(activeDownload?.modelName, "Qwen 3 4B")
+        XCTAssertEqual(activeDownload?.fraction, 0.42)
+    }
+
+    @MainActor
+    func testInitMigratesDeprecatedQwenSelectionToCuratedDefault() {
+        var config = AppConfig()
+        config.llmProvider = "mlx"
+        config.mlxModel = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager()
+        )
+
+        XCTAssertEqual(settings.mlxModel, AppConfig.defaultMLXModelRepoID)
+        XCTAssertEqual(settings.mlxCatalogMigrationNotice?.title, "Catálogo MLX atualizado")
+        XCTAssertTrue(
+            settings.mlxCatalogMigrationNotice?.message.contains("Qwen 3 4B") == true
+        )
+    }
 }

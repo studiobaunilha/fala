@@ -29,8 +29,8 @@ struct ModeDetailView: View {
         if model.isEmpty {
             return L10n("Padrão global")
         }
-        return knownMLXModels
-            .first { $0.repoID == model }?.label ?? model
+        let resolution = settings.mlxCatalogService.resolveSelection(repoID: model)
+        return resolution.entry?.displayName ?? L10n("Modelo incompatível")
     }
 
     private var isPromptModified: Bool {
@@ -151,9 +151,17 @@ struct ModeDetailView: View {
                 if provider == "mlx" {
                     LabeledContent(L10n("Modelo")) {
                         Menu {
-                            ForEach(knownMLXModels) { mlxModel in
-                                Button(mlxModel.label) {
-                                    model = mlxModel.repoID
+                            Button(L10n("Padrão global")) {
+                                model = ""
+                            }
+
+                            ForEach(settings.mlxCatalogService.sections(selectedRepoID: settings.mlxModel)) { section in
+                                Section(section.title) {
+                                    ForEach(section.entries) { entry in
+                                        Button(entry.displayName) {
+                                            model = entry.repoID
+                                        }
+                                    }
                                 }
                             }
                         } label: {

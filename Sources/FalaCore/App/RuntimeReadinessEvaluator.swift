@@ -307,7 +307,20 @@ private extension RuntimeReadinessEvaluator {
         effective: AppConfig.EffectiveConfig
     ) -> [ReadinessIssue] {
         let modelID = effective.model.isEmpty ? config.mlxModel : effective.model
-        guard !modelID.isEmpty, mlxCatalogService.isDownloaded(repoID: modelID) else {
+        let resolution = mlxCatalogService.resolveSelection(repoID: modelID)
+
+        guard resolution.status != .unsupported else {
+            return [
+                settingsIssue(
+                    kind: .mlxModelMissing,
+                    title: L10n("Modelo MLX incompatível"),
+                    message: L10n("Selecione um modelo MLX válido do catálogo antes de usar este modo.")
+                )
+            ]
+        }
+
+        guard let resolvedEntry = resolution.entry,
+              mlxCatalogService.isDownloaded(repoID: resolvedEntry.repoID) else {
             return [
                 settingsIssue(
                     kind: .mlxModelMissing,
