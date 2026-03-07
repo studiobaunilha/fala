@@ -120,5 +120,6 @@ extension LicenseManager {
         nextOnlineValidationAt = nil
         gracePeriodEndsAt = nil
         requiresOnlineValidation = false
+        nextAutomaticRetryAt = nil
     }
 }

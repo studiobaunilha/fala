@@ -9,7 +9,6 @@ public enum AppState {
 }
 
 @MainActor
-// swiftlint:disable:next type_body_length
 public final class StatusBarController: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
@@ -135,8 +134,8 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         let modeHeader = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
         modeHeader.isEnabled = false
         menu.addItem(modeHeader)
-        
-        for mode in DictationTemplate.allCases {
+
+        for mode in settings.readiness.quickMenuModes() {
             let item = NSMenuItem(
                 title: mode.localizedName,
                 action: #selector(StatusBarController.selectMode(_:)),
@@ -153,9 +152,12 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
     public func menuWillOpen(_ menu: NSMenu) {
+        if settings.readiness.quickMenuModes().count != modeItems.count {
+            rebuildMenu()
+        }
+
         // Update Checkmarks and dynamic titles for Modes
         let currentMode = settings.selectedDictationTemplate
-        let isWhisper = settings.transcriptionEngine == "whisper"
         for item in modeItems {
             if let modeRaw = item.representedObject as? String {
                 item.state = (modeRaw == currentMode.rawValue) ? .on : .off
@@ -163,30 +165,8 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 if modeRaw == DictationTemplate.custom.rawValue {
                     let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
                     item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
-                    // Show warning icon when Apple Intelligence is the provider
-                    if settings.llmProvider == "apple" {
-                        item.image = NSImage(
-                            systemSymbolName: "exclamationmark.triangle.fill",
-                            accessibilityDescription: L10n("Incompatível")
-                        )
-                        item.image?.isTemplate = false
-                    } else {
-                        item.image = nil
-                    }
-                }
-                // Show warning icon on translate when engine is not Whisper
-                if modeRaw == DictationTemplate.translate.rawValue {
-                    let baseName = DictationTemplate.translate.localizedName
-                    item.title = baseName
-                    if !isWhisper {
-                        item.image = NSImage(
-                            systemSymbolName: "exclamationmark.triangle.fill",
-                            accessibilityDescription: L10n("Incompatível")
-                        )
-                        item.image?.isTemplate = false
-                    } else {
-                        item.image = nil
-                    }
+                } else {
+                    item.image = nil
                 }
             }
         }
@@ -208,45 +188,12 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     @objc private func selectMode(_ sender: NSMenuItem) {
         if let modeRaw = sender.representedObject as? String,
            let mode = DictationTemplate(rawValue: modeRaw) {
-            // Warn if selecting translate without Whisper
-            if mode == .translate && settings.transcriptionEngine != "whisper" {
-                showTranslateAlert()
-                return
-            }
-            // Warn if selecting custom with Apple Intelligence
-            if mode == .custom && settings.llmProvider == "apple" {
-                showCustomModeAlert()
+            guard settings.readiness.isModeVisibleInQuickMenu(mode) else {
                 return
             }
             settings.selectedDictationTemplate = mode
             settings.save()
         }
-    }
-
-    private func showTranslateAlert() {
-        let alert = NSAlert()
-        alert.messageText = L10n("Motor incompatível")
-        // swiftlint:disable:next line_length
-        alert.informativeText = L10n("A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução. Deseja trocar para o Whisper?")
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: L10n("Trocar para Whisper"))
-        alert.addButton(withTitle: L10n("Cancelar"))
-        let response = alert.runModal()
-        if response == .alertFirstButtonReturn {
-            settings.transcriptionEngine = "whisper"
-            settings.selectedDictationTemplate = .translate
-            settings.save()
-        }
-    }
-
-    private func showCustomModeAlert() {
-        let alert = NSAlert()
-        alert.messageText = L10n("Provedor incompatível")
-        // swiftlint:disable:next line_length
-        alert.informativeText = L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Troque o provedor de IA nos Ajustes para usar este modo.")
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: L10n("OK"))
-        alert.runModal()
     }
 
     public func setState(_ state: AppState) {

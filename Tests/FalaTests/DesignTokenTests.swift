@@ -11,6 +11,15 @@ final class DesignTokenTests: XCTestCase {
         XCTAssertTrue(Spacing.md < Spacing.lg)
         XCTAssertTrue(Spacing.lg < Spacing.xl)
         XCTAssertTrue(Spacing.xl < Spacing.xxl)
+        XCTAssertTrue(Spacing.xl < Spacing.xxxl)
+        XCTAssertTrue(Spacing.xxxl < Spacing.xxl)
+    }
+
+    func testWindowAndLayoutMetricsArePositive() {
+        XCTAssertGreaterThan(WindowSize.onboardingDefaultWidth, 0)
+        XCTAssertGreaterThan(WindowSize.onboardingDefaultHeight, 0)
+        XCTAssertGreaterThan(LayoutMetric.compactProgressWidth, 0)
+        XCTAssertGreaterThan(LayoutMetric.compactPickerIconWidth, 0)
     }
 
     @MainActor

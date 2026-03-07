@@ -1,6 +1,6 @@
 import Foundation
 
-enum SettingsPanel: String, CaseIterable, Identifiable {
+public enum SettingsPanel: String, CaseIterable, Identifiable, Sendable {
     case general = "Geral"
     case models = "Modelos"
     case advanced = "Avançado"
@@ -9,9 +9,9 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
     case updates = "Atualizações"
     case about = "Sobre"
     
-    var id: String { self.rawValue }
+    public var id: String { self.rawValue }
     
-    var icon: String {
+    public var icon: String {
         switch self {
         case .general: return "gearshape"
         case .models: return "cpu"
@@ -23,7 +23,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
         }
     }
     
-    var localizedName: String {
+    public var localizedName: String {
         switch self {
         case .general: return L10n("Geral")
         case .models: return L10n("Modelos")
@@ -36,7 +36,7 @@ enum SettingsPanel: String, CaseIterable, Identifiable {
     }
 }
 
-enum SettingsSelection: Hashable {
+public enum SettingsSelection: Hashable, Sendable {
     case panel(SettingsPanel)
     case template(DictationTemplate)
 }

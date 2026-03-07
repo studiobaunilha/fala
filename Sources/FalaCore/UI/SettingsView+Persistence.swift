@@ -12,29 +12,7 @@ extension AppSettings {
             relocalizeUntouchedDefaults(targetLanguage: appLanguage)
         }
 
-        config.appLanguage = appLanguage
-        config.transcriptionEngine = transcriptionEngine
-        config.dictationModel = dictationModel
-        config.batchModel = batchModel
-        config.transcriptionLanguage = transcriptionLanguage
-        config.dictationTemperature = dictationTemperature
-        config.batchTemperature = batchTemperature
-        config.replacements = replacements
-        config.replacementRules = replacementRules
-        config.defaultExportPath = defaultExportPath
-        config.enableDiarization = enableDiarization
-        config.selectedDictationTemplate = selectedDictationTemplate
-        config.llmProvider = llmProvider
-        config.llmPrompt = llmPrompt
-        config.openAIKey = openAIKey
-        config.geminiKey = geminiKey
-        config.geminiModel = geminiModel
-        config.openAIModel = openAIModel
-        config.mlxModel = mlxModel
-        config.modeConfigs = modeConfigs
-        config.customModeName = String(customModeName.prefix(30))
-        config.customModePrompt = customModePrompt
-        config.globalSystemPrompt = globalSystemPrompt
+        config = snapshotConfig()
 
         AppLocalization.apply(languageCode: appLanguage)
         config.save()
@@ -47,6 +25,8 @@ extension AppSettings {
                 prompt: ""
             )
         }
+        warmupCoordinator.scheduleSelectedWarmup()
+        readiness.refresh()
     }
 
     private func relocalizeUntouchedDefaults(targetLanguage: String) {
@@ -90,7 +70,6 @@ extension View {
     func observeSettingsChanges(_ settings: AppSettings) -> some View {
         self
             .onChange(of: settings.appLanguage) { settings.save() }
-            .onChange(of: settings.transcriptionEngine) { settings.save() }
             .onChange(of: settings.dictationModel) { settings.save() }
             .onChange(of: settings.batchModel) { settings.save() }
             .onChange(of: settings.transcriptionLanguage) { settings.save() }

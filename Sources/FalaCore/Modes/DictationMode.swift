@@ -25,6 +25,7 @@ public final class DictationMode {
     private let configProvider: ConfigProvider
     private let transcriberResolver: TranscriberResolver
     private let llmProcessor: LLMProcessor?
+    private let readiness: RuntimeReadinessEvaluator?
 
     private var isRecording = false
 
@@ -48,7 +49,8 @@ public final class DictationMode {
         config: AppConfig? = nil,
         configProvider: ConfigProvider? = nil,
         transcriberResolver: TranscriberResolver? = nil,
-        llmProcessor: LLMProcessor? = nil
+        llmProcessor: LLMProcessor? = nil,
+        readiness: RuntimeReadinessEvaluator? = nil
     ) {
         self.recorder = recorder
         self.inserter = inserter
@@ -59,6 +61,7 @@ public final class DictationMode {
         }
         self.transcriberResolver = transcriberResolver ?? { _ in transcriber }
         self.llmProcessor = llmProcessor
+        self.readiness = readiness
     }
 
     /// Binds global keyboard shortcut handlers. Call once at app startup.
@@ -78,7 +81,10 @@ public final class DictationMode {
 
     func startRecording() async {
         guard !isRecording else { return }
-        guard LicenseManager.shared.isActivated else {
+        if let issue = readiness?.primaryIssueForDictation() {
+            statusBar?.showTemporaryWarning(issue.message)
+            return
+        } else if readiness == nil, !LicenseManager.shared.isActivated {
             let blockedMessage: String
             if LicenseManager.shared.accessState == .needsConnection {
                 blockedMessage = L10n("Conexão necessária: Conecte este Mac para validar a licença nos Ajustes.")

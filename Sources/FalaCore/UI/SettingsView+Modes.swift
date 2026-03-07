@@ -46,29 +46,23 @@ struct ModeDetailView: View {
 
             if template == .translate && settings.transcriptionEngine != "whisper" {
                 Section {
-                    Label {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(L10n("Motor incompatível"))
-                                .font(.headline)
-                            // swiftlint:disable:next line_length
-                            Text(L10n("A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução."))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            Button(L10n("Trocar para Whisper")) {
-                                settings.transcriptionEngine = "whisper"
-                                settings.save()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.orange)
-                            .padding(.top, Spacing.xs)
+                    NoticeCard(
+                        title: L10n("Motor incompatível"),
+                        // swiftlint:disable:next line_length
+                        message: L10n("A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução."),
+                        tone: .warning
+                    ) {
+                        Button(L10n("Trocar para Whisper")) {
+                            settings.requestTranscriptionEngineChange(
+                                "whisper",
+                                title: L10n("Reinício necessário"),
+                                // swiftlint:disable:next line_length
+                                message: L10n("A tradução para inglês requer o motor Whisper. O Fala vai trocar o motor e reiniciar agora.")
+                            )
                         }
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.orange)
-                            .frame(width: 28)
+                        .buttonStyle(.borderedProminent)
+                        .tint(FalaColors.warning)
                     }
-                    .padding(.vertical, Spacing.xs)
                 }
             }
 
@@ -78,22 +72,12 @@ struct ModeDetailView: View {
 
             if template == .custom && isEffectiveProviderAppleIntelligence {
                 Section {
-                    Label {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(L10n("Provedor incompatível"))
-                                .font(.headline)
-                            // swiftlint:disable:next line_length
-                            Text(L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Selecione outro provedor abaixo."))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.orange)
-                            .frame(width: 28)
-                    }
-                    .padding(.vertical, Spacing.xs)
+                    NoticeCard(
+                        title: L10n("Provedor incompatível"),
+                        // swiftlint:disable:next line_length
+                        message: L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Selecione outro provedor abaixo."),
+                        tone: .warning
+                    )
                 }
             }
 
@@ -141,7 +125,7 @@ struct ModeDetailView: View {
                 Image(systemName: template.icon)
                     .font(.title2)
                     .foregroundStyle(.tint)
-                    .frame(width: 28)
+                    .frame(width: LayoutMetric.leadingNoticeIconWidth)
             }
             .padding(.vertical, Spacing.xs)
         }
@@ -195,18 +179,12 @@ struct ModeDetailView: View {
 
     private var promptSection: some View {
         Section {
-            TextEditor(text: $prompt)
-                .frame(minHeight: 150)
-                .font(.body.monospaced())
-                .scrollContentBackground(.hidden)
-                .padding(Spacing.xs)
-                .background(Color(nsColor: .textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .stroke(Color(nsColor: .separatorColor))
-                )
-                .onChange(of: prompt) { debouncedSave() }
+            EditorSurface(minHeight: LayoutMetric.promptEditorMinHeight) {
+                TextEditor(text: $prompt)
+                    .font(.body.monospaced())
+                    .scrollContentBackground(.hidden)
+                    .onChange(of: prompt) { debouncedSave() }
+            }
 
             HStack {
                 Button(L10n("Restaurar Padrão")) {
@@ -221,7 +199,7 @@ struct ModeDetailView: View {
                 if isPromptModified {
                     Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(FalaColors.warning)
                 }
             }
         } header: {
@@ -265,6 +243,7 @@ struct ModeDetailView: View {
             } icon: {
                 Image(systemName: "bolt.horizontal")
                     .foregroundStyle(.secondary)
+                    .frame(width: LayoutMetric.leadingNoticeIconWidth)
             }
             .padding(.vertical, Spacing.xs)
         } header: {
@@ -283,17 +262,12 @@ struct ModeDetailView: View {
     private var appleIntelligencePromptNote: some View {
         Section {
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                Text(prompt)
-                    .font(.body.monospaced())
-                    .foregroundStyle(.secondary)
-                    .padding(Spacing.xs)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                            .stroke(Color(nsColor: .separatorColor))
-                    )
+                EditorSurface(backgroundOpacity: 0.5) {
+                    Text(prompt)
+                        .font(.body.monospaced())
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
 
                 Label {
                     // swiftlint:disable:next line_length
@@ -302,7 +276,7 @@ struct ModeDetailView: View {
                         .foregroundStyle(.secondary)
                 } icon: {
                     Image(systemName: "info.circle")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(FalaColors.info)
                         .font(.caption)
                 }
             }

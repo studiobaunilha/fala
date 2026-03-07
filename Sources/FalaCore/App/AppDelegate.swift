@@ -1,6 +1,6 @@
 import AppKit
-import AVFoundation
 import Sparkle
+import Combine
 
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -10,6 +10,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsController: SettingsWindowController?
     private var transcribeController: TranscribeWindowController?
     private var feedbackController: DictationFeedbackController?
+    private var onboardingController: OnboardingWindowController?
+    private var appSettings: AppSettings?
+    private var cancellables = Set<AnyCancellable>()
 
     // swiftlint:disable:next function_body_length
     public func applicationDidFinishLaunching(_ notification: Notification) {
@@ -38,14 +41,24 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             config: config,
             transcriber: whisperTranscriber,
             modelManager: modelManager,
+            parakeetTranscriber: parakeetTranscriber,
             updater: updaterController?.updater
         )
+        self.appSettings = appSettings
 
         let settingsCtrl = SettingsWindowController(settings: appSettings)
         settingsController = settingsCtrl
 
         let transcribeCtrl = TranscribeWindowController(settings: appSettings)
         transcribeController = transcribeCtrl
+
+        let onboardingViewModel = OnboardingViewModel(
+            settings: appSettings,
+            readiness: appSettings.readiness,
+            permissionProvider: appSettings.permissionProvider
+        )
+        let onboardingCtrl = OnboardingWindowController(viewModel: onboardingViewModel)
+        onboardingController = onboardingCtrl
 
         AppMainMenu.install(appDelegate: self)
 
@@ -60,32 +73,34 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                 ? parakeetTranscriber
                 : whisperTranscriber
         }
-        let activeTranscriber = transcriberResolver(config)
-
         let feedbackCtrl = DictationFeedbackController()
         feedbackController = feedbackCtrl
 
         let dictation = makeDictationMode(
             statusBar: bar,
             feedback: feedbackCtrl,
-            configProvider: { AppConfig.load() },
-            transcriberResolver: transcriberResolver
+            configProvider: { appSettings.snapshotConfig() },
+            transcriberResolver: transcriberResolver,
+            readiness: appSettings.readiness
         )
 
         statusBar = bar
         dictationMode = dictation
         observeLanguageChanges()
+        observeRuntimeEvents(settings: appSettings)
 
         dictation.setup()
-        requestMicrophoneAccess()
-        preloadModel(config: config, transcriber: activeTranscriber, whisper: whisperTranscriber, bar: bar)
+        appSettings.warmupCoordinator.scheduleSelectedWarmup()
+        syncWarmupUI(for: bar, coordinator: appSettings.warmupCoordinator)
+        onboardingCtrl.showIfNeeded()
     }
 
     private func makeDictationMode(
         statusBar: StatusBarController,
         feedback: DictationFeedbackController,
         configProvider: @escaping () -> AppConfig,
-        transcriberResolver: @escaping (AppConfig) -> any AudioTranscribing
+        transcriberResolver: @escaping (AppConfig) -> any AudioTranscribing,
+        readiness: RuntimeReadinessEvaluator
     ) -> DictationMode {
         let initialConfig = configProvider()
         return DictationMode(
@@ -95,64 +110,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             statusBar: statusBar,
             feedback: feedback,
             configProvider: configProvider,
-            transcriberResolver: transcriberResolver
+            transcriberResolver: transcriberResolver,
+            readiness: readiness
         )
     }
 
     @objc
     public func showSettingsWindow() {
         settingsController?.show()
-    }
-
-    private func preloadModel(
-        config: AppConfig,
-        transcriber: any AudioTranscribing,
-        whisper: Transcriber,
-        bar: StatusBarController
-    ) {
-        bar.setState(.loading)
-        Task {
-            do {
-                let name = config.transcriptionEngine == "parakeet"
-                    ? L10n("Parakeet V3") : config.dictationModel
-                    
-                let progressHandler: @Sendable (Double) -> Void = { [weak bar] fraction in
-                    Task { @MainActor in
-                        bar?.setDownloadProgress(fraction, modelName: name)
-                    }
-                }
-                
-                bar.setLoadingTooltip(String(format: L10n("Carregando modelo %@…"), name))
-                NSLog("[Fala] Starting model pre-load: %@", name)
-                if let parakeet = transcriber as? ParakeetTranscriber {
-                    try await parakeet.loadIfNeeded(progress: progressHandler)
-                } else {
-                    try await whisper.loadIfNeeded(progress: progressHandler)
-                }
-                NSLog("[Fala] Model pre-load succeeded")
-            } catch {
-                NSLog("[Fala] Model pre-load failed: %@", error.localizedDescription)
-            }
-            bar.setLoadingTooltip(nil)
-            bar.setState(.idle)
-        }
-    }
-
-    private func requestMicrophoneAccess() {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized:
-            break
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { granted in
-                if !granted {
-                    print("[Fala] Microphone access denied.")
-                }
-            }
-        case .denied, .restricted:
-            print("[Fala] Microphone access denied. Enable in System Settings → Privacy → Microphone.")
-        @unknown default:
-            break
-        }
     }
 
     private func observeLanguageChanges() {
@@ -164,6 +129,66 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
+    private func observeRuntimeEvents(settings: AppSettings) {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleModelDownloadCompleted),
+            name: .whisperModelDownloadCompleted,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleModelDownloadCompleted),
+            name: .mlxDownloadCompleted,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidBecomeActive),
+            name: NSApplication.didBecomeActiveNotification,
+            object: nil
+        )
+
+        settings.readiness.refresh()
+    }
+
+    @objc private func handleModelDownloadCompleted() {
+        appSettings?.warmupCoordinator.scheduleSelectedWarmup()
+        appSettings?.readiness.refresh()
+        onboardingController?.reloadContent()
+    }
+
+    @objc private func handleAppDidBecomeActive() {
+        statusBar?.reloadLocalizedContent()
+        settingsController?.reloadLocalizedContent()
+        transcribeController?.reloadLocalizedContent()
+        onboardingController?.reloadContent()
+        onboardingController?.showIfNeeded()
+        appSettings?.warmupCoordinator.scheduleSelectedWarmup()
+        appSettings?.readiness.refresh()
+    }
+
+    private func syncWarmupUI(for bar: StatusBarController, coordinator: WarmupCoordinator) {
+        coordinator.objectWillChange.sink { [weak bar, weak coordinator] _ in
+            guard let bar, let coordinator else { return }
+
+            if coordinator.isPreparingSelectedResources {
+                bar.setState(.loading)
+                if case .warming(let label) = coordinator.transcriptionStatus {
+                    bar.setLoadingTooltip(String(format: L10n("Carregando modelo %@…"), label))
+                    return
+                }
+                if case .warming(let label) = coordinator.llmStatus {
+                    bar.setLoadingTooltip(String(format: L10n("Preparando %@…"), label))
+                    return
+                }
+            }
+
+            bar.setLoadingTooltip(nil)
+            bar.setState(.idle)
+        }.store(in: &cancellables)
+    }
+
     @objc private func handleLanguageChanged() {
         reloadLocalizedUI()
     }
@@ -173,6 +198,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBar?.reloadLocalizedContent()
         settingsController?.reloadLocalizedContent()
         transcribeController?.reloadLocalizedContent()
+        onboardingController?.reloadContent()
     }
 
 }

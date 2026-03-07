@@ -12,6 +12,11 @@ public struct MLXModelInfo: Identifiable, Sendable {
     public let estimatedSize: String
 }
 
+public enum MLXModelCompatibility: String, Equatable, Sendable {
+    case curated
+    case customOnly
+}
+
 // swiftlint:disable trailing_comma
 public let knownMLXModels: [MLXModelInfo] = [
     MLXModelInfo(
@@ -67,6 +72,20 @@ public final class MLXModelManager: ObservableObject {
         scanLocal()
     }
 
+    public static func isRepoDownloaded(_ repoID: String) -> Bool {
+        let fm = FileManager.default
+        let dir = modelDir(for: repoID)
+        guard let files = try? fm.contentsOfDirectory(
+            at: dir,
+            includingPropertiesForKeys: nil
+        ) else {
+            return false
+        }
+        return files.contains(where: {
+            $0.pathExtension == "safetensors" || $0.lastPathComponent == "config.json"
+        })
+    }
+
     // MARK: - Scan
 
     /// Scans for downloaded MLX models using the same HubApi paths.
@@ -102,6 +121,10 @@ public final class MLXModelManager: ObservableObject {
         return localModels.contains(info.repoID)
     }
 
+    public func isDownloaded(repoID: String) -> Bool {
+        localModels.contains(repoID) || Self.isRepoDownloaded(repoID)
+    }
+
     /// Returns the repo ID for a short id.
     public func repoID(for shortId: String) -> String? {
         knownMLXModels.first(where: { $0.id == shortId })?.repoID
@@ -114,11 +137,16 @@ public final class MLXModelManager: ObservableObject {
     public func download(_ shortId: String) {
         guard !downloads.keys.contains(shortId) else { return }
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
+        download(repoID: info.repoID, shortID: shortId)
+    }
+
+    public func download(repoID: String, shortID overrideShortID: String? = nil) {
+        let shortId = overrideShortID
+            ?? knownMLXModels.first(where: { $0.repoID == repoID })?.id
+            ?? repoID
         downloads[shortId] = 0.0
         downloadErrors.removeValue(forKey: shortId)
         loadingStatus[shortId] = L10n("Preparando download...")
-
-        let repoID = info.repoID
         let (stream, continuation) = AsyncStream<Double>.makeStream()
 
         // Watch progress on MainActor.
@@ -143,6 +171,11 @@ public final class MLXModelManager: ObservableObject {
                     continuation.yield(fraction)
                 }
                 continuation.finish()
+                NotificationCenter.default.post(
+                    name: .mlxDownloadCompleted,
+                    object: nil,
+                    userInfo: ["repoID": repoID, "shortId": shortId]
+                )
             } catch {
                 NSLog(
                     "[Fala] MLX download failed for %@: %@",
@@ -178,11 +211,15 @@ public final class MLXModelManager: ObservableObject {
     /// Deletes a downloaded model.
     public func delete(_ shortId: String) throws {
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return }
-        let dir = Self.modelDir(for: info.repoID)
+        try delete(repoID: info.repoID)
+    }
+
+    public func delete(repoID: String) throws {
+        let dir = Self.modelDir(for: repoID)
         try FileManager.default.removeItem(at: dir)
         // Evict from in-memory cache
         Task {
-            await MLXModelCache.shared.evict(info.repoID)
+            await MLXModelCache.shared.evict(repoID)
         }
         scanLocal()
     }
@@ -190,9 +227,17 @@ public final class MLXModelManager: ObservableObject {
     /// Calculates the on-disk size of a downloaded model.
     public func diskSize(for shortId: String) -> String? {
         guard let info = knownMLXModels.first(where: { $0.id == shortId }) else { return nil }
-        let dir = Self.modelDir(for: info.repoID)
+        return diskSize(repoID: info.repoID)
+    }
+
+    public func diskSize(repoID: String) -> String? {
+        let dir = Self.modelDir(for: repoID)
         guard let bytes = Self.directorySize(dir) else { return nil }
         return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)
+    }
+
+    public func label(for repoID: String) -> String {
+        knownMLXModels.first(where: { $0.repoID == repoID })?.label ?? repoID
     }
 
     private static func directorySize(_ url: URL) -> UInt64? {
@@ -216,6 +261,7 @@ public final class MLXModelManager: ObservableObject {
 
 extension Notification.Name {
     static let mlxDownloadFailed = Notification.Name("mlxDownloadFailed")
+    static let mlxDownloadCompleted = Notification.Name("mlxDownloadCompleted")
 }
 
 // MARK: - Model Cache (Actor)
@@ -239,6 +285,11 @@ public actor MLXModelCache {
             context, instructions: systemPrompt
         )
         return try await session.respond(to: userText)
+    }
+
+    public func warmup(repoID: String) async throws {
+        try MLXRuntimeSupport.ensureRuntimeAvailable()
+        _ = try await getOrLoad(repoID)
     }
 
     /// Returns a loaded model, using the cache when available.

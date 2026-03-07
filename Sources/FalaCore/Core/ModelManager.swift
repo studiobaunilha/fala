@@ -81,6 +81,10 @@ public final class ModelManager: ObservableObject {
         return localModels.contains(info.variant)
     }
 
+    public func isDownloaded(variant: String) -> Bool {
+        localModels.contains(variant)
+    }
+
     /// Returns the full variant name for a short id.
     public func variantName(for shortId: String) -> String? {
         knownModels.first(where: { $0.id == shortId })?.variant
@@ -125,6 +129,11 @@ public final class ModelManager: ObservableObject {
                     continuation.yield(progress.fractionCompleted)
                 }
                 continuation.finish()
+                NotificationCenter.default.post(
+                    name: .whisperModelDownloadCompleted,
+                    object: nil,
+                    userInfo: ["modelId": shortId, "variant": variant]
+                )
             } catch {
                 NSLog("[Fala] Download failed for %@: %@", shortId, error.localizedDescription)
                 continuation.finish()
@@ -160,4 +169,8 @@ public final class ModelManager: ObservableObject {
         }
         return total
     }
+}
+
+extension Notification.Name {
+    static let whisperModelDownloadCompleted = Notification.Name("whisperModelDownloadCompleted")
 }

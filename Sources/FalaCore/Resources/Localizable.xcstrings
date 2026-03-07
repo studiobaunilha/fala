@@ -5136,6 +5136,870 @@
           }
         }
       }
+    },
+    "A acessibilidade é necessária para inserir o texto transcrito no app em foco.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility permission is required to insert transcribed text into the focused app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La accesibilidad es necesaria para insertar el texto transcrito en la app en foco."
+          }
+        }
+      }
+    },
+    "A licença ou o trial deste Mac já estão válidos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Mac already has a valid license or trial."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Mac ya tiene una licencia o trial válidos."
+          }
+        }
+      }
+    },
+    "A tradução para inglês requer o motor Whisper. O Fala vai trocar o motor e reiniciar agora.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English translation requires the Whisper engine. Fala will switch the engine and restart now."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La traducción al inglés requiere el motor Whisper. Fala cambiará el motor y se reiniciará ahora."
+          }
+        }
+      }
+    },
+    "Abrir Ajustes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        }
+      }
+    },
+    "Abrir Ajustes do Sistema": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes del Sistema"
+          }
+        }
+      }
+    },
+    "Acessibilidade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesibilidad"
+          }
+        }
+      }
+    },
+    "Apple Intelligence indisponível": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence unavailable"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence no disponible"
+          }
+        }
+      }
+    },
+    "Ative o acesso ao microfone nos Ajustes do Sistema para usar o ditado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable microphone access in System Settings to use dictation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa el acceso al micrófono en Ajustes del Sistema para usar el dictado."
+          }
+        }
+      }
+    },
+    "Baixe ou selecione um modelo MLX local compatível antes de usar este modo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download or select a compatible local MLX model before using this mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga o selecciona un modelo MLX local compatible antes de usar este modo."
+          }
+        }
+      }
+    },
+    "Boas-vindas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bienvenida"
+          }
+        }
+      }
+    },
+    "Chave Gemini necessária": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemini API key required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere clave de Gemini"
+          }
+        }
+      }
+    },
+    "Chave OpenAI necessária": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenAI API key required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere clave de OpenAI"
+          }
+        }
+      }
+    },
+    "Conclua o básico uma vez para o app já abrir pronto para ditado e transcrição.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete the basics once so the app opens ready for dictation and transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completa lo básico una vez para que la app se abra lista para dictado y transcripción."
+          }
+        }
+      }
+    },
+    "Conecte este Mac à internet para validar a licença ou iniciar o trial.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect this Mac to the internet to validate the license or start the trial."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta este Mac a internet para validar la licencia o iniciar el trial."
+          }
+        }
+      }
+    },
+    "Configurar o Fala": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up Fala"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar Fala"
+          }
+        }
+      }
+    },
+    "Configure uma chave da API Gemini para usar este modo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure a Gemini API key to use this mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura una clave de la API de Gemini para usar este modo."
+          }
+        }
+      }
+    },
+    "Configure uma chave da API OpenAI para usar este modo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure an OpenAI API key to use this mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura una clave de la API de OpenAI para usar este modo."
+          }
+        }
+      }
+    },
+    "Continuar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        }
+      }
+    },
+    "Custom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado"
+          }
+        }
+      }
+    },
+    "Escolha e baixe um modelo Whisper para o ditado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose and download a Whisper model for dictation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige y descarga un modelo Whisper para el dictado."
+          }
+        }
+      }
+    },
+    "Escolha e baixe um modelo Whisper para transcrever arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose and download a Whisper model to transcribe files."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige y descarga un modelo Whisper para transcribir archivos."
+          }
+        }
+      }
+    },
+    "IA pronta para o modo atual": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Ready for the Current Mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA lista para el modo actual"
+          }
+        }
+      }
+    },
+    "Licença ou trial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License or Trial"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia o trial"
+          }
+        }
+      }
+    },
+    "Licença ou trial necessários": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License or Trial Required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia o trial requeridos"
+          }
+        }
+      }
+    },
+    "Microfone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Micrófono"
+          }
+        }
+      }
+    },
+    "Microfone bloqueado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone Blocked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Micrófono bloqueado"
+          }
+        }
+      }
+    },
+    "Modelo MLX necessário": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MLX Model Required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere modelo MLX"
+          }
+        }
+      }
+    },
+    "Modelo Whisper necessário": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper Model Required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere modelo Whisper"
+          }
+        }
+      }
+    },
+    "Modo incompatível com Apple Intelligence": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode Incompatible with Apple Intelligence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo incompatible con Apple Intelligence"
+          }
+        }
+      }
+    },
+    "Motor e modelo prontos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Engine and Model Ready"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motor y modelo listos"
+          }
+        }
+      }
+    },
+    "O Fala precisa do microfone para o ditado e para concluir o setup inicial.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fala needs microphone access for dictation and to complete initial setup."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fala necesita acceso al micrófono para el dictado y para completar la configuración inicial."
+          }
+        }
+      }
+    },
+    "O modo personalizado requer um provedor mais flexível.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom mode requires a more flexible provider."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El modo personalizado requiere un proveedor más flexible."
+          }
+        }
+      }
+    },
+    "O motor selecionado já está com a configuração mínima válida.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected engine already has the minimum valid configuration."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El motor seleccionado ya tiene la configuración mínima válida."
+          }
+        }
+      }
+    },
+    "O provedor e o modelo de IA do modo atual já estão válidos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI provider and model for the current mode are already valid."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor y el modelo de IA del modo actual ya son válidos."
+          }
+        }
+      }
+    },
+    "Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. Ao trocar de motor o app pede confirmação e reinicia imediatamente.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 uses CoreML/ANE for ultra-fast transcription. It supports 25 European languages. When switching engines, the app asks for confirmation and restarts immediately."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet V3 usa CoreML/ANE para transcripción ultrarrápida. Soporta 25 idiomas europeos. Al cambiar de motor, la app pide confirmación y se reinicia de inmediato."
+          }
+        }
+      }
+    },
+    "Permita acessibilidade": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Accessibility"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir accesibilidad"
+          }
+        }
+      }
+    },
+    "Permita acessibilidade para inserir texto no app em foco.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow accessibility to insert text into the focused app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite accesibilidad para insertar texto en la app en foco."
+          }
+        }
+      }
+    },
+    "Permita acesso ao microfone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Microphone Access"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir acceso al micrófono"
+          }
+        }
+      }
+    },
+    "Permita o microfone para usar o ditado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow microphone access to use dictation."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite el micrófono para usar el dictado."
+          }
+        }
+      }
+    },
+    "Permitir microfone": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Microphone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir micrófono"
+          }
+        }
+      }
+    },
+    "Preparando %@…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing %@…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando %@…"
+          }
+        }
+      }
+    },
+    "Próxima tentativa automática": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Automatic Retry"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximo intento automático"
+          }
+        }
+      }
+    },
+    "Reiniciar agora": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar ahora"
+          }
+        }
+      }
+    },
+    "Reinício necessário": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restart Required"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinicio necesario"
+          }
+        }
+      }
+    },
+    "Repo ID customizado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom Repo ID"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repo ID personalizado"
+          }
+        }
+      }
+    },
+    "Revalidar estado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recheck Status"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revalidar estado"
+          }
+        }
+      }
+    },
+    "Sugestões": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugerencias"
+          }
+        }
+      }
+    },
+    "Tamanho variável": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variable Size"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamaño variable"
+          }
+        }
+      }
+    },
+    "Trocar o motor de transcrição de %@ para %@ exige reiniciar o app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switching the transcription engine from %@ to %@ requires restarting the app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar el motor de transcripción de %@ a %@ requiere reiniciar la app."
+          }
+        }
+      }
+    },
+    "Troque para MLX, Gemini ou OpenAI para usar este modo neste Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to MLX, Gemini, or OpenAI to use this mode on this Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia a MLX, Gemini u OpenAI para usar este modo en este Mac."
+          }
+        }
+      }
+    },
+    "Usar repo customizado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Custom Repo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar repo personalizado"
+          }
+        }
+      }
+    },
+    "Valide online ou ative o Fala Pro para continuar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Validate online or activate Fala Pro to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valida en línea o activa Fala Pro para continuar."
+          }
+        }
+      }
+    },
+    "Whisper usa modelos OpenAI via WhisperKit. Ao trocar de motor o app pede confirmação e reinicia imediatamente.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper uses OpenAI models via WhisperKit. When switching engines, the app asks for confirmation and restarts immediately."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper usa modelos de OpenAI vía WhisperKit. Al cambiar de motor, la app pide confirmación y se reinicia de inmediato."
+          }
+        }
+      }
+    },
+    "Última tentativa automática": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Automatic Attempt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último intento automático"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

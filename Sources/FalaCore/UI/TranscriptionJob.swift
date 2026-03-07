@@ -63,6 +63,12 @@ public final class TranscriptionJob: ObservableObject {
 
     public func transcribe() {
         guard let inputURL else { return }
+        if let issue = appSettings.readiness.primaryIssueForBatch(batchPrompt: batchPostPrompt) {
+            withAnimation(AnimationConfig.standard) {
+                state = .error(issue.message)
+            }
+            return
+        }
         let ext = inputURL.pathExtension.lowercased()
 
         withAnimation(AnimationConfig.standard) {

@@ -3,6 +3,9 @@ import SwiftUI
 // MARK: – View Components (Extension)
 
 extension TranscribeView {
+    private var batchReadinessIssue: ReadinessIssue? {
+        job.appSettings.readiness.primaryIssueForBatch(batchPrompt: job.batchPostPrompt)
+    }
     
     private var defaultModelLabel: String {
         let modelName = knownModels.first { $0.id == job.appSettings.batchModel }?.label
@@ -20,7 +23,7 @@ extension TranscribeView {
     var emptyStateView: some View {
         VStack(spacing: Spacing.lg) {
             Image(systemName: "waveform.badge.plus")
-                .font(.system(size: 48, weight: .light))
+                .font(.system(size: LayoutMetric.transcribeEmptyStateIconSize, weight: .light))
                 .foregroundColor(.accentColor)
                 .padding(.bottom, Spacing.sm)
             
@@ -32,7 +35,7 @@ extension TranscribeView {
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: LayoutMetric.transcribeEmptyStateTextMaxWidth)
             
             Button(L10n("Selecionar Arquivo…")) {
                 job.selectFile()
@@ -50,13 +53,16 @@ extension TranscribeView {
             Section(L10n("Arquivo")) {
                 HStack(spacing: Spacing.md) {
                     Image(systemName: "doc.audio.fill")
-                        .font(.system(size: 28))
+                        .font(.system(size: LayoutMetric.transcribeDocumentGlyphSize))
                         .foregroundColor(.accentColor)
-                        .frame(width: 40, height: 40)
+                        .frame(
+                            width: LayoutMetric.transcribeDocumentIconSize,
+                            height: LayoutMetric.transcribeDocumentIconSize
+                        )
                         .background(Color.accentColor.opacity(0.1))
-                        .cornerRadius(8)
+                        .cornerRadius(CornerRadius.md)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xxs) {
                         Text(job.inputURL?.lastPathComponent ?? "")
                             .font(.headline)
                             .lineLimit(1)
@@ -76,28 +82,22 @@ extension TranscribeView {
             }
 
             Section {
-                TextEditor(text: $job.batchPostPrompt)
-                    .frame(minHeight: 80)
-                    .font(.body.monospaced())
-                    .scrollContentBackground(.hidden)
-                    .padding(Spacing.xs)
-                    .background(Color(nsColor: .textBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.md)
-                            .stroke(Color(nsColor: .separatorColor))
-                    )
-                    .disabled(isWorking)
-                    .overlay(alignment: .topLeading) {
-                        if job.batchPostPrompt.isEmpty {
-                            Text(L10n("Ex: Corrija pontuação e gramática..."))
-                                .foregroundStyle(.tertiary)
-                                .font(.body.monospaced())
-                                .padding(.horizontal, Spacing.sm)
-                                .padding(.vertical, Spacing.xs + 4)
-                                .allowsHitTesting(false)
+                EditorSurface(minHeight: LayoutMetric.batchPromptMinHeight) {
+                    TextEditor(text: $job.batchPostPrompt)
+                        .font(.body.monospaced())
+                        .scrollContentBackground(.hidden)
+                        .disabled(isWorking)
+                        .overlay(alignment: .topLeading) {
+                            if job.batchPostPrompt.isEmpty {
+                                Text(L10n("Ex: Corrija pontuação e gramática..."))
+                                    .foregroundStyle(.tertiary)
+                                    .font(.body.monospaced())
+                                    .padding(.horizontal, Spacing.sm)
+                                    .padding(.vertical, Spacing.md)
+                                    .allowsHitTesting(false)
+                            }
                         }
-                    }
+                }
             } header: {
                 Text(L10n("Pós-processamento com IA (opcional)"))
             } footer: {
@@ -145,7 +145,7 @@ extension TranscribeView {
             } header: {
                 Text(L10n("Modelo & Qualidade"))
             } footer: {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     // swiftlint:disable:next line_length
                     Text(L10n("A identificação de locutores funciona via pós-processamento com IA — não é detecção acústica. A qualidade depende do modelo de IA selecionado. Requer o campo de pós-processamento preenchido."))
                         .foregroundStyle(.secondary)
@@ -153,7 +153,7 @@ extension TranscribeView {
                     if job.appSettings.llmProvider == "apple" {
                         // swiftlint:disable:next line_length
                         Label(L10n("Indisponível com Apple Intelligence (requer modelo mais avançado)"), systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(FalaColors.warning)
                     }
                 }
                 .font(.caption)
@@ -187,8 +187,21 @@ extension TranscribeView {
     var statusView: some View {
         switch job.state {
         case .idle:
-            if licenseManager.isActivated {
-                VStack(spacing: 8) {
+            if let issue = batchReadinessIssue {
+                NoticeCard(
+                    title: issue.title,
+                    message: issue.message,
+                    tone: .warning
+                ) {
+                    if let actionTitle = issue.actionTitle {
+                        Button(actionTitle) {
+                            performReadinessAction(issue)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+            } else if licenseManager.isActivated {
+                VStack(spacing: Spacing.md) {
                     Button(L10n("Iniciar Transcrição")) {
                         job.transcribe()
                     }
@@ -208,29 +221,18 @@ extension TranscribeView {
                     }
                 }
             } else {
-                VStack(spacing: 4) {
-                    Text(
-                        licenseManager.accessState == .needsConnection
-                            ? L10n("Conexão Necessária")
-                            : L10n("Período de Teste Esgotado")
-                    )
-                        .font(.headline)
-                        .foregroundColor(.red)
-                    Text(
-                        licenseManager.accessState == .needsConnection
-                            ? L10n(
-                                "Conecte este Mac e valide a licença nos Ajustes para voltar a transcrever arquivos."
-                            )
-                            : L10n("Ative o Fala Pro nos Ajustes para voltar a transcrever arquivos.")
-                    )
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.red.opacity(0.1))
-                .cornerRadius(8)
+                NoticeCard(
+                    title: licenseManager.accessState == .needsConnection
+                        ? L10n("Conexão Necessária")
+                        : L10n("Período de Teste Esgotado"),
+                    message: licenseManager.accessState == .needsConnection
+                        ? L10n(
+                            "Conecte este Mac e valide a licença nos Ajustes para voltar a transcrever arquivos."
+                        )
+                        : L10n("Ative o Fala Pro nos Ajustes para voltar a transcrever arquivos."),
+                    tone: .error,
+                    textAlignment: .center
+                )
             }
 
         case .converting:
@@ -239,7 +241,7 @@ extension TranscribeView {
                 Spacer()
                 Button(role: .cancel, action: { job.cancel() }, label: {
                     Image(systemName: "stop.circle.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(FalaColors.error)
                 })
                 .buttonStyle(.plain)
                 .controlSize(.large)
@@ -257,13 +259,13 @@ extension TranscribeView {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, Spacing.sm)
                         }
-                        .frame(maxHeight: 200)
+                        .frame(maxHeight: LayoutMetric.progressLogMaxHeight)
                     }
                 }
                 Spacer()
                 Button(role: .cancel, action: { job.cancel() }, label: {
                     Image(systemName: "stop.circle.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(FalaColors.error)
                 })
                 .buttonStyle(.plain)
                 .controlSize(.large)
@@ -275,7 +277,7 @@ extension TranscribeView {
                 Spacer()
                 Button(role: .cancel, action: { job.cancel() }, label: {
                     Image(systemName: "stop.circle.fill")
-                        .foregroundColor(.red)
+                        .foregroundColor(FalaColors.error)
                 })
                 .buttonStyle(.plain)
                 .controlSize(.large)
@@ -285,7 +287,7 @@ extension TranscribeView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Label(L10n("Transcrição Concluída"), systemImage: "checkmark.circle.fill")
                     .font(.headline)
-                    .foregroundStyle(Color.green)
+                    .foregroundStyle(FalaColors.success)
                 Text(path)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -313,7 +315,7 @@ extension TranscribeView {
             Label(isCanceled ? L10n("Transcrição Cancelada") : L10n("Falha na Transcrição"),
                   systemImage: isCanceled ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
                 .font(.headline)
-                .foregroundStyle(isCanceled ? Color.secondary : Color.red)
+                .foregroundStyle(isCanceled ? Color.secondary : FalaColors.error)
             
             if !isCanceled {
                 Text(message)
@@ -327,6 +329,31 @@ extension TranscribeView {
                 }
             }
             .padding(.top, Spacing.xs)
+        }
+    }
+
+    private func performReadinessAction(_ issue: ReadinessIssue) {
+        switch issue.action {
+        case .none:
+            return
+        case .openSettings(let selection):
+            job.appSettings.openSettings(selection)
+        case .openMicrophoneSettings:
+            if job.appSettings.permissionProvider.microphonePermissionState() == .notDetermined {
+                Task {
+                    _ = await job.appSettings.permissionProvider.requestMicrophoneAccess()
+                    job.appSettings.readiness.refresh()
+                }
+            } else {
+                job.appSettings.permissionProvider.openMicrophoneSettings()
+            }
+        case .openAccessibilitySettings:
+            job.appSettings.permissionProvider.openAccessibilitySettings()
+        case .validateLicense:
+            Task {
+                await licenseManager.refreshEntitlement()
+                job.appSettings.readiness.refresh()
+            }
         }
     }
 }

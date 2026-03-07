@@ -50,7 +50,13 @@ extension SettingsView {
     var modelsView: some View {
         Form {
             Section {
-                Picker(L10n("Motor de Transcrição"), selection: $settings.transcriptionEngine) {
+                Picker(
+                    L10n("Motor de Transcrição"),
+                    selection: Binding(
+                        get: { settings.transcriptionEngine },
+                        set: { settings.requestTranscriptionEngineChange($0) }
+                    )
+                ) {
                     Text(L10n("Whisper (WhisperKit)")).tag("whisper")
                     Text(L10n("Parakeet V3 (FluidAudio)")).tag("parakeet")
                 }
@@ -59,11 +65,12 @@ extension SettingsView {
             } footer: {
                 if settings.transcriptionEngine == "parakeet" {
                     // swiftlint:disable:next line_length
-                    Text(L10n("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. O modelo é baixado automaticamente no primeiro uso. Requer reiniciar o app após alterar."))
+                    Text(L10n("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. Ao trocar de motor o app pede confirmação e reinicia imediatamente."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text(L10n("Whisper usa modelos OpenAI via WhisperKit. Requer reiniciar o app após alterar."))
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Whisper usa modelos OpenAI via WhisperKit. Ao trocar de motor o app pede confirmação e reinicia imediatamente."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -100,6 +107,14 @@ extension SettingsView {
             }
 
             if settings.transcriptionEngine == "whisper" {
+                if let issue = settings.readiness.issuesForBatch(batchPrompt: "").first(where: {
+                    $0.kind == .whisperModelMissing
+                }) {
+                    Section {
+                        readinessIssueCard(issue)
+                    }
+                }
+
                 Section {
                     downloadedModelPicker(L10n("Modelo de Ditado"), selection: $settings.dictationModel)
                     downloadedModelPicker(L10n("Modelo Batch / Arquivo"), selection: $settings.batchModel)
@@ -156,7 +171,7 @@ extension SettingsView {
             } header: {
                 Text(L10n("Diarization (Identificação de Vozes)"))
             } footer: {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     // swiftlint:disable:next line_length
                     Text(L10n("Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado."))
                         .foregroundStyle(.secondary)
@@ -164,7 +179,7 @@ extension SettingsView {
                     if settings.llmProvider == "apple" {
                         // swiftlint:disable:next line_length
                         Label(L10n("Indisponível com Apple Intelligence (requer modelo mais avançado)"), systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(FalaColors.warning)
                     }
                 }
                 .font(.caption)
@@ -207,7 +222,7 @@ extension SettingsView {
                         }
                         HStack(spacing: Spacing.xs) {
                             ForEach(rule.variants, id: \.self) { variant in
-                                HStack(spacing: 2) {
+                                HStack(spacing: Spacing.xxs) {
                                     Text(variant)
                                         .font(.caption)
                                         .strikethrough()
@@ -288,5 +303,46 @@ extension SettingsView {
             }
         }
         .pickerStyle(.menu)
+    }
+
+    @ViewBuilder
+    func readinessIssueCard(_ issue: ReadinessIssue) -> some View {
+        NoticeCard(
+            title: issue.title,
+            message: issue.message,
+            tone: .warning
+        ) {
+            if let actionTitle = issue.actionTitle {
+                Button(actionTitle) {
+                    performReadinessAction(issue)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+
+    func performReadinessAction(_ issue: ReadinessIssue) {
+        switch issue.action {
+        case .none:
+            return
+        case .openSettings(let selection):
+            settings.openSettings(selection)
+        case .openMicrophoneSettings:
+            if settings.permissionProvider.microphonePermissionState() == .notDetermined {
+                Task {
+                    _ = await settings.permissionProvider.requestMicrophoneAccess()
+                    settings.readiness.refresh()
+                }
+            } else {
+                settings.permissionProvider.openMicrophoneSettings()
+            }
+        case .openAccessibilitySettings:
+            settings.permissionProvider.openAccessibilitySettings()
+        case .validateLicense:
+            Task {
+                await LicenseManager.shared.refreshEntitlement()
+                settings.readiness.refresh()
+            }
+        }
     }
 }

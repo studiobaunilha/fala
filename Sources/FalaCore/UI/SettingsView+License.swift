@@ -5,7 +5,7 @@ extension SettingsView {
     @ViewBuilder
     var licenseView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: Spacing.xxl) {
                 Text(L10n("Licença"))
                     .font(.title2)
                     .fontWeight(.bold)
@@ -29,19 +29,19 @@ extension SettingsView {
     }
 
     private var statusBannerView: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
             switch licenseManager.accessState {
             case .proActive:
                 bannerCard(
                     icon: "checkmark.seal.fill",
-                    color: .green,
+                    tone: .success,
                     title: L10n("Fala Pro ativo"),
                     subtitle: L10n("Este Mac está autorizado para usar os recursos Pro do Fala.")
                 )
             case .proGracePeriod:
                 bannerCard(
                     icon: "wifi.exclamationmark",
-                    color: .orange,
+                    tone: .warning,
                     title: L10n("Fala Pro em período de tolerância"),
                     // swiftlint:disable:next line_length
                     subtitle: L10n("O lease offline expirou, mas o app ainda está liberado temporariamente enquanto tenta renovar online.")
@@ -49,35 +49,35 @@ extension SettingsView {
             case .trialActive:
                 bannerCard(
                     icon: "clock.badge.checkmark",
-                    color: .orange,
+                    tone: .warning,
                     title: L10n("Trial verificado ativo"),
                     subtitle: L10n("Seu trial está válido neste Mac e exige revalidação online periódica.")
                 )
             case .needsConnection:
                 bannerCard(
                     icon: "wifi.slash",
-                    color: .orange,
+                    tone: .warning,
                     title: L10n("Conexão necessária"),
                     subtitle: L10n("Conecte este Mac à internet para validar o trial ou renovar sua licença.")
                 )
             case .expired:
                 bannerCard(
                     icon: "exclamationmark.triangle.fill",
-                    color: .red,
+                    tone: .error,
                     title: L10n("Acesso expirado"),
                     subtitle: L10n("O trial ou o lease offline expirou. Faça uma validação online ou ative o Fala Pro.")
                 )
             case .unlicensed:
                 bannerCard(
                     icon: "sparkles",
-                    color: .blue,
+                    tone: .info,
                     title: L10n("Pronto para ativar"),
                     // swiftlint:disable:next line_length
                     subtitle: L10n("Você pode colar um código de ativação ou conectar este Mac para iniciar o trial verificado.")
                 )
             }
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 if let email = licenseManager.licenseEmail {
                     detailRow(label: L10n("Ativado para"), value: email)
                 }
@@ -97,18 +97,26 @@ extension SettingsView {
                     detailRow(label: L10n("Próxima validação online"), value: formattedDate(nextCheck))
                 }
 
+                if let lastAttempt = licenseManager.lastOnlineValidationAttemptAt {
+                    detailRow(label: L10n("Última tentativa automática"), value: formattedDate(lastAttempt))
+                }
+
+                if let retryAt = licenseManager.nextAutomaticRetryAt {
+                    detailRow(label: L10n("Próxima tentativa automática"), value: formattedDate(retryAt))
+                }
+
                 if let gracePeriodEnd = licenseManager.gracePeriodEndsAt {
                     detailRow(label: L10n("Tolerância até"), value: formattedDate(gracePeriodEnd))
                 }
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.lg) {
                 Button {
                     Task {
                         await licenseManager.refreshEntitlement()
                     }
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.md) {
                         if licenseManager.isRefreshingEntitlement {
                             ProgressView()
                                 .controlSize(.small)
@@ -129,7 +137,7 @@ extension SettingsView {
                             await licenseManager.deactivate()
                         }
                     } label: {
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.md) {
                             if licenseManager.isDeactivating {
                                 ProgressView()
                                     .controlSize(.small)
@@ -138,7 +146,7 @@ extension SettingsView {
                         }
                     }
                     .buttonStyle(.link)
-                    .foregroundColor(.red)
+                    .foregroundColor(FalaColors.error)
                     .disabled(licenseManager.isDeactivating || licenseManager.isRefreshingEntitlement)
                 }
             }
@@ -146,14 +154,14 @@ extension SettingsView {
             if let error = licenseManager.errorMessage {
                 Text(error)
                     .font(.callout)
-                    .foregroundColor(.red)
+                    .foregroundColor(FalaColors.error)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
     private var activationFormView: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
             Text(L10n("Cole o código de ativação recebido após a compra para liberar o Fala Pro neste Mac."))
                 .font(.body)
                 .foregroundColor(.secondary)
@@ -162,15 +170,15 @@ extension SettingsView {
             if let activationAvailabilityMessage = licenseManager.activationAvailabilityMessage {
                 Text(activationAvailabilityMessage)
                     .font(.callout)
-                    .foregroundColor(.orange)
+                    .foregroundColor(FalaColors.warning)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Text(L10n("Código de Ativação"))
                     .fontWeight(.medium)
 
-                HStack(spacing: 10) {
+                HStack(spacing: Spacing.md) {
                     TextField(L10n("Cole seu código de ativação"), text: $activationCode)
                         .textFieldStyle(.roundedBorder)
                         .font(.system(.body, design: .monospaced))
@@ -209,10 +217,10 @@ extension SettingsView {
             )
 
             Divider()
-                .padding(.vertical, 8)
+                .padding(.vertical, Spacing.md)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                HStack(spacing: Spacing.sm) {
                     Text(L10n("Ainda não comprou o Fala Pro?"))
                     if let url = URL(string: "https://studio.baunilha.dev/fala") {
                         Link(L10n("Comprar Agora"), destination: url)
@@ -233,27 +241,16 @@ extension SettingsView {
 
     private func bannerCard(
         icon: String,
-        color: Color,
+        tone: NoticeTone,
         title: String,
         subtitle: String
     ) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 32))
-                .foregroundColor(color)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.10))
-        .cornerRadius(12)
+        NoticeCard(
+            title: title,
+            message: subtitle,
+            tone: tone,
+            systemImage: icon
+        )
     }
 
     private func detailRow(label: String, value: String) -> some View {

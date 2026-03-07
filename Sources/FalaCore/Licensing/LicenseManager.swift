@@ -16,6 +16,8 @@ public final class LicenseManager: ObservableObject {
     @Published public internal(set) var trialEndsAt: Date?
     @Published public internal(set) var gracePeriodEndsAt: Date?
     @Published public internal(set) var requiresOnlineValidation = false
+    @Published public internal(set) var lastOnlineValidationAttemptAt: Date?
+    @Published public internal(set) var nextAutomaticRetryAt: Date?
 
     public var isTrialActive: Bool { accessState == .trialActive }
     public var isActivated: Bool {
@@ -45,6 +47,8 @@ public final class LicenseManager: ObservableObject {
     let now: @Sendable () -> Date
 
     private var backgroundRefreshTask: Task<Void, Never>?
+    private var automaticRetryAttemptCount = 0
+    private let automaticRetryDelays: [TimeInterval] = [15, 60, 300]
 
     public static let shared: LicenseManager = {
         if isRunningTests {
@@ -235,6 +239,10 @@ private extension LicenseManager {
     }
 
     func scheduleBackgroundRefresh() {
+        scheduleBackgroundRefresh(after: 0)
+    }
+
+    func scheduleBackgroundRefresh(after delay: TimeInterval) {
         guard licensingClient.isBackendConfigured,
               LicensingConfiguration.entitlementPublicKey != nil
         else {
@@ -242,7 +250,15 @@ private extension LicenseManager {
         }
 
         backgroundRefreshTask?.cancel()
+        nextAutomaticRetryAt = delay > 0 ? now().addingTimeInterval(delay) : nil
         backgroundRefreshTask = Task { [weak self] in
+            if delay > 0 {
+                try? await Task.sleep(for: .seconds(delay))
+            }
+            await MainActor.run {
+                self?.lastOnlineValidationAttemptAt = self?.now()
+                self?.nextAutomaticRetryAt = nil
+            }
             await self?.refreshStoredEntitlement(silently: true)
         }
     }
@@ -256,7 +272,11 @@ private extension LicenseManager {
         }
 
         backgroundRefreshTask?.cancel()
+        nextAutomaticRetryAt = nil
         backgroundRefreshTask = Task { [weak self] in
+            await MainActor.run {
+                self?.lastOnlineValidationAttemptAt = self?.now()
+            }
             await self?.beginVerifiedTrial(silently: true)
         }
     }
@@ -280,6 +300,7 @@ private extension LicenseManager {
             )
 
             try saveEntitlement(grant: grant, email: nil)
+            resetAutomaticRetryState()
             applyValidatedEntitlement(payload)
         } catch {
             let licenseError = mapLicensingError(error)
@@ -288,9 +309,13 @@ private extension LicenseManager {
             }
             if case .apiFailure(let code, _) = licenseError,
                code == "trial_expired" || code == "trial_already_used" {
+                resetAutomaticRetryState()
                 applyExpiredState(from: nil)
             } else {
                 applyNeedsConnectionState(clearEmail: true)
+                if silently {
+                    scheduleAutomaticRetryIfNeeded()
+                }
             }
         }
     }
@@ -323,13 +348,39 @@ private extension LicenseManager {
             }
 
             let payload = try await requestEntitlementRefresh(for: token)
+            resetAutomaticRetryState()
             applyValidatedEntitlement(payload)
         } catch {
             let licenseError = mapLicensingError(error)
             handleRefreshFailure(licenseError)
+            if silently {
+                scheduleAutomaticRetryIfNeeded(for: licenseError)
+            }
             if !silently || !licenseError.isTransient {
                 errorMessage = licenseError.errorDescription
             }
         }
+    }
+
+    func scheduleAutomaticRetryIfNeeded(for licenseError: LicenseError? = nil) {
+        if let licenseError, !licenseError.isTransient {
+            nextAutomaticRetryAt = nil
+            automaticRetryAttemptCount = 0
+            return
+        }
+
+        guard automaticRetryAttemptCount < automaticRetryDelays.count else {
+            nextAutomaticRetryAt = nil
+            return
+        }
+
+        let delay = automaticRetryDelays[automaticRetryAttemptCount]
+        automaticRetryAttemptCount += 1
+        scheduleBackgroundRefresh(after: delay)
+    }
+
+    func resetAutomaticRetryState() {
+        automaticRetryAttemptCount = 0
+        nextAutomaticRetryAt = nil
     }
 }

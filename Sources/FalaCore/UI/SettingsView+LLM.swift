@@ -45,7 +45,7 @@ extension SettingsView {
                         if isModified {
                             Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
                                 .font(.caption)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(FalaColors.warning)
                         }
                     }
                 } header: {
@@ -61,6 +61,13 @@ extension SettingsView {
             if settings.llmProvider == "apple" {
                 appleIntelligenceSection
             } else if settings.llmProvider == "mlx" {
+                if let issue = settings.readiness.issuesForDictation().first(where: {
+                    $0.kind == .mlxModelMissing
+                }) {
+                    Section {
+                        readinessIssueCard(issue)
+                    }
+                }
                 mlxConfigSection
                 mlxModelsSection
             } else if settings.llmProvider == "gemini" {
@@ -79,130 +86,6 @@ extension SettingsView {
             }
         }
     }
-
-    // MARK: - Provider Descriptions
-
-    private var providerFooterText: Text {
-        switch settings.llmProvider {
-        case "apple":
-            // swiftlint:disable:next line_length
-            return Text(L10n("100% offline e gratuito. Roda no Neural Engine do dispositivo. Ideal para tarefas simples como limpar e formatar transcrições."))
-        case "mlx":
-            // swiftlint:disable:next line_length
-            return Text(L10n("100% offline. Roda localmente no Apple Silicon via MLX. Suporta prompts complexos — basta baixar o modelo desejado na seção abaixo."))
-        case "gemini":
-            // swiftlint:disable:next line_length
-            return Text(L10n("On-line — requer chave API gratuita do Google. Cota generosa sem custo. Suporta todos os modos e prompts complexos com alta qualidade."))
-        case "openai":
-            // swiftlint:disable:next line_length
-            return Text(L10n("On-line — requer chave API paga da OpenAI. Alternativa premium com modelos como GPT-5. Suporta todos os modos e prompts complexos."))
-        default:
-            return Text(L10n("Este é o provedor padrão global. Modos individuais podem sobrescrever esta escolha."))
-        }
-    }
-
-    private var appleIntelligenceSection: some View {
-        Section(L10n("Apple Intelligence")) {
-            appleAvailabilityRow
-
-            Label {
-                VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(L10n("Modelo compacto (~3B parâmetros)"))
-                        .font(.body)
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Ideal para tarefas simples como limpar e formatar texto. Para prompts criativos ou complexos (Dev, Sumário), considere Gemini, OpenAI ou MLX."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            } icon: {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(.blue)
-            }
-            .padding(.vertical, Spacing.xs)
-        }
-    }
-
-    private var appleAvailabilityRow: some View {
-        Group {
-            #if canImport(FoundationModels)
-            if #available(macOS 26, *) {
-                AppleIntelligenceStatusView()
-            } else {
-                unavailableRow(L10n("Requer macOS Tahoe (26) ou superior."))
-            }
-            #else
-            unavailableRow(L10n("Requer macOS Tahoe (26) ou superior. Compile com o SDK do macOS 26."))
-            #endif
-        }
-    }
-
-    private func unavailableRow(_ message: String) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(L10n("Indisponível"))
-                    .font(.body)
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        } icon: {
-            Image(systemName: "exclamationmark.triangle")
-                .foregroundStyle(.orange)
-        }
-        .padding(.vertical, Spacing.xs)
-    }
-
-    // MARK: - MLX Config
-
-    private var mlxConfigSection: some View {
-        Section(L10n("MLX Local")) {
-            LabeledContent(L10n("Modelo Padrão")) {
-                HStack(spacing: Spacing.xs) {
-                    TextField("", text: $settings.mlxModel)
-                        .textFieldStyle(.roundedBorder)
-
-                    Menu {
-                        ForEach(knownMLXModels) { model in
-                            Button(model.label) {
-                                settings.mlxModel = model.repoID
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "chevron.up.chevron.down")
-                            .font(.caption)
-                    }
-                    .frame(width: 16)
-                    .help(L10n("Selecionar modelo conhecido"))
-                }
-            }
-
-            Text(L10n("Os modelos MLX rodam localmente no Apple Silicon. Baixe pelo menos um modelo abaixo."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    // MARK: - MLX Models Download
-
-    private var mlxModelsSection: some View {
-        Section {
-            ForEach(knownMLXModels) { model in
-                MLXModelRow(
-                    model: model,
-                    manager: settings.mlxModelManager,
-                    isSelected: settings.mlxModel == model.repoID
-                )
-            }
-        } header: {
-            Text(L10n("Modelos MLX Locais"))
-        } footer: {
-            // swiftlint:disable:next line_length
-            Text(L10n("Modelos LLM para processamento local via MLX. Rodam inteiramente no dispositivo usando Apple Silicon."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
     // MARK: - Gemini Credentials
 
     private var geminiCredentialsSection: some View {
@@ -258,7 +141,7 @@ extension SettingsView {
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.caption)
                     }
-                    .frame(width: 16)
+                    .frame(width: LayoutMetric.compactPickerIconWidth)
                     .disabled(availableGeminiModels.isEmpty)
                     .help(L10n("Selecionar modelo disponível"))
                 }

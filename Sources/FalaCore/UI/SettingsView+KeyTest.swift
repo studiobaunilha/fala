@@ -235,7 +235,7 @@ struct MLXModelRow: View {
                         .font(.body)
                     if isDownloaded {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(Color.green)
+                            .foregroundStyle(FalaColors.success)
                             .font(.caption)
                     }
                 }
@@ -244,12 +244,7 @@ struct MLXModelRow: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if isSelected && isDownloaded {
-                        Text(L10n("Ativo"))
-                            .font(.caption2)
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, 2)
-                            .background(.tint.opacity(0.15))
-                            .clipShape(Capsule())
+                        RoleBadge(title: L10n("Ativo"), color: FalaColors.badgeActive)
                     }
                 }
             }
@@ -258,12 +253,12 @@ struct MLXModelRow: View {
 
             if let progress {
                 ProgressView(value: progress)
-                    .frame(width: 80)
+                    .frame(width: LayoutMetric.compactProgressWidth)
                     .controlSize(.small)
                 Text("\(Int(progress * 100))%")
                     .font(.caption).monospacedDigit()
                     .foregroundStyle(.secondary)
-                    .frame(width: 32, alignment: .trailing)
+                    .frame(width: LayoutMetric.compactProgressValueWidth, alignment: .trailing)
             } else if isDownloaded {
                 Button(role: .destructive) {
                     try? manager.delete(model.id)

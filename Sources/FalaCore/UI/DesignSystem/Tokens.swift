@@ -3,6 +3,7 @@ import SwiftUI
 public enum FalaColors {
     // Semânticas (paleta escura inspirada no Raycast)
     public static let accent = Color(red: 0.35, green: 0.55, blue: 1.0)
+    public static let info = accent
     public static let success = Color(red: 0.30, green: 0.78, blue: 0.47)
     public static let warning = Color(red: 1.0, green: 0.72, blue: 0.25)
     public static let error = Color(red: 1.0, green: 0.35, blue: 0.37)
@@ -20,6 +21,8 @@ public enum FalaColors {
     // Badges
     public static let badgeDictation = accent.opacity(0.15)
     public static let badgeBatch = warning.opacity(0.15)
+    public static let badgeActive = accent.opacity(0.15)
+    public static let badgeCustom = warning.opacity(0.14)
 }
 
 public enum Spacing {
@@ -30,12 +33,14 @@ public enum Spacing {
     public static let lg: CGFloat = 12
     public static let xl: CGFloat = 16
     public static let xxl: CGFloat = 24
+    public static let xxxl: CGFloat = 20
 }
 
 public enum CornerRadius {
     public static let sm: CGFloat = 4
     public static let md: CGFloat = 8
     public static let lg: CGFloat = 12
+    public static let xl: CGFloat = 14
 }
 
 public enum Typography {
@@ -48,19 +53,43 @@ public enum Typography {
 }
 
 public enum WindowSize {
-    public static let settingsDefaultHeight: CGFloat = 600
-    public static let settingsMinHeight: CGFloat = 600
+    public static let settingsDefaultHeight: CGFloat = 800
+    public static let settingsMinHeight: CGFloat = 700
     public static let settingsMaxHeight: CGFloat = 1000
 
     public static let settingsDefaultWidth: CGFloat = 700
     public static let settingsMinWidth: CGFloat = 700
     public static let settingsMaxWidth: CGFloat = 1000
 
-    public static let transcribeDefaultHeight: CGFloat = 600
-    public static let transcribeMinHeight: CGFloat = 600
+    public static let transcribeDefaultHeight: CGFloat = 800
+    public static let transcribeMinHeight: CGFloat = 700
     public static let transcribeMaxHeight: CGFloat = 1000
 
     public static let transcribeDefaultWidth: CGFloat = 700
     public static let transcribeMinWidth: CGFloat = 700
     public static let transcribeMaxWidth: CGFloat = 1000
+
+    public static let onboardingDefaultHeight: CGFloat = 640
+    public static let onboardingMinHeight: CGFloat = 620
+    public static let onboardingMaxHeight: CGFloat = 860
+
+    public static let onboardingDefaultWidth: CGFloat = 560
+    public static let onboardingMinWidth: CGFloat = 560
+    public static let onboardingMaxWidth: CGFloat = 560
+}
+
+public enum LayoutMetric {
+    public static let compactProgressWidth: CGFloat = 80
+    public static let compactProgressValueWidth: CGFloat = 32
+    public static let compactPickerIconWidth: CGFloat = 16
+    public static let leadingNoticeIconWidth: CGFloat = 28
+
+    public static let promptEditorMinHeight: CGFloat = 150
+    public static let batchPromptMinHeight: CGFloat = 80
+    public static let progressLogMaxHeight: CGFloat = 200
+
+    public static let transcribeEmptyStateIconSize: CGFloat = 48
+    public static let transcribeEmptyStateTextMaxWidth: CGFloat = 300
+    public static let transcribeDocumentIconSize: CGFloat = 40
+    public static let transcribeDocumentGlyphSize: CGFloat = 28
 }

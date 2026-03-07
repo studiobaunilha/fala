@@ -11,6 +11,9 @@ public final class SettingsWindowController {
 
     public init(settings: AppSettings) {
         self.settings = settings
+        self.settings.openSettingsSelection = { [weak self] selection in
+            self?.show(selection: selection)
+        }
     }
 
     var currentWindow: NSWindow? {
@@ -25,6 +28,11 @@ public final class SettingsWindowController {
             return
         }
         makeWindow()
+    }
+
+    public func show(selection: SettingsSelection) {
+        navigationState.selection = selection
+        show()
     }
 
     public func reloadLocalizedContent() {
