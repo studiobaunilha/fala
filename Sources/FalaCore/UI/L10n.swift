@@ -8,7 +8,8 @@ public enum AppLocalization {
     private final class State: @unchecked Sendable {
         let lock = NSLock()
         var overrideLanguageCode = "auto"
-        var localizedCatalog: [String: [String: String]]?
+        var localizedTables: [String: [String: String]] = [:]
+        var fallbackCatalog: [String: [String: String]]?
     }
 
     private static let state = State()
@@ -41,7 +42,12 @@ public enum AppLocalization {
             return source
         }
 
-        let catalog = catalogEntries()
+        let table = compiledLocalizationTable(for: resolvedCode)
+        if let localized = table[source], !localized.isEmpty {
+            return localized
+        }
+
+        let catalog = fallbackCatalogEntries()
         return catalog[source]?[resolvedCode] ?? source
     }
 
@@ -89,23 +95,83 @@ public enum AppLocalization {
         return nil
     }
 
-    private static func catalogEntries() -> [String: [String: String]] {
+    static func compiledLocalizationResourceURL(for languageCode: String) -> URL? {
+        let resolvedCode = resolveLanguageCode(languageCode)
+        for candidate in localizationCandidates(for: resolvedCode) {
+            if let url = Bundle.module.url(
+                forResource: "Localizable",
+                withExtension: "strings",
+                subdirectory: nil,
+                localization: candidate
+            ) {
+                return url
+            }
+        }
+        return nil
+    }
+
+    private static func compiledLocalizationTable(for languageCode: String) -> [String: String] {
         state.lock.lock()
-        if let cached = state.localizedCatalog {
+        if let cached = state.localizedTables[languageCode] {
             state.lock.unlock()
             return cached
         }
         state.lock.unlock()
 
-        let loaded = loadCatalogEntries()
+        let loaded = loadCompiledLocalizationTable(for: languageCode)
 
         state.lock.lock()
-        state.localizedCatalog = loaded
+        state.localizedTables[languageCode] = loaded
         state.lock.unlock()
         return loaded
     }
 
-    private static func loadCatalogEntries() -> [String: [String: String]] {
+    private static func loadCompiledLocalizationTable(for languageCode: String) -> [String: String] {
+        guard let resourceURL = compiledLocalizationResourceURL(for: languageCode),
+              let data = try? Data(contentsOf: resourceURL),
+              let propertyList = try? PropertyListSerialization.propertyList(
+                from: data,
+                options: [],
+                format: nil
+              ),
+              let table = propertyList as? [String: String]
+        else {
+            return [:]
+        }
+
+        return table
+    }
+
+    private static func localizationCandidates(for resolvedLanguageCode: String) -> [String] {
+        switch resolvedLanguageCode {
+        case "en":
+            return ["en"]
+        case "es":
+            return ["es", "es-419"]
+        case "pt-BR":
+            return ["pt-BR", "pt"]
+        default:
+            return [resolvedLanguageCode]
+        }
+    }
+
+    private static func fallbackCatalogEntries() -> [String: [String: String]] {
+        state.lock.lock()
+        if let cached = state.fallbackCatalog {
+            state.lock.unlock()
+            return cached
+        }
+        state.lock.unlock()
+
+        let loaded = loadFallbackCatalogEntries()
+
+        state.lock.lock()
+        state.fallbackCatalog = loaded
+        state.lock.unlock()
+        return loaded
+    }
+
+    private static func loadFallbackCatalogEntries() -> [String: [String: String]] {
         guard let url = Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
               let data = try? Data(contentsOf: url),
               let catalog = try? JSONDecoder().decode(StringCatalog.self, from: data)
