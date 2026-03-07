@@ -29,7 +29,12 @@ final class MockRecorder: AudioRecording, @unchecked Sendable {
 /// Returns a fixed transcription string without loading any ML model.
 actor MockTranscriber: AudioTranscribing {
     var transcribeResult: String = "Hello world"
+    let supportsTranslation: Bool
     private(set) var sampleCallCount = 0
+
+    init(supportsTranslation: Bool = true) {
+        self.supportsTranslation = supportsTranslation
+    }
 
     func transcribe(samples: [Float], task: String) async throws -> String {
         sampleCallCount += 1
@@ -183,6 +188,101 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         await mode.stopAndTranscribe() // must not crash
 
         XCTAssertTrue(inserter.insertedTexts.isEmpty)
+    }
+
+    func testStopAndTranscribeUsesResolvedTranscriberFromCurrentConfig() async throws {
+        let whisper = MockTranscriber(supportsTranslation: true)
+        let parakeet = MockTranscriber(supportsTranslation: false)
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.transcriptionEngine = "whisper"
+        liveConfig.selectedDictationTemplate = .raw
+
+        await whisper.setResult("Whisper output")
+        await parakeet.setResult("Parakeet output")
+
+        await MainActor.run {
+            mode = DictationMode(
+                recorder: recorder,
+                transcriber: parakeet,
+                inserter: inserter,
+                configProvider: { liveConfig },
+                transcriberResolver: { config in
+                    config.transcriptionEngine == "parakeet" ? parakeet : whisper
+                }
+            )
+        }
+
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertEqual(inserter.insertedTexts.first, "Whisper output")
+        let whisperCalls = await whisper.sampleCallCount
+        let parakeetCalls = await parakeet.sampleCallCount
+        XCTAssertEqual(whisperCalls, 1)
+        XCTAssertEqual(parakeetCalls, 0)
+    }
+
+    func testTranslateModeSkipsWhenResolvedEngineDoesNotSupportTranslation() async throws {
+        let nonTranslatingEngine = MockTranscriber(supportsTranslation: false)
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.transcriptionEngine = "parakeet"
+        liveConfig.selectedDictationTemplate = .translate
+
+        await MainActor.run {
+            mode = DictationMode(
+                recorder: recorder,
+                transcriber: nonTranslatingEngine,
+                inserter: inserter,
+                configProvider: { liveConfig },
+                transcriberResolver: { _ in nonTranslatingEngine }
+            )
+        }
+
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertTrue(inserter.insertedTexts.isEmpty)
+        let callCount = await nonTranslatingEngine.sampleCallCount
+        XCTAssertEqual(callCount, 0)
+    }
+
+    func testAskAIFallsBackToOriginalTextWhenLLMProcessorThrows() async throws {
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .askAI
+        liveConfig.llmProvider = "mlx"
+        liveConfig.mlxModel = "mlx-community/Qwen2.5-3B-Instruct-4bit"
+
+        await transcriber.setResult("Onde fica o arquivo")
+
+        await MainActor.run {
+            mode = DictationMode(
+                recorder: recorder,
+                transcriber: transcriber,
+                inserter: inserter,
+                configProvider: { liveConfig },
+                llmProcessor: { _, _, _, _ in
+                    throw LLMError.mlxModelNotDownloaded("mlx-community/Qwen2.5-3B-Instruct-4bit")
+                }
+            )
+        }
+
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertEqual(inserter.insertedTexts.first, "Onde fica o arquivo")
+        XCTAssertEqual(inserter.savedToClipboardTexts.first, "Onde fica o arquivo")
     }
 
     // MARK: – Helpers

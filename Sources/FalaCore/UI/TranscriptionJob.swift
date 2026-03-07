@@ -113,7 +113,7 @@ public final class TranscriptionJob: ObservableObject {
         try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
         
         let effectiveModel = overrideModel ?? config.batchModel
-        let effectiveLanguage = overrideLanguage ?? config.language
+        let effectiveLanguage = overrideLanguage ?? config.transcriptionLanguage
 
         let transcriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
             ? ParakeetTranscriber()

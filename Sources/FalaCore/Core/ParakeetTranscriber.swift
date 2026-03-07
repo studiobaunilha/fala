@@ -9,6 +9,7 @@ import FluidAudio
 public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     private var manager: AsrManager?
     private let lock = NSLock()
+    public let supportsTranslation = false
 
     public init() {}
 

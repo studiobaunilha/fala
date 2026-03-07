@@ -114,6 +114,12 @@ final class PromptWrappingTests: XCTestCase {
         XCTAssertTrue(error.localizedDescription.contains("Ajustes"))
     }
 
+    func testMLXRuntimeUnavailableErrorMessage() {
+        let error = LLMError.mlxRuntimeUnavailable
+        XCTAssertTrue(error.localizedDescription.contains("MLX"))
+        XCTAssertTrue(error.localizedDescription.contains("build") || error.localizedDescription.contains("atualize"))
+    }
+
     func testAllTemplatesHaveIcons() {
         for template in DictationTemplate.allCases {
             XCTAssertFalse(template.icon.isEmpty,

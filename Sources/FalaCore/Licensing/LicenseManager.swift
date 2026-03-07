@@ -46,7 +46,15 @@ public final class LicenseManager: ObservableObject {
 
     private var backgroundRefreshTask: Task<Void, Never>?
 
-    public static let shared = LicenseManager()
+    public static let shared: LicenseManager = {
+        if isRunningTests {
+            return LicenseManager(
+                secureStore: InMemorySecureStore(),
+                shouldRestoreStateOnLaunch: false
+            )
+        }
+        return LicenseManager()
+    }()
 
     init(
         licensingClient: any LicensingAPIClientProtocol = EntitlementAPIClient(),
@@ -153,6 +161,22 @@ public final class LicenseManager: ObservableObject {
         }
     }
     #endif
+}
+
+private extension LicenseManager {
+    static var isRunningTests: Bool {
+        let processInfo = ProcessInfo.processInfo
+        if processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return true
+        }
+        if processInfo.processName == "xctest" {
+            return true
+        }
+        if NSClassFromString("XCTestCase") != nil {
+            return true
+        }
+        return Bundle.allBundles.contains { $0.bundlePath.hasSuffix(".xctest") }
+    }
 }
 
 private extension LicenseManager {

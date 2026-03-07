@@ -9,6 +9,7 @@ extension WhisperKit: @unchecked @retroactive Sendable {}
 public actor Transcriber: AudioTranscribing {
     private var pipe: WhisperKit?
     public private(set) var modelName: String
+    public let supportsTranslation = true
     /// BCP-47 language code, or "auto" for automatic detection.
     public var language: String
     public var temperature: Float

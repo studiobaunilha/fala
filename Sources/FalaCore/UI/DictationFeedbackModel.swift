@@ -1,7 +1,25 @@
 import Foundation
 
+private final class RMSMailbox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var latestRaw: Float = 0
+
+    func submit(_ raw: Float) {
+        lock.withLock { latestRaw = raw }
+    }
+
+    func current() -> Float {
+        lock.withLock { latestRaw }
+    }
+
+    func reset() {
+        lock.withLock { latestRaw = 0 }
+    }
+}
+
 /// Observable model that drives the floating dictation feedback view.
-/// Updated by DictationMode at each pipeline stage; read by the SwiftUI view.
+/// Audio callbacks only submit the latest RMS sample; the view model publishes
+/// at a stable cadence suitable for animation.
 @MainActor
 public final class DictationFeedbackModel: ObservableObject {
     @Published public var stage: DictationStage = .recording
@@ -11,24 +29,79 @@ public final class DictationFeedbackModel: ObservableObject {
     @Published public var isVisible: Bool = false
 
     private static let historySize = 12
+    private static let updateCadence = Duration.milliseconds(33)
+    private static let smoothingFactor: Float = 0.42
+    private static let decayFactor: Float = 0.8
+
+    private let mailbox = RMSMailbox()
+    private var displayLoopTask: Task<Void, Never>?
+    private var displayedLevel: Float = 0
 
     public init() {}
 
-    /// Normalises raw mic RMS (~0–0.1) to 0–1 and appends to the history ring.
+    nonisolated public func ingestRMS(_ raw: Float) {
+        mailbox.submit(raw)
+    }
+
+    /// Test-friendly helper that applies one frame immediately.
     public func pushRMS(_ raw: Float) {
-        let clamped = min(max(raw * 10, 0), 1)
-        rmsLevel = clamped
-        rmsHistory.append(clamped)
-        if rmsHistory.count > Self.historySize {
+        let normalized = normalizedLevel(for: raw)
+        displayedLevel = normalized
+        rmsLevel = normalized
+        if !rmsHistory.isEmpty {
             rmsHistory.removeFirst()
+        }
+        rmsHistory.append(normalized)
+    }
+
+    public func startDisplayUpdates() {
+        guard displayLoopTask == nil else {
+            return
+        }
+
+        displayLoopTask = Task { [weak self] in
+            while let self, !Task.isCancelled {
+                self.renderFrame()
+                try? await Task.sleep(for: Self.updateCadence)
+            }
         }
     }
 
-    /// Resets all state for a new dictation session.
+    public func stopDisplayUpdates() {
+        displayLoopTask?.cancel()
+        displayLoopTask = nil
+    }
+
     public func reset() {
+        stopDisplayUpdates()
+        mailbox.reset()
         stage = .recording
         rmsLevel = 0
+        displayedLevel = 0
         rmsHistory = Array(repeating: 0, count: Self.historySize)
         isVisible = false
+    }
+
+    private func renderFrame() {
+        let targetLevel = normalizedLevel(for: mailbox.current())
+        let nextLevel: Float
+
+        if stage == .recording {
+            nextLevel = displayedLevel + ((targetLevel - displayedLevel) * Self.smoothingFactor)
+        } else {
+            nextLevel = displayedLevel * Self.decayFactor
+        }
+
+        displayedLevel = max(0, min(nextLevel, 1))
+        rmsLevel = displayedLevel
+
+        if !rmsHistory.isEmpty {
+            rmsHistory.removeFirst()
+        }
+        rmsHistory.append(displayedLevel)
+    }
+
+    private func normalizedLevel(for raw: Float) -> Float {
+        min(max(raw * 10, 0), 1)
     }
 }

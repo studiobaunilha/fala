@@ -231,6 +231,7 @@ public actor MLXModelCache {
     public func generate(
         repoID: String, systemPrompt: String, userText: String
     ) async throws -> String {
+        try MLXRuntimeSupport.ensureRuntimeAvailable()
         let context = try await getOrLoad(repoID)
         // ChatSession is not Sendable; nonisolated(unsafe) is safe here
         // because we create and consume it within this single call.

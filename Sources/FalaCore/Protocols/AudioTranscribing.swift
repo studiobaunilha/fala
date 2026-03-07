@@ -13,6 +13,7 @@ public struct TranscriberProgress: Sendable {
 /// Abstraction over the Whisper transcription engine.
 /// Enables testing without loading ML models.
 public protocol AudioTranscribing: Sendable {
+    var supportsTranslation: Bool { get }
     func transcribe(samples: [Float], task: String) async throws -> String
     func transcribe(
         audioPath: String,
@@ -22,6 +23,8 @@ public protocol AudioTranscribing: Sendable {
 }
 
 public extension AudioTranscribing {
+    var supportsTranslation: Bool { true }
+
     func transcribe(samples: [Float]) async throws -> String {
         try await transcribe(samples: samples, task: "transcribe")
     }

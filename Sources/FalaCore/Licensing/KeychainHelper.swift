@@ -23,6 +23,33 @@ public struct KeychainSecureStore: SecureStringStore {
     }
 }
 
+struct InMemorySecureStore: SecureStringStore {
+    private final class Storage: @unchecked Sendable {
+        let lock = NSLock()
+        var values: [String: String] = [:]
+    }
+
+    private let storage = Storage()
+
+    func save(token: String, for account: String) throws {
+        storage.lock.lock()
+        storage.values[account] = token
+        storage.lock.unlock()
+    }
+
+    func read(account: String) throws -> String? {
+        storage.lock.lock()
+        defer { storage.lock.unlock() }
+        return storage.values[account]
+    }
+
+    func delete(account: String) throws {
+        storage.lock.lock()
+        storage.values.removeValue(forKey: account)
+        storage.lock.unlock()
+    }
+}
+
 /// Helper to securely store, read, and delete strings in the macOS Keychain.
 public enum KeychainHelper {
     private static let serviceName = "dev.fala.app.license"

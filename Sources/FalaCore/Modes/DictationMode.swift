@@ -7,13 +7,24 @@ import Foundation
 /// All dependencies are injected via protocols so that DictationMode can be
 /// unit-tested without real audio hardware, ML models, or Accessibility access.
 @MainActor
+// swiftlint:disable:next type_body_length
 public final class DictationMode {
+    typealias ConfigProvider = () -> AppConfig
+    typealias TranscriberResolver = (AppConfig) -> any AudioTranscribing
+    typealias LLMProcessor = (
+        _ text: String,
+        _ prompt: String,
+        _ config: AppConfig,
+        _ effective: AppConfig.EffectiveConfig
+    ) async throws -> String
+
     private let recorder: any AudioRecording
-    private let transcriber: any AudioTranscribing
     private let inserter: any TextInserting
     private weak var statusBar: StatusBarController?
     private let feedback: DictationFeedbackController?
-    private let configOverride: AppConfig?
+    private let configProvider: ConfigProvider
+    private let transcriberResolver: TranscriberResolver
+    private let llmProcessor: LLMProcessor?
 
     private var isRecording = false
 
@@ -28,20 +39,26 @@ public final class DictationMode {
     }
 
     /// Designated initialiser — accepts protocol abstractions for testability.
-    public init(
+    init(
         recorder: any AudioRecording,
         transcriber: any AudioTranscribing,
         inserter: any TextInserting,
         statusBar: StatusBarController? = nil,
         feedback: DictationFeedbackController? = nil,
-        config: AppConfig? = nil
+        config: AppConfig? = nil,
+        configProvider: ConfigProvider? = nil,
+        transcriberResolver: TranscriberResolver? = nil,
+        llmProcessor: LLMProcessor? = nil
     ) {
         self.recorder = recorder
-        self.transcriber = transcriber
         self.inserter = inserter
         self.statusBar = statusBar
         self.feedback = feedback
-        self.configOverride = config
+        self.configProvider = configProvider ?? { [config] in
+            config ?? AppConfig.load()
+        }
+        self.transcriberResolver = transcriberResolver ?? { _ in transcriber }
+        self.llmProcessor = llmProcessor
     }
 
     /// Binds global keyboard shortcut handlers. Call once at app startup.
@@ -75,9 +92,9 @@ public final class DictationMode {
             // Wire RMS levels to the floating feedback panel
             if let feedback {
                 feedback.model.reset()
-                feedback.model.template = AppConfig.load().selectedDictationTemplate
+                feedback.model.template = configProvider().selectedDictationTemplate
                 recorder.setRMSHandler { [weak feedback] rms in
-                    Task { @MainActor in feedback?.model.pushRMS(rms) }
+                    feedback?.model.ingestRMS(rms)
                 }
             }
             try recorder.startRecording()
@@ -117,11 +134,19 @@ public final class DictationMode {
                 return
             }
 
-            let config = configOverride ?? AppConfig.load()
+            let config = configProvider()
+            let activeTranscriber = transcriberResolver(config)
             let template = config.selectedDictationTemplate
+            let effectiveConfig = config.getEffectiveConfig(for: template)
 
-            // Parakeet doesn't support translate — warn user
-            if template == .translate && transcriber is ParakeetTranscriber {
+            NSLog(
+                "[Fala] Dictation request template=%@ engine=%@ llmProvider=%@",
+                template.rawValue,
+                config.transcriptionEngine,
+                effectiveConfig.provider
+            )
+
+            if template == .translate && !activeTranscriber.supportsTranslation {
                 statusBar?.showTemporaryWarning(
                     L10n("Tradução requer o motor Whisper. Troque em Ajustes → Geral.")
                 )
@@ -131,7 +156,7 @@ public final class DictationMode {
             }
 
             let task = template == .translate ? "translate" : "transcribe"
-            let text = try await transcriber.transcribe(samples: samples, task: task)
+            let text = try await activeTranscriber.transcribe(samples: samples, task: task)
 
             // Filter short noise hallucinations (e.g. "the", "okay", "um")
             let words = text.split(separator: " ")
@@ -182,8 +207,10 @@ public final class DictationMode {
             if template.isConversational {
                 // Apple Intelligence's compact model needs explicit language guidance
                 if modeConfig.provider == "apple" {
-                    let langName = AppSettings.allLanguages.first { $0.id == config.language }?.name
-                        ?? config.language
+                    let preferredLanguage = config.transcriptionLanguage == "auto"
+                        ? AppLocalization.resolveLanguageCode(config.appLanguage)
+                        : config.transcriptionLanguage
+                    let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
                     enriched += "\nIMPORTANTE: Responda SEMPRE em \(langName)."
                 }
                 prompt = enriched
@@ -195,8 +222,10 @@ public final class DictationMode {
                 prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
             }
             do {
-                let result = try await dispatchLLM(
-                    text: text, prompt: prompt, config: config,
+                let result = try await llmResponse(
+                    text: text,
+                    prompt: prompt,
+                    config: config,
                     effective: modeConfig
                 )
                 finalText = stripLLMPreamble(result)
@@ -210,6 +239,23 @@ public final class DictationMode {
         }
 
         return finalText
+    }
+
+    private func llmResponse(
+        text: String,
+        prompt: String,
+        config: AppConfig,
+        effective: AppConfig.EffectiveConfig
+    ) async throws -> String {
+        if let llmProcessor {
+            return try await llmProcessor(text, prompt, config, effective)
+        }
+        return try await dispatchLLM(
+            text: text,
+            prompt: prompt,
+            config: config,
+            effective: effective
+        )
     }
 
     private func dispatchLLM(

@@ -213,7 +213,6 @@ extension TranscriptionJob {
         return nil
     }
     
-    // swiftlint:disable:next cyclomatic_complexity
     static func applyLLM(
         to text: String, config: AppConfig, template: DictationTemplate,
         promptOverride: String? = nil
@@ -229,19 +228,12 @@ extension TranscriptionJob {
             enriched += "\n\n" + L10n("IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).")
         }
         
-        let prompt: String
-        if template.isConversational {
-            if effective.provider == "apple" {
-                let langName = AppSettings.allLanguages.first { $0.id == config.language }?.name
-                    ?? config.language
-                enriched += "\nIMPORTANTE: Responda SEMPRE em \(langName)."
-            }
-            prompt = enriched
-        } else if effective.provider == "apple" {
-            prompt = wrapPromptForAppleIntelligence(enriched)
-        } else {
-            prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
-        }
+        let prompt = promptForTemplate(
+            template,
+            enriched: enriched,
+            config: config,
+            provider: effective.provider
+        )
         let provider = effective.provider
         let model = effective.model
 
@@ -271,6 +263,30 @@ extension TranscriptionJob {
             print("[Fala] LLM Error: \(error)")
         }
         return text
+    }
+
+    private static func promptForTemplate(
+        _ template: DictationTemplate,
+        enriched: String,
+        config: AppConfig,
+        provider: String
+    ) -> String {
+        if template.isConversational {
+            if provider == "apple" {
+                let preferredLanguage = config.transcriptionLanguage == "auto"
+                    ? AppLocalization.resolveLanguageCode(config.appLanguage)
+                    : config.transcriptionLanguage
+                let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
+                return enriched + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
+            }
+            return enriched
+        }
+
+        if provider == "apple" {
+            return wrapPromptForAppleIntelligence(enriched)
+        }
+
+        return wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
     }
 
     // swiftlint:disable:next function_parameter_count

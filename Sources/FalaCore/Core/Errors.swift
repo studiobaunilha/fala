@@ -37,6 +37,7 @@ public enum LLMError: Error, LocalizedError {
     case appleIntelligenceNotEnabled
     case deviceNotEligible
     case appleIntelligenceModelNotReady
+    case mlxRuntimeUnavailable
     case mlxModelNotLoaded(String)
     case mlxModelNotDownloaded(String)
 
@@ -54,6 +55,8 @@ public enum LLMError: Error, LocalizedError {
             L10n("Este dispositivo não suporta Apple Intelligence")
         case .appleIntelligenceModelNotReady:
             L10n("Modelo Apple Intelligence ainda sendo baixado")
+        case .mlxRuntimeUnavailable:
+            L10n("O runtime local do MLX não está disponível nesta build do app. Reinstale ou atualize o Fala.")
         case .mlxModelNotLoaded(let modelID):
             String(format: L10n("Não foi possível carregar o modelo local '%@'"), modelID)
         case .mlxModelNotDownloaded(let modelID):
