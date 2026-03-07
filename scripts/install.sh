@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+XCODE_DIR="$(bash "$REPO_DIR/scripts/xcode-dir.sh")"
 BINARY_NAME="Fala"
 BUNDLE_DIR="$HOME/Applications/Fala.app"
 BUNDLE_BINARY="$BUNDLE_DIR/Contents/MacOS/$BINARY_NAME"
@@ -10,7 +11,7 @@ LAUNCHER="$HOME/bin/fala"
 # ── 1. Build ──────────────────────────────────────────────────────────────────
 echo "▶ Building Fala (release)…"
 cd "$REPO_DIR"
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift build -c release
+DEVELOPER_DIR="$XCODE_DIR" swift build -c release
 
 BINARY="$REPO_DIR/.build/release/$BINARY_NAME"
 

@@ -41,9 +41,8 @@ case "$MODE" in
         ;;
 esac
 
-DEFAULT_XCODE="/Applications/Xcode.app/Contents/Developer"
-DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$DEFAULT_XCODE}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
 APP="$HOME/Applications/Fala.app"
 PRODUCTS_DIR="$REPO_DIR/$DERIVED_DATA/Build/Products/$CONFIGURATION"
 BINARY_SOURCE="$PRODUCTS_DIR/Fala"
@@ -66,9 +65,9 @@ build_with_xcode() {
             -derivedDataPath "$DERIVED_DATA" \
             build 2>&1 | tee "$log_file"; then
         if grep -q "missing Metal Toolchain" "$log_file"; then
-            cat >&2 <<'EOF'
+            cat >&2 <<EOF
 error: Metal Toolchain ausente. Instale com:
-  DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -downloadComponent MetalToolchain
+  DEVELOPER_DIR="$DEVELOPER_DIR_VALUE" xcodebuild -downloadComponent MetalToolchain
 EOF
         fi
         exit 1

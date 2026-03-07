@@ -2,10 +2,16 @@
 import PackageDescription
 import Foundation
 
-let defaultDeveloperDir = "/Applications/Xcode.app/Contents/Developer"
 let configuredDeveloperDir = ProcessInfo.processInfo.environment["DEVELOPER_DIR"]?
     .trimmingCharacters(in: .whitespacesAndNewlines)
-let developerDir = (configuredDeveloperDir?.isEmpty == false ? configuredDeveloperDir : defaultDeveloperDir) ?? defaultDeveloperDir
+let developerDirCandidates = [
+    configuredDeveloperDir?.isEmpty == false ? configuredDeveloperDir : nil,
+    "/Applications/Xcode.app/Contents/Developer",
+    "/Volumes/MacMini/Applications/Xcode.app/Contents/Developer"
+].compactMap { $0 }
+let developerDir = developerDirCandidates.first(where: {
+    FileManager.default.fileExists(atPath: $0)
+}) ?? "/Applications/Xcode.app/Contents/Developer"
 
 let macOSXCTestSettings: [SwiftSetting] = [
     .unsafeFlags(

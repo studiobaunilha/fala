@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEFAULT_XCODE="/Applications/Xcode.app/Contents/Developer"
-DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$DEFAULT_XCODE}"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
 XCTEST_INCLUDE_DIR="${DEVELOPER_DIR_VALUE}/Platforms/MacOSX.platform/Developer/usr/lib"
 XCTEST_FRAMEWORK_DIR="${DEVELOPER_DIR_VALUE}/Platforms/MacOSX.platform/Developer/Library/Frameworks"
 XCTEST_PRIVATE_FRAMEWORK_DIR="${DEVELOPER_DIR_VALUE}/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks"

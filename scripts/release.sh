@@ -19,7 +19,8 @@
 set -euo pipefail
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-XCODE="/Applications/Xcode.app/Contents/Developer"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+XCODE="$(bash "$REPO_DIR/scripts/xcode-dir.sh")"
 SWIFT="DEVELOPER_DIR=$XCODE swift"
 SPARKLE_BIN=".build/artifacts/sparkle/Sparkle/bin"
 BUCKET="fala-updates"
