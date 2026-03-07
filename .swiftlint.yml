@@ -1,6 +1,10 @@
 excluded:
   - .build
   - .swiftpm
+  - .xcodebuild-audit
+  - .xcodebuild-debug
+  - .xcodebuild-release
+  - .xcodebuild-tests
   - Package.swift            # manifest SPM: trailing commas são exigidas pelo formato
 
 opt_in_rules:

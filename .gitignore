@@ -7,6 +7,7 @@
 *.xcworkspace/
 xcuserdata/
 DerivedData/
+.xcodebuild-*/
 *.hmap
 *.ipa
 *.dSYM.zip

@@ -2,6 +2,7 @@ SWIFT   := bash scripts/swift-env.sh
 BUNDLE  := $(HOME)/Applications/Fala.app/Contents/MacOS/Fala
 APP     := $(HOME)/Applications/Fala.app
 HOOK    := .git/hooks/pre-commit
+APPBUILD := bash scripts/build-app.sh
 
 # ── Cores ──────────────────────────────────────────────────────────────────────
 BOLD  := \033[1m
@@ -11,7 +12,7 @@ GREY  := \033[2m
 RESET := \033[0m
 
 .DEFAULT_GOAL := help
-.PHONY: help check lint test hooks dev install kill logs clean release release-dry
+.PHONY: help check lint test test-mlx hooks dev install kill logs clean release release-dry
 
 help: ## Mostra este menu
 	@printf "\n  $(BOLD)Fala$(RESET)\n\n"
@@ -31,43 +32,21 @@ test: ## Roda os testes unitários
 	@printf "$(GREY)▶ swift test$(RESET)\n"
 	@$(SWIFT) test
 
+test-mlx: ## Roda smoke test do MLX via xcodebuild
+	@printf "$(GREY)▶ xcodebuild test (MLX smoke)$(RESET)\n"
+	@bash scripts/test-mlx.sh
+
 hooks: ## Instala git hooks (auto — no-op se já estiverem instalados)
 	@[ -f "$(HOOK)" ] || bash scripts/install-hooks.sh
 
 dev: check ## check → build debug → relança o app
-	@printf "$(GREY)▶ swift build$(RESET)\n"
-	@$(SWIFT) build
-	@mkdir -p $(APP)/Contents/MacOS
-	@cp .build/debug/Fala $(BUNDLE)
-	@mkdir -p $(APP)/Contents/Resources
-	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
-	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
-	@mkdir -p $(APP)/Contents/Frameworks
-	@cp -R .build/debug/Sparkle.framework $(APP)/Contents/Frameworks/
-	@install_name_tool -add_rpath @executable_path/../Frameworks $(BUNDLE) 2>/dev/null || true
-	@codesign --force --deep --sign - $(APP)
-	@pkill Fala 2>/dev/null || true
-	@sleep 0.3
-	@tccutil reset Accessibility dev.fala.app 2>/dev/null || true
-	@open $(APP)
+	@printf "$(GREY)▶ xcodebuild (Debug)$(RESET)\n"
+	@$(APPBUILD) debug --open
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
 
 install: check ## check → build release → instala
-	@printf "$(GREY)▶ swift build -c release$(RESET)\n"
-	@$(SWIFT) build -c release
-	@mkdir -p $(APP)/Contents/MacOS
-	@cp .build/release/Fala $(BUNDLE)
-	@mkdir -p $(APP)/Contents/Resources
-	@cp Sources/Fala/Resources/AppIcon.icns $(APP)/Contents/Resources/
-	@cp Sources/Fala/Resources/Info.plist $(APP)/Contents/
-	@mkdir -p $(APP)/Contents/Frameworks
-	@cp -R .build/release/Sparkle.framework $(APP)/Contents/Frameworks/
-	@install_name_tool -add_rpath @executable_path/../Frameworks $(BUNDLE) 2>/dev/null || true
-	@codesign --force --deep --sign - $(APP)
-	@pkill Fala 2>/dev/null || true
-	@sleep 0.3
-	@tccutil reset Accessibility dev.fala.app 2>/dev/null || true
-	@open $(APP)
+	@printf "$(GREY)▶ xcodebuild (Release)$(RESET)\n"
+	@$(APPBUILD) release --open
 	@printf "$(GREEN)✓ Release instalado e rodando$(RESET)\n"
 
 kill: ## Encerra o app
