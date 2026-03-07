@@ -25,6 +25,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private var onTranscribe: (() -> Void)?
     
     private var modeItems: [NSMenuItem] = []
+    private var currentState: AppState = .idle
+
+    var settingsItemTitleForTesting: String {
+        settingsItem.title
+    }
 
     public init(
         settings: AppSettings,
@@ -37,52 +42,38 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
-        settingsItem = NSMenuItem(
+        settingsItem = Self.makeSettingsItem()
+        axItem = Self.makeAccessibilityItem()
+
+        super.init()
+
+        axItem.target = self
+
+        rebuildMenu()
+
+        setState(.idle)
+    }
+
+    private static func makeSettingsItem() -> NSMenuItem {
+        NSMenuItem(
             title: L10n("Ajustes…"),
             action: #selector(StatusBarController.showSettings),
             keyEquivalent: ","
         )
+    }
 
-        axItem = NSMenuItem(
+    private static func makeAccessibilityItem() -> NSMenuItem {
+        let item = NSMenuItem(
             title: L10n("Habilitar Acessibilidade…"),
             action: #selector(StatusBarController.openAccessibilitySettings),
             keyEquivalent: ""
         )
-        axItem.image = NSImage(systemSymbolName: "exclamationmark.triangle.fill",
-                               accessibilityDescription: L10n("Alerta"))
-        axItem.image?.isTemplate = false
-
-        super.init()
-
-        buildStaticMenuItems()
-        buildModeItems()
-
-        let transcribeItem = NSMenuItem(
-            title: L10n("Transcrever Arquivo…"),
-            action: #selector(StatusBarController.showTranscribe),
-            keyEquivalent: "o"
+        item.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle.fill",
+            accessibilityDescription: L10n("Alerta")
         )
-        transcribeItem.target = self
-        menu.addItem(transcribeItem)
-        
-        settingsItem.target = self
-        menu.addItem(settingsItem)
-        menu.addItem(.separator())
-
-        let quitItem = NSMenuItem(
-            title: L10n("Sair do Fala"),
-            action: #selector(StatusBarController.quit),
-            keyEquivalent: "q"
-        )
-        quitItem.target = self
-        menu.addItem(quitItem)
-
-        axItem.target = self
-        
-        menu.delegate = self
-        statusItem.menu = menu
-
-        setState(.idle)
+        item.image?.isTemplate = false
+        return item
     }
 
     private func buildStaticMenuItems() {
@@ -99,6 +90,45 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         shortcutItem.isEnabled = false
         menu.addItem(shortcutItem)
         menu.addItem(.separator())
+    }
+
+    private func rebuildMenu() {
+        modeItems.removeAll()
+        menu.removeAllItems()
+
+        settingsItem.title = L10n("Ajustes…")
+        axItem.title = L10n("Habilitar Acessibilidade…")
+        axItem.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle.fill",
+            accessibilityDescription: L10n("Alerta")
+        )
+        axItem.image?.isTemplate = false
+
+        buildStaticMenuItems()
+        buildModeItems()
+
+        let transcribeItem = NSMenuItem(
+            title: L10n("Transcrever Arquivo…"),
+            action: #selector(StatusBarController.showTranscribe),
+            keyEquivalent: "o"
+        )
+        transcribeItem.target = self
+        menu.addItem(transcribeItem)
+
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(
+            title: L10n("Sair do Fala"),
+            action: #selector(StatusBarController.quit),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        menu.delegate = self
+        statusItem.menu = menu
     }
 
     private func buildModeItems() {
@@ -160,7 +190,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 }
             }
         }
-        
+
         // Accessibility check
         let axPresent = menu.item(withTitle: axItem.title) != nil
         if AXIsProcessTrusted() {
@@ -220,6 +250,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     public func setState(_ state: AppState) {
+        currentState = state
         let (name, description): (String, String) = switch state {
         case .idle: ("mic", L10n("Fala — pronto"))
         case .loading: ("arrow.down.circle", L10n("Fala — carregando modelo…"))
@@ -227,6 +258,11 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         case .transcribing: ("waveform", L10n("Fala — transcrevendo…"))
         }
         statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+    }
+
+    public func reloadLocalizedContent() {
+        rebuildMenu()
+        setState(currentState)
     }
 
     public func setLoadingTooltip(_ message: String?) {

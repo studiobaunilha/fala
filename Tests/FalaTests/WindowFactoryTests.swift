@@ -16,8 +16,21 @@ final class WindowFactoryTests: XCTestCase {
         XCTAssertEqual(window.title, "Test")
         XCTAssertEqual(window.styleMask.contains(.titled), true)
         XCTAssertEqual(window.styleMask.contains(.closable), true)
-        XCTAssertNil(window.appearance) // Respeita a aparencia do SO
+        XCTAssertNil(window.appearance)
         XCTAssertFalse(window.isReleasedWhenClosed)
+    }
+
+    @MainActor
+    func testWindowFactoryAppliesExplicitAppearance() {
+        let config = WindowConfig(
+            title: "Test",
+            width: 100,
+            height: 100,
+            appearance: NSAppearance(named: .darkAqua)
+        )
+        let window = WindowFactory.makeWindow(config: config, content: Text("Test"))
+
+        XCTAssertEqual(window.appearance?.name, .darkAqua)
     }
 
     @MainActor

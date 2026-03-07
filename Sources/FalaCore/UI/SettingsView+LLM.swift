@@ -6,10 +6,10 @@ extension SettingsView {
         Form {
             Section {
             Picker(L10n("Provedor Padrão"), selection: $settings.llmProvider) {
-                    Text("Apple Intelligence (Local)").tag("apple")
-                    Text("MLX Local").tag("mlx")
-                    Text("Google Gemini (Cloud)").tag("gemini")
-                    Text("OpenAI (Cloud)").tag("openai")
+                    Text(L10n("Apple Intelligence (Local)")).tag("apple")
+                    Text(L10n("MLX Local")).tag("mlx")
+                    Text(L10n("Google Gemini (Cloud)")).tag("gemini")
+                    Text(L10n("OpenAI (Cloud)")).tag("openai")
                 }
             } header: {
                 Text(L10n("Provedor de IA"))

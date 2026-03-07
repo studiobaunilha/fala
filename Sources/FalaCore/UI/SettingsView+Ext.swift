@@ -17,13 +17,22 @@ extension SettingsView {
                     .foregroundStyle(.secondary)
             }
             
-            Section(L10n("Idioma Padrão")) {
-                Picker(L10n("Idioma"), selection: $settings.language) {
-                    ForEach(settings.availableLanguagesForEngine) { lang in
+            Section {
+                Picker(L10n("Idioma da Interface"), selection: $settings.appLanguage) {
+                    ForEach(AppSettings.appLanguageOptions()) { lang in
                         Text(lang.name).tag(lang.id)
                     }
                 }
                 .pickerStyle(.menu)
+            } header: {
+                Text(L10n("Idioma do Aplicativo"))
+            } footer: {
+                Text(
+                    // swiftlint:disable:next line_length
+                    L10n("Automático segue o idioma do macOS. Hoje o Fala possui interface em Português, English e Español.")
+                )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             
             Section(L10n("Armazenamento")) {
@@ -55,6 +64,36 @@ extension SettingsView {
                         .foregroundStyle(.secondary)
                 } else {
                     Text(L10n("Whisper usa modelos OpenAI via WhisperKit. Requer reiniciar o app após alterar."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section {
+                if settings.supportsExplicitEngineLanguageSelection {
+                    Picker(L10n("Idioma do Áudio"), selection: $settings.transcriptionLanguage) {
+                        ForEach(settings.availableLanguagesForEngine) { lang in
+                            Text(lang.name).tag(lang.id)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                } else {
+                    LabeledContent(L10n("Idioma do Áudio")) {
+                        Text(L10n("Detecção automática"))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text(L10n("Idioma do Motor"))
+            } footer: {
+                if settings.supportsExplicitEngineLanguageSelection {
+                    // swiftlint:disable:next line_length
+                    Text(L10n("O Whisper pode detectar automaticamente o idioma do áudio ou usar um idioma fixo para melhorar a transcrição e a tradução."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    // swiftlint:disable:next line_length
+                    Text(L10n("Na integração atual do Fala, o Parakeet opera em modo multilíngue com detecção automática. O SDK usado pelo app não expõe um parâmetro público de idioma para este motor."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

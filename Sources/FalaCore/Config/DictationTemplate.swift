@@ -27,12 +27,33 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     }
 
     public var defaultSystemPrompt: String? {
+        guard let sourcePrompt = defaultSystemPromptSource else {
+            return nil
+        }
+        return L10n(sourcePrompt)
+    }
+
+    var defaultSystemPromptSource: String? {
         switch self {
         case .raw, .translate, .custom:
             return nil
         case .askAI:
             // swiftlint:disable:next line_length
-            return L10n("Você é um assistente inteligente. A mensagem do usuário é uma pergunta ou solicitação transcrita por voz. Responda de forma clara, útil e concisa.")
+            return "Você é um assistente inteligente. A mensagem do usuário é uma pergunta ou solicitação transcrita por voz. Responda de forma clara, útil e concisa."
+        }
+    }
+
+    var legacyDefaultPrompts: [String] {
+        switch self {
+        case .askAI:
+            return [
+                [
+                    "Act as an intelligent assistant. The user's message is a question or request",
+                    "transcribed from speech. Answer clearly, helpfully, and concisely."
+                ].joined(separator: " ")
+            ]
+        case .raw, .translate, .custom:
+            return []
         }
     }
 

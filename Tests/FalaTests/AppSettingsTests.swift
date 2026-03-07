@@ -22,9 +22,10 @@ final class AppSettingsTests: XCTestCase {
     @MainActor
     func testInitFromConfig() {
         var config = AppConfig()
+        config.appLanguage = "en"
         config.dictationModel = "test-dictation"
         config.batchModel = "test-batch"
-        config.language = "es"
+        config.transcriptionLanguage = "es"
 
         let transcriber = Transcriber(modelName: "test-dictation")
         let modelManager = ModelManager()
@@ -35,9 +36,10 @@ final class AppSettingsTests: XCTestCase {
             modelManager: modelManager
         )
 
+        XCTAssertEqual(settings.appLanguage, "en")
         XCTAssertEqual(settings.dictationModel, "test-dictation")
         XCTAssertEqual(settings.batchModel, "test-batch")
-        XCTAssertEqual(settings.language, "es")
+        XCTAssertEqual(settings.transcriptionLanguage, "es")
     }
 
     @MainActor

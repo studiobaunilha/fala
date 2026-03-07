@@ -7,13 +7,14 @@ extension TranscribeView {
     private var defaultModelLabel: String {
         let modelName = knownModels.first { $0.id == job.appSettings.batchModel }?.label
             ?? job.appSettings.batchModel
-        return "\(L10n("Usar Padrão do Sistema")) (\(modelName))"
+        return "\(L10n("Usar padrão dos Ajustes")) (\(modelName))"
     }
     
     private var defaultLanguageLabel: String {
-        let langName = AppSettings.allLanguages.first { $0.id == job.appSettings.language }?.name
-            ?? job.appSettings.language
-        return "\(L10n("Usar Padrão do Sistema")) (\(langName))"
+        let langName = job.appSettings.transcriptionLanguageName(
+            for: job.appSettings.transcriptionLanguage
+        )
+        return "\(L10n("Usar padrão dos Ajustes")) (\(langName))"
     }
     
     var emptyStateView: some View {
@@ -122,15 +123,22 @@ extension TranscribeView {
                             .foregroundStyle(.secondary)
                     }
                 }
-                
-                Picker(L10n("Idioma"), selection: $job.overrideLanguage) {
-                    Text(defaultLanguageLabel).tag(nil as String?)
-                    Divider()
-                    ForEach(job.appSettings.availableLanguagesForEngine) { lang in
-                        Text(lang.name).tag(lang.id as String?)
+
+                if job.appSettings.supportsExplicitEngineLanguageSelection {
+                    Picker(L10n("Idioma do Áudio"), selection: $job.overrideLanguage) {
+                        Text(defaultLanguageLabel).tag(nil as String?)
+                        Divider()
+                        ForEach(job.appSettings.availableLanguagesForEngine) { lang in
+                            Text(lang.name).tag(lang.id as String?)
+                        }
+                    }
+                    .disabled(isWorking)
+                } else {
+                    LabeledContent(L10n("Idioma do Áudio")) {
+                        Text(L10n("Detecção automática"))
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(isWorking)
                 
                 Toggle(L10n("Identificar múltiplos locutores (Diarization)"), isOn: $job.appSettings.enableDiarization)
                     .disabled(isWorking || job.appSettings.llmProvider == "apple")
@@ -189,7 +197,12 @@ extension TranscribeView {
                     .frame(maxWidth: .infinity)
                     
                     if licenseManager.isTrialActive {
-                        Text(L10n("Modo Trial (\(licenseManager.trialDaysRemaining) dias restantes)"))
+                        Text(
+                            String(
+                                format: L10n("Modo Trial (%d dias restantes)"),
+                                licenseManager.trialDaysRemaining
+                            )
+                        )
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

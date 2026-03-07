@@ -2,13 +2,58 @@ import XCTest
 @testable import FalaCore
 
 final class L10nTests: XCTestCase {
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
+
     func testL10nResolvesStringsWithModuleBundle() {
-        // Assert that the `L10n` Solid boundary correctly resolves strings
-        // using the underlying `Bundle.module` injected by SwiftPM's resources
-        // mapping, preventing "Bundle doesn't exist" crashes.
-        let resolved = L10n("Usar Padrão do Sistema")
-        
-        // This confirms the string doesn't crash on resolution.
-        XCTAssertEqual(resolved, "Usar Padrão do Sistema")
+        AppLocalization.apply(languageCode: "auto")
+        XCTAssertEqual(L10n("Usar Padrão Global"), "Usar Padrão Global")
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "Atalhos do Sistema")
+        XCTAssertEqual(L10n("Armazenamento"), "Armazenamento")
+    }
+
+    func testL10nRespectsExplicitPortugueseAppLanguageOverride() {
+        AppLocalization.apply(languageCode: "pt-BR")
+
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "Atalhos do Sistema")
+        XCTAssertEqual(L10n("Armazenamento"), "Armazenamento")
+        XCTAssertEqual(L10n("Salvar Transcrições"), "Salvar Transcrições")
+    }
+
+    func testL10nRespectsExplicitAppLanguageOverride() {
+        AppLocalization.apply(languageCode: "en")
+
+        XCTAssertEqual(L10n("Ajustes"), "Settings")
+        XCTAssertEqual(L10n("Licença"), "License")
+        XCTAssertEqual(L10n("Idioma do Aplicativo"), "App Language")
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "System Shortcuts")
+        XCTAssertEqual(L10n("Armazenamento"), "Storage")
+        XCTAssertEqual(L10n("Salvar Transcrições"), "Save Transcriptions")
+    }
+
+    func testL10nRespectsSpanishAppLanguageOverride() {
+        AppLocalization.apply(languageCode: "es")
+
+        XCTAssertEqual(L10n("Ajustes"), "Ajustes")
+        XCTAssertEqual(L10n("Licença"), "Licencia")
+        XCTAssertEqual(L10n("Idioma do Aplicativo"), "Idioma de la aplicación")
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "Atajos del Sistema")
+        XCTAssertEqual(L10n("Armazenamento"), "Almacenamiento")
+        XCTAssertEqual(L10n("Salvar Transcrições"), "Guardar transcripciones")
+    }
+
+    @MainActor
+    func testLocalizationObserverInvalidatesWhenLanguageChanges() async {
+        let observer = AppLocalizationObserver.shared
+        let initialRevision = observer.revision
+
+        AppLocalization.apply(languageCode: "en")
+        await Task.yield()
+
+        XCTAssertGreaterThan(observer.revision, initialRevision)
+
+        AppLocalization.apply(languageCode: "auto")
     }
 }

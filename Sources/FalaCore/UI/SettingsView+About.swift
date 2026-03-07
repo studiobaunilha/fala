@@ -19,12 +19,12 @@ extension SettingsView {
                 
                 // App Name & Version
                 VStack(spacing: 4) {
-                    Text("Fala Pro")
+                    Text(L10n("Fala Pro"))
                         .font(.system(size: 32, weight: .bold))
                     
                     if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-                        Text("Versão \(version) (\(build))")
+                        Text("\(L10n("Versão")) \(version) (\(build))")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -35,15 +35,15 @@ extension SettingsView {
                 
                 // Studio Baunilha Banner
                 VStack(spacing: 8) {
-                    Text("Desenvolvido por")
+                    Text(L10n("Desenvolvido por"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text("Studio Baunilha")
+                    Text(L10n("Studio Baunilha"))
                         .font(.title3)
                         .fontWeight(.semibold)
                     
-                    Text("Inteligência Artificial para Mac, construída com paixão e performance.")
+                    Text(L10n("Inteligência Artificial para Mac, construída com paixão e performance."))
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.secondary)
@@ -57,7 +57,7 @@ extension SettingsView {
                         Link(destination: url) {
                             HStack {
                                 Image(systemName: "globe")
-                                Text("Website")
+                                Text(L10n("Website"))
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -72,7 +72,7 @@ extension SettingsView {
                         Link(destination: githubUrl) {
                             HStack {
                                 Image(systemName: "chevron.left.forwardslash.chevron.right")
-                                Text("GitHub")
+                                Text(L10n("GitHub"))
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -89,7 +89,7 @@ extension SettingsView {
                 
                 Text(
                     "© \(Calendar.current.component(.year, from: Date())) " +
-                    "Studio Baunilha. Todos os direitos reservados."
+                    L10n("Studio Baunilha. Todos os direitos reservados.")
                 )
                     .font(.caption2)
                     .foregroundColor(.secondary)

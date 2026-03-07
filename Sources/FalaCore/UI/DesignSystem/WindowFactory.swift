@@ -1,5 +1,16 @@
 import SwiftUI
 
+private struct LocalizedWindowContent<Content: View>: View {
+    @ObservedObject private var localizationObserver = AppLocalizationObserver.shared
+    let content: Content
+
+    var body: some View {
+        content
+            .id(localizationObserver.revision)
+            .environment(\.locale, AppLocalization.currentLocale())
+    }
+}
+
 public struct WindowConfig {
     public let title: String
     public let width: CGFloat
@@ -10,6 +21,7 @@ public struct WindowConfig {
     public var maxSize: NSSize?
     public var fullSizeContentView: Bool
     public var transparentTitlebar: Bool
+    public var appearance: NSAppearance?
     
     public init(
         title: String,
@@ -20,7 +32,8 @@ public struct WindowConfig {
         minSize: NSSize? = nil,
         maxSize: NSSize? = nil,
         fullSizeContentView: Bool = false,
-        transparentTitlebar: Bool = false
+        transparentTitlebar: Bool = false,
+        appearance: NSAppearance? = nil
     ) {
         self.title = title
         self.width = width
@@ -31,10 +44,45 @@ public struct WindowConfig {
         self.maxSize = maxSize
         self.fullSizeContentView = fullSizeContentView
         self.transparentTitlebar = transparentTitlebar
+        self.appearance = appearance
     }
 }
 
 public enum WindowFactory {
+    @MainActor
+    private static func constrainedContent<Content: View>(
+        config: WindowConfig,
+        content: Content
+    ) -> some View {
+        content
+            .preferredColorScheme(config.appearance == nil ? nil : .dark)
+            .frame(
+                minWidth: config.minSize?.width,
+                maxWidth: config.maxSize?.width == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.width,
+                minHeight: config.minSize?.height,
+                maxHeight: config.maxSize?.height == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.height
+            )
+    }
+
+    @MainActor
+    public static func applyContent<Content: View>(
+        _ content: Content,
+        config: WindowConfig,
+        to window: NSWindow
+    ) {
+        window.title = config.title
+        window.appearance = config.appearance
+        if config.appearance != nil {
+            window.backgroundColor = NSColor.windowBackgroundColor
+        }
+
+        window.contentView = NSHostingView(
+            rootView: LocalizedWindowContent(
+                content: constrainedContent(config: config, content: content)
+            )
+        )
+    }
+
     @MainActor
     public static func makeWindow<Content: View>(config: WindowConfig, content: Content) -> NSWindow {
         var styleMask = config.styleMask
@@ -52,7 +100,6 @@ public enum WindowFactory {
             defer: false
         )
         
-        window.title = config.title
         window.isReleasedWhenClosed = false
         window.center()
         
@@ -69,19 +116,8 @@ public enum WindowFactory {
             window.titleVisibility = .hidden
         }
         
-        // Remove forced dark mode to respect macOS Light/Dark system preferences
-        window.appearance = nil
-        
-        let constrainedContent = content
-            .frame(
-                minWidth: config.minSize?.width,
-                maxWidth: config.maxSize?.width == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.width,
-                minHeight: config.minSize?.height,
-                maxHeight: config.maxSize?.height == CGFloat.greatestFiniteMagnitude ? nil : config.maxSize?.height
-            )
-        
-        window.contentView = NSHostingView(rootView: constrainedContent)
-        
+        applyContent(content, config: config, to: window)
+
         return window
     }
     

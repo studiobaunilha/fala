@@ -15,7 +15,7 @@ extension SettingsView {
                             .frame(width: 64, height: 64)
                     }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Fala Pro")
+                        Text(L10n("Fala Pro"))
                             .font(.title2)
                             .fontWeight(.bold)
                         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,

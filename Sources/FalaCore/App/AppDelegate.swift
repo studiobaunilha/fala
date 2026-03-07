@@ -1,6 +1,5 @@
 import AppKit
 import AVFoundation
-import ApplicationServices
 import Sparkle
 
 @MainActor
@@ -12,6 +11,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var transcribeController: TranscribeWindowController?
     private var feedbackController: DictationFeedbackController?
 
+    // swiftlint:disable:next function_body_length
     public func applicationDidFinishLaunching(_ notification: Notification) {
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
@@ -21,14 +21,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         
         // Run as a background app — no Dock icon.
         NSApp.setActivationPolicy(.accessory)
+        AppLifecyclePolicy.apply()
 
         let config = AppConfig.load()
+        AppLocalization.apply(languageCode: config.appLanguage)
         let whisperTranscriber = Transcriber(
             modelName: config.dictationModel,
-            language: config.language,
+            language: config.transcriptionLanguage,
             temperature: config.dictationTemperature,
             prompt: ""
         )
+        let parakeetTranscriber = ParakeetTranscriber()
         let modelManager = ModelManager()
         modelManager.scanLocal()
         let appSettings = AppSettings(
@@ -44,44 +47,61 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let transcribeCtrl = TranscribeWindowController(settings: appSettings)
         transcribeController = transcribeCtrl
 
+        AppMainMenu.install(appDelegate: self)
+
         let bar = StatusBarController(
             settings: appSettings,
             onSettings: { settingsCtrl.show() },
             onTranscribe: { transcribeCtrl.show() }
         )
 
-        let activeTranscriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
-            ? ParakeetTranscriber()
-            : whisperTranscriber
+        let transcriberResolver: (AppConfig) -> any AudioTranscribing = { runtimeConfig in
+            runtimeConfig.transcriptionEngine == "parakeet"
+                ? parakeetTranscriber
+                : whisperTranscriber
+        }
+        let activeTranscriber = transcriberResolver(config)
 
         let feedbackCtrl = DictationFeedbackController()
         feedbackController = feedbackCtrl
 
-        let dictation = DictationMode(
-            recorder: AudioEngine(),
-            transcriber: activeTranscriber,
-            inserter: TextInserter(),
+        let dictation = makeDictationMode(
             statusBar: bar,
-            feedback: feedbackCtrl
+            feedback: feedbackCtrl,
+            configProvider: { AppConfig.load() },
+            transcriberResolver: transcriberResolver
         )
 
         statusBar = bar
         dictationMode = dictation
+        observeLanguageChanges()
 
         dictation.setup()
         requestMicrophoneAccess()
-        requestAccessibilityAccess()
         preloadModel(config: config, transcriber: activeTranscriber, whisper: whisperTranscriber, bar: bar)
     }
 
-    private func requestAccessibilityAccess() {
-        guard !AXIsProcessTrusted() else { return }
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 s
-            AXIsProcessTrustedWithOptions(
-                ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-            )
-        }
+    private func makeDictationMode(
+        statusBar: StatusBarController,
+        feedback: DictationFeedbackController,
+        configProvider: @escaping () -> AppConfig,
+        transcriberResolver: @escaping (AppConfig) -> any AudioTranscribing
+    ) -> DictationMode {
+        let initialConfig = configProvider()
+        return DictationMode(
+            recorder: AudioEngine(),
+            transcriber: transcriberResolver(initialConfig),
+            inserter: TextInserter(),
+            statusBar: statusBar,
+            feedback: feedback,
+            configProvider: configProvider,
+            transcriberResolver: transcriberResolver
+        )
+    }
+
+    @objc
+    public func showSettingsWindow() {
+        settingsController?.show()
     }
 
     private func preloadModel(
@@ -94,7 +114,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         Task {
             do {
                 let name = config.transcriptionEngine == "parakeet"
-                    ? "Parakeet V3" : config.dictationModel
+                    ? L10n("Parakeet V3") : config.dictationModel
                     
                 let progressHandler: @Sendable (Double) -> Void = { [weak bar] fraction in
                     Task { @MainActor in
@@ -102,7 +122,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                 }
                 
-                bar.setLoadingTooltip("Carregando modelo \(name)…")
+                bar.setLoadingTooltip(String(format: L10n("Carregando modelo %@…"), name))
                 NSLog("[Fala] Starting model pre-load: %@", name)
                 if let parakeet = transcriber as? ParakeetTranscriber {
                     try await parakeet.loadIfNeeded(progress: progressHandler)
@@ -134,4 +154,25 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             break
         }
     }
+
+    private func observeLanguageChanges() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLanguageChanged),
+            name: AppLocalization.languageChangedNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleLanguageChanged() {
+        reloadLocalizedUI()
+    }
+
+    private func reloadLocalizedUI() {
+        AppMainMenu.install(appDelegate: self)
+        statusBar?.reloadLocalizedContent()
+        settingsController?.reloadLocalizedContent()
+        transcribeController?.reloadLocalizedContent()
+    }
+
 }

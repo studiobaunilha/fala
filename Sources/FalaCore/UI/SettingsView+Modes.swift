@@ -14,24 +14,15 @@ struct ModeDetailView: View {
 
     private var availableProviders: [(String, String)] {
         var list: [(String, String)] = [("global", L10n("Usar Padrão Global"))]
-        list += [("apple", "Apple Intelligence (Local)"), ("mlx", "MLX Local")]
-        if !settings.geminiKey.isEmpty { list.append(("gemini", "Google Gemini (Cloud)")) }
-        if !settings.openAIKey.isEmpty { list.append(("openai", "OpenAI (Cloud)")) }
+        list += [("apple", localizedProviderName(for: "apple")), ("mlx", localizedProviderName(for: "mlx"))]
+        if !settings.geminiKey.isEmpty { list.append(("gemini", localizedProviderName(for: "gemini"))) }
+        if !settings.openAIKey.isEmpty { list.append(("openai", localizedProviderName(for: "openai"))) }
         return list
     }
 
-    /// Labels for all providers (used when resolving names after key removal).
-    private static let providerLabel: [String: String] = [
-        "global": L10n("Usar Padrão Global"),
-        "gemini": "Google Gemini (Cloud)",
-        "openai": "OpenAI (Cloud)",
-        "apple": "Apple Intelligence (Local)",
-        "mlx": "MLX Local"
-    ]
-
     private var effectiveProviderName: String {
         let key = provider == "global" ? settings.llmProvider : provider
-        return Self.providerLabel[key] ?? key
+        return localizedProviderName(for: key)
     }
 
     private var mlxModelLabel: String {
@@ -370,8 +361,25 @@ struct ModeDetailView: View {
 
     private func restoreDefault() {
         prompt = template == .custom
-            ? L10n("Resuma o texto transcrito em um parágrafo conciso, capturando os pontos principais.")
+            ? AppConfig.localizedDefault(for: .customModePrompt)
             : (template.defaultSystemPrompt ?? "")
         persistConfig()
+    }
+
+    private func localizedProviderName(for key: String) -> String {
+        switch key {
+        case "global":
+            return L10n("Usar Padrão Global")
+        case "gemini":
+            return L10n("Google Gemini (Cloud)")
+        case "openai":
+            return L10n("OpenAI (Cloud)")
+        case "apple":
+            return L10n("Apple Intelligence (Local)")
+        case "mlx":
+            return L10n("MLX Local")
+        default:
+            return key
+        }
     }
 }

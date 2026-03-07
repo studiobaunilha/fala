@@ -1,12 +1,18 @@
 import SwiftUI
 import KeyboardShortcuts
 import Sparkle
+import WhisperKit
 
 // MARK: – Supporting types
 
 public struct LanguageOption: Identifiable {
     public let id: String  // BCP-47 code, or "auto"
     public let name: String
+}
+
+@MainActor
+final class SettingsNavigationState: ObservableObject {
+    @Published var selection: SettingsSelection? = .panel(.general)
 }
 
 // MARK: – View Model
@@ -16,10 +22,11 @@ public struct LanguageOption: Identifiable {
 @MainActor
 public final class AppSettings: ObservableObject {
 
+    @Published public var appLanguage: String
     @Published public var transcriptionEngine: String
     @Published public var dictationModel: String
     @Published public var batchModel: String
-    @Published public var language: String
+    @Published public var transcriptionLanguage: String
     
     @Published public var dictationTemperature: Float
     @Published public var batchTemperature: Float
@@ -44,57 +51,77 @@ public final class AppSettings: ObservableObject {
     public let modelManager: ModelManager
     public let mlxModelManager = MLXModelManager()
     public let updater: SPUUpdater?
-    private let transcriber: Transcriber
-    private var config: AppConfig
+    let transcriber: Transcriber
+    var config: AppConfig
 
-    // swiftlint:disable trailing_comma
-    public static let allLanguages: [LanguageOption] = [
-        LanguageOption(id: "auto", name: L10n("Auto-detectar")),
-        LanguageOption(id: "pt", name: L10n("Português")),
-        LanguageOption(id: "en", name: L10n("English")),
-        LanguageOption(id: "es", name: L10n("Español")),
-        LanguageOption(id: "fr", name: L10n("Français")),
-        LanguageOption(id: "de", name: L10n("Deutsch")),
-        LanguageOption(id: "it", name: L10n("Italiano")),
-        LanguageOption(id: "ja", name: L10n("日本語")),
-        LanguageOption(id: "zh", name: L10n("中文")),
-        LanguageOption(id: "ko", name: L10n("한국어")),
-        LanguageOption(id: "ru", name: L10n("Русский")),
-        LanguageOption(id: "ar", name: L10n("العربية")),
-        LanguageOption(id: "bg", name: L10n("Búlgaro")),
-        LanguageOption(id: "hr", name: L10n("Croata")),
-        LanguageOption(id: "cs", name: L10n("Tcheco")),
-        LanguageOption(id: "da", name: L10n("Dinamarquês")),
-        LanguageOption(id: "nl", name: L10n("Holandês")),
-        LanguageOption(id: "et", name: L10n("Estoniano")),
-        LanguageOption(id: "fi", name: L10n("Finlandês")),
-        LanguageOption(id: "el", name: L10n("Grego")),
-        LanguageOption(id: "hu", name: L10n("Húngaro")),
-        LanguageOption(id: "lv", name: L10n("Letão")),
-        LanguageOption(id: "lt", name: L10n("Lituano")),
-        LanguageOption(id: "mt", name: L10n("Maltês")),
-        LanguageOption(id: "pl", name: L10n("Polonês")),
-        LanguageOption(id: "ro", name: L10n("Romeno")),
-        LanguageOption(id: "sk", name: L10n("Eslovaco")),
-        LanguageOption(id: "sl", name: L10n("Esloveno")),
-        LanguageOption(id: "sv", name: L10n("Sueco")),
-        LanguageOption(id: "uk", name: L10n("Ucraniano")),
-    ]
-    // swiftlint:enable trailing_comma
+    public static func appLanguageOptions() -> [LanguageOption] {
+        return [
+            LanguageOption(id: "auto", name: L10n("Automático (Sistema)")),
+            LanguageOption(id: "pt-BR", name: L10n("Português")),
+            LanguageOption(id: "en", name: L10n("English")),
+            LanguageOption(id: "es", name: L10n("Español"))
+        ]
+    }
+
+    public var supportsExplicitEngineLanguageSelection: Bool {
+        transcriptionEngine == "whisper"
+    }
 
     public var availableLanguagesForEngine: [LanguageOption] {
-        if transcriptionEngine == "parakeet" {
-            // Parakeet v3 supports 25 European languages + auto
-            let parakeetSupported: Set<String> = [
-                "auto", "bg", "hr", "cs", "da", "nl", "en", "et", "fi", "fr",
-                "de", "el", "hu", "it", "lv", "lt", "mt", "pl", "pt", "ro",
-                "sk", "sl", "es", "sv", "ru", "uk"
-            ]
-            return Self.allLanguages.filter { parakeetSupported.contains($0.id) }
-        } else {
-            // Whisper supports all basically, keep everything
-            return Self.allLanguages
+        supportsExplicitEngineLanguageSelection ? Self.whisperLanguages() : []
+    }
+
+    public func transcriptionLanguageName(for code: String) -> String {
+        Self.whisperLanguages().first(where: { $0.id == code })?.name ?? code
+    }
+
+    public func appLanguageName(for code: String) -> String {
+        let resolvedCode = AppLocalization.resolveLanguageCode(code)
+        return Self.appLanguageOptions().first(where: { $0.id == resolvedCode })?.name ?? resolvedCode
+    }
+
+    private static let whisperLanguageEnglishNames: [String: String] = {
+        var names: [String: String] = [:]
+        for (englishName, code) in Constants.languages where names[code] == nil {
+            names[code] = englishName
         }
+        return names
+    }()
+
+    public static func whisperLanguages(
+        displayLocale: Locale = AppLocalization.currentLocale()
+    ) -> [LanguageOption] {
+        let options = Constants.languageCodes
+            .sorted()
+            .map { code in
+                LanguageOption(
+                    id: code,
+                    name: transcriptionLanguageDisplayName(for: code, displayLocale: displayLocale)
+                )
+            }
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+        return [LanguageOption(id: "auto", name: L10n("Auto-detectar"))] + options
+    }
+
+    public static func transcriptionLanguageDisplayName(
+        for code: String,
+        displayLocale: Locale = AppLocalization.currentLocale()
+    ) -> String {
+        if code == "auto" {
+            return L10n("Auto-detectar")
+        }
+
+        let normalizedCode = code.replacingOccurrences(of: "-", with: "_")
+        if let localized = displayLocale.localizedString(forIdentifier: normalizedCode), !localized.isEmpty {
+            return localized.capitalized(with: displayLocale)
+        }
+
+        if let englishName = whisperLanguageEnglishNames[code] {
+            return englishName.capitalized
+        }
+
+        return code
     }
 
     public init(
@@ -104,10 +131,11 @@ public final class AppSettings: ObservableObject {
         updater: SPUUpdater? = nil
     ) {
         self.config = config
+        self.appLanguage = config.appLanguage
         self.transcriptionEngine = config.transcriptionEngine
         self.dictationModel = config.dictationModel
         self.batchModel = config.batchModel
-        self.language = config.language
+        self.transcriptionLanguage = config.transcriptionLanguage
         self.dictationTemperature = config.dictationTemperature
         self.batchTemperature = config.batchTemperature
         self.replacements = config.replacements
@@ -132,44 +160,6 @@ public final class AppSettings: ObservableObject {
         self.updater = updater
     }
 
-    /// Persists current values and updates the Transcriber without requiring a restart.
-    public func save() {
-        config.transcriptionEngine = transcriptionEngine
-        config.dictationModel = dictationModel
-        config.batchModel = batchModel
-        config.language = language
-        config.dictationTemperature = dictationTemperature
-        config.batchTemperature = batchTemperature
-        config.replacements = replacements
-        config.replacementRules = replacementRules
-        config.defaultExportPath = defaultExportPath
-        config.enableDiarization = enableDiarization
-        config.selectedDictationTemplate = selectedDictationTemplate
-        config.llmProvider = llmProvider
-        config.llmPrompt = llmPrompt
-        config.openAIKey = openAIKey
-        config.geminiKey = geminiKey
-        config.geminiModel = geminiModel
-        config.openAIModel = openAIModel
-        config.mlxModel = mlxModel
-        config.modeConfigs = modeConfigs
-        config.customModeName = String(customModeName.prefix(30))
-        config.customModePrompt = customModePrompt
-        config.globalSystemPrompt = globalSystemPrompt
-
-        // Native macOS persistence via UserDefaults
-        config.save()
-        
-        Task { await transcriber.setModel(dictationModel) }
-        Task {
-            await transcriber.setConfig(
-                language: language,
-                temperature: dictationTemperature,
-                prompt: ""
-            )
-        }
-    }
-    
     public func selectExportPath() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
@@ -189,10 +179,13 @@ public final class AppSettings: ObservableObject {
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
-    @State private var selection: SettingsSelection? = .panel(.general)
+    @ObservedObject var navigationState: SettingsNavigationState
+    @ObservedObject var licenseManager = LicenseManager.shared
+    @ObservedObject private var localizationObserver = AppLocalizationObserver.shared
     @State var newIncorrect: String = ""
     @State var newCorrect: String = ""
     @State var activationCode: String = ""
+    @FocusState var focusedField: SettingsFocusedField?
     
     // Key testing state
     @State var isTestingKey = false
@@ -204,7 +197,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selection) {
+            List(selection: $navigationState.selection) {
                 Section {
                     ForEach(SettingsPanel.allCases) { panel in
                         Label(panel.localizedName, systemImage: panel.icon)
@@ -213,10 +206,7 @@ struct SettingsView: View {
                 }
                 
                 Section(L10n("Modos")) {
-                    ForEach(DictationTemplate.allCases.filter { template in
-                        if template == .translate && settings.language == "en" { return false }
-                        return true
-                    }, id: \.self) { template in
+                    ForEach(DictationTemplate.allCases, id: \.self) { template in
                         HStack {
                             Label(template.localizedName, systemImage: template.icon)
                             if template == .translate && settings.transcriptionEngine != "whisper" {
@@ -241,7 +231,7 @@ struct SettingsView: View {
             .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
             .listStyle(.sidebar)
         } detail: {
-            if let selection {
+            if let selection = navigationState.selection {
                 switch selection {
                 case .panel(let panel):
                     switch panel {
@@ -267,44 +257,14 @@ struct SettingsView: View {
             } else {
                 Text(L10n("Selecione um painel à esquerda"))
                     .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .toolbar(removing: .sidebarToggle)
+        .id(localizationObserver.revision)
+        .environment(\.locale, AppLocalization.currentLocale())
         .frame(minWidth: WindowSize.settingsDefaultWidth, minHeight: WindowSize.settingsDefaultHeight)
         .observeSettingsChanges(settings)
-    }
-}
-
-extension View {
-    func observeSettingsChanges(_ settings: AppSettings) -> some View {
-        self
-            .onChange(of: settings.transcriptionEngine) { settings.save() }
-            .onChange(of: settings.dictationModel) { settings.save() }
-            .onChange(of: settings.batchModel) { settings.save() }
-            .onChange(of: settings.language) { settings.save() }
-            .onChange(of: settings.dictationTemperature) { settings.save() }
-            .onChange(of: settings.batchTemperature) { settings.save() }
-            .onChange(of: settings.replacements) { settings.save() }
-            .onChange(of: settings.replacementRules) { settings.save() }
-            .observeMoreSettingsChanges(settings)
-    }
-    
-    func observeMoreSettingsChanges(_ settings: AppSettings) -> some View {
-        self
-            .onChange(of: settings.enableDiarization) { settings.save() }
-            .onChange(of: settings.selectedDictationTemplate) { settings.save() }
-            .onChange(of: settings.llmProvider) { settings.save() }
-            .onChange(of: settings.llmPrompt) { settings.save() }
-            .observeCredentialsChanges(settings)
-    }
-    
-    func observeCredentialsChanges(_ settings: AppSettings) -> some View {
-        self
-            .onChange(of: settings.openAIKey) { settings.save() }
-            .onChange(of: settings.geminiKey) { settings.save() }
-            .onChange(of: settings.geminiModel) { settings.save() }
-            .onChange(of: settings.openAIModel) { settings.save() }
-            .onChange(of: settings.mlxModel) { settings.save() }
     }
 }
 

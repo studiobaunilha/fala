@@ -19,6 +19,11 @@ public struct RoleBadge: View {
             .clipShape(Capsule())
     }
     
-    public static let dictation = RoleBadge(title: "Ditado", color: FalaColors.badgeDictation)
-    public static let batch = RoleBadge(title: "Batch", color: FalaColors.badgeBatch)
+    public static var dictation: RoleBadge {
+        RoleBadge(title: L10n("Ditado"), color: FalaColors.badgeDictation)
+    }
+
+    public static var batch: RoleBadge {
+        RoleBadge(title: L10n("Batch"), color: FalaColors.badgeBatch)
+    }
 }
