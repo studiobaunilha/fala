@@ -29,11 +29,7 @@ private extension MLXSmokeTests {
         }
 
         let modelDir = await MLXModelManager.modelDir(for: modelID)
-        let hasSafetensors = ((try? FileManager.default.contentsOfDirectory(
-            at: modelDir,
-            includingPropertiesForKeys: nil
-        )) ?? []).contains(where: { $0.pathExtension == "safetensors" })
-        guard hasSafetensors else {
+        guard MLXModelManager.isUsableModelDirectory(modelDir) else {
             throw XCTSkip("Modelo MLX de smoke não está baixado localmente.")
         }
 

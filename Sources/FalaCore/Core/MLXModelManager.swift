@@ -39,6 +39,21 @@ public final class MLXModelManager: ObservableObject {
         return hub.localRepoLocation(repo)
     }
 
+    nonisolated static func isUsableModelDirectory(_ directory: URL) -> Bool {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else {
+            return false
+        }
+
+        let hasConfig = files.contains(where: { $0.lastPathComponent == "config.json" })
+        let hasWeights = files.contains(where: { $0.pathExtension == "safetensors" })
+        return hasConfig && hasWeights
+    }
+
     public init() {
         scanLocal()
     }
@@ -54,17 +69,8 @@ public final class MLXModelManager: ObservableObject {
     }
 
     public static func isRepoDownloaded(_ repoID: String) -> Bool {
-        let fm = FileManager.default
         let dir = modelDir(for: repoID)
-        guard let files = try? fm.contentsOfDirectory(
-            at: dir,
-            includingPropertiesForKeys: nil
-        ) else {
-            return false
-        }
-        return files.contains(where: {
-            $0.pathExtension == "safetensors" || $0.lastPathComponent == "config.json"
-        })
+        return isUsableModelDirectory(dir)
     }
 
     // MARK: - Scan
@@ -76,16 +82,10 @@ public final class MLXModelManager: ObservableObject {
 
     /// Returns repo IDs of known models present locally.
     static func scanDownloaded(knownModels: [MLXCatalogEntry]) -> Set<String> {
-        let fm = FileManager.default
         var found: Set<String> = []
         for model in knownModels {
             let dir = modelDir(for: model.repoID)
-            // Model is downloaded if directory contains safetensor files
-            if let files = try? fm.contentsOfDirectory(
-                at: dir, includingPropertiesForKeys: nil
-            ), files.contains(where: {
-                $0.pathExtension == "safetensors" || $0.lastPathComponent == "config.json"
-            }) {
+            if isUsableModelDirectory(dir) {
                 found.insert(model.repoID)
             }
         }
@@ -145,11 +145,14 @@ public final class MLXModelManager: ObservableObject {
         Task.detached {
             do {
                 let configuration = ModelConfiguration(id: repoID)
-                _ = try await downloadModel(
+                let modelDirectory = try await downloadModel(
                     hub: MLXModelManager.hub, configuration: configuration
                 ) { progress in
                     let fraction = progress.fractionCompleted
                     continuation.yield(fraction)
+                }
+                guard MLXModelManager.isUsableModelDirectory(modelDirectory) else {
+                    throw LLMError.mlxModelNotDownloaded(repoID)
                 }
                 continuation.finish()
                 NotificationCenter.default.post(
@@ -281,13 +284,8 @@ public actor MLXModelCache {
     /// Throws `LLMError.mlxModelNotDownloaded` if the model files don't exist.
     private func getOrLoad(_ repoID: String) async throws -> ModelContext {
         if let hit = cache[repoID] { return hit }
-        // Check if model is downloaded before trying to load (~2GB into RAM)
         let modelDir = await MLXModelManager.modelDir(for: repoID)
-        let fm = FileManager.default
-        let hasSafetensors = (try? fm.contentsOfDirectory(
-            at: modelDir, includingPropertiesForKeys: nil
-        ))?.contains(where: { $0.pathExtension == "safetensors" }) ?? false
-        guard hasSafetensors else {
+        guard MLXModelManager.isUsableModelDirectory(modelDir) else {
             throw LLMError.mlxModelNotDownloaded(repoID)
         }
         // Load from local directory — avoids re-downloading via hub.snapshot

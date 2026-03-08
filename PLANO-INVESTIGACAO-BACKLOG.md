@@ -676,25 +676,159 @@ Antes de detalhar item por item, alguns problemas estruturais se repetem em vari
 - agrupar itens de transcricao de arquivo;
 - consolidar itens de aplicacao.
 
-## Matriz de valor x velocidade para preencher depois
+## Priorizacao proposta para v1
 
-Usar esta tabela na proxima rodada, depois de alinharmos produto e reproducoes:
+### Base de decisao
 
-| Item | Valor | Velocidade | Risco | Observacoes |
-| --- | --- | --- | --- | --- |
-| Bandeja: estado real vs warmup | TBD | TBD | TBD | Bug de confianca visual |
-| MLX: refresh em tempo real | TBD | TBD | TBD | Bug confirmado de observacao |
-| Batch: erro de MLX explicito | TBD | TBD | TBD | Bug confirmado de fallback silencioso |
-| MLX: crash ao concluir download | TBD | TBD | TBD | Precisa reproducao com Instruments |
-| Whisper: cold start em arquivo | TBD | TBD | TBD | Gap claro entre warmup e batch |
-| Ditado rapido: variacao de latencia | TBD | TBD | TBD | Precisa telemetria local |
-| Streaming Whisper / preview vivo | TBD | TBD | TBD | Mudanca de UX + arquitetura |
-| Simplificacao do Whisper para modelo unico | TBD | TBD | TBD | UX forte, impacto em config |
-| Fila de varios arquivos | TBD | TBD | TBD | Alto valor de uso |
-| Padronizacao da UI de catalogo | TBD | TBD | TBD | UX e manutencao |
-| Editor unico de prompts | TBD | TBD | TBD | Reuso de componente |
-| Multiplos modos personalizados | TBD | TBD | TBD | Trabalho estrutural |
-| Reorganizacao dos Ajustes | TBD | TBD | TBD | Impacta discoverability |
+Para a primeira versao de lancamento, a ordem proposta abaixo usa estes criterios, nesta ordem:
+
+1. bugs que quebram confianca, causam crash, mascaram erro ou mentem sobre o estado real do app;
+2. fluxo principal do produto, especialmente ditado rapido e primeira transcricao;
+3. reducao de friccao forte de usabilidade que afeta quase todo usuario;
+4. melhorias que, alem de resolver o problema, deixam uma base mais limpa para evolucao futura;
+5. epicos de expansao funcional ou UX mais ambiciosa, desde que nao prejudiquem estabilidade do lancamento.
+
+Regra adicional para execucao:
+
+- sempre que um item tocar selecao de modelos, prompts ou settings, a entrega deve aproveitar a mudanca para extrair componente compartilhado, token e estado reutilizavel; nao vale corrigir localmente e deixar a duplicacao viva.
+
+### Matriz proposta
+
+Legenda:
+
+- `Valor`: impacto direto no sucesso da v1.
+- `Velocidade`: velocidade relativa para entregar com qualidade.
+- `Risco`: risco tecnico e de regressao.
+- `Prioridade`: ordem recomendada de ataque.
+
+### Atualizacao P0 em 2026-03-07
+
+- `Concluido`: `Batch: erro de MLX explicito`
+- `Concluido`: `MLX: refresh em tempo real`
+- `Concluido`: `Bandeja: estado real vs warmup`
+- `Concluido`: `Whisper: cold start em arquivo`
+- `Concluido`: `Ditado rapido: variacao de latencia`
+- `Concluido`: `Tamanhos errados dos modelos Whisper`
+- `Concluido com validacao manual recomendada`: `MLX: crash ao concluir download`
+
+Notas:
+
+- o item de crash em download MLX foi neutralizado no codigo com bloqueio explicito de warmup LLM logo apos a conclusao do download e com `cooldown gate` dedicado, coberto por testes;
+- ainda assim, por ser um problema historicamente observado em runtime real e nao em fixture deterministica, a validacao manual continua recomendada antes de chamar de encerrado em producao.
+
+| Prioridade | Item | Valor | Velocidade | Risco | Justificativa |
+| --- | --- | --- | --- | --- | --- |
+| P0 | MLX: crash ao concluir download | Muito alto | Media | Alto | Crash e problema de confiabilidade absoluta. Antes de lancar, qualquer fechamento inesperado ao concluir download precisa ser investigado e neutralizado. |
+| P0 | Batch: erro de MLX explicito | Muito alto | Media | Medio | Hoje o app pode prometer pos-processamento e entregar texto cru sem explicar. Isso e bug funcional e quebra de confianca. |
+| P0 | MLX: refresh em tempo real | Alto | Rapida | Baixo | Bug confirmado de UI/observacao. Alto impacto de usabilidade, baixo risco relativo, e melhora percepcao geral do produto. |
+| P0 | Bandeja: estado real vs warmup | Alto | Rapida | Baixo | O menu bar extra e a face do app o tempo todo. Icone e tooltip errados passam sensacao de bug permanente. |
+| P0 | Whisper: cold start em arquivo | Muito alto | Media | Medio | Primeira transcricao lenta atinge uma capacidade central do produto. Ja existe um gap arquitetural claro entre warmup e batch. |
+| P0 | Ditado rapido: variacao de latencia | Muito alto | Media | Medio | O ditado e o loop mais sensivel do app. Mesmo quando a causa exata ainda precisa instrumentacao, a investigacao e mitigacao entram como prioridade de lancamento. |
+| P0 | Tamanhos errados dos modelos Whisper | Medio | Rapida | Baixo | Nao bloqueia o produto, mas mina confianca e e simples de corrigir removendo ou saneando estimativas enganosas. |
+| P1 | Descricao de motores/modelos mais clara | Alto | Rapida | Baixo | Alto retorno de usabilidade para quase todos os usuarios. Pode ser entregue junto da padronizacao da UI de modelos. |
+| P1 | Padronizacao da UI de catalogo | Alto | Media | Medio | Entrega valor de UX e reduz manutencao. Deve ser feita junto do retrabalho de Whisper, nao isoladamente. |
+| P1 | Simplificacao do Whisper para modelo unico | Alto | Media | Medio | Reduz bastante a carga cognitiva da v1, mas exige migracao de config e ajuste de readiness/warmup. |
+| P1 | Editor unico de prompts + liberar Apple editavel | Alto | Media | Medio | Alto valor para consistencia e controle do usuario. Tambem e ponto importante de reutilizacao/componentizacao. |
+| P1 | Reorganizacao dos Ajustes | Medio-alto | Media | Medio | Melhora discoverability, mas deve vir depois de estabilizar os blocos funcionais que vao compor essa nova arquitetura de settings. |
+| P1 | Fila de varios arquivos | Alto | Lenta | Medio-alto | Grande valor agregado, mas e expansao funcional maior. Vale atacar quando os bugs e a base de transcricao estiverem estaveis. |
+| P2 | Streaming Whisper / preview vivo | Medio-alto | Lenta | Alto | Oportunidade boa, mas e mudanca de UX e arquitetura. Nao deve entrar antes de estabilizar o fluxo atual. |
+| P2 | Multiplos modos personalizados | Medio | Lenta | Alto | E um epico estrutural. Valioso, mas nao deveria competir com bugs e confiabilidade da v1. |
+
+### Ordem recomendada de execucao
+
+#### Fase 0: confiabilidade e verdade do produto
+
+Ataque imediato:
+
+1. `MLX: crash ao concluir download`
+2. `Batch: erro de MLX explicito`
+3. `MLX: refresh em tempo real`
+4. `Bandeja: estado real vs warmup`
+5. `Tamanhos errados dos modelos Whisper`
+
+Racional:
+
+- esta fase limpa bugs reais, reduz suporte reativo e faz o produto parar de mentir para o usuario;
+- tres desses itens sao bugs claros de primeira impressao;
+- todos podem ser entregues sem redesenhar o produto inteiro;
+- `MLX: refresh em tempo real` e `Bandeja` sao quick wins de alto valor;
+- `Tamanhos errados` entra aqui porque e barato e melhora credibilidade imediatamente.
+
+#### Fase 1: performance do fluxo principal
+
+Ataque logo depois:
+
+1. `Whisper: cold start em arquivo`
+2. `Ditado rapido: variacao de latencia`
+
+Racional:
+
+- sem performance consistente, a proposta do Fala perde forca mesmo com UI boa;
+- esta fase deve comecar por instrumentacao, nao por chute;
+- o ideal e fechar primeiro:
+  - warmup correto do `batchModel`;
+  - reuso de engine/modelo aquecido;
+  - mapa de tempo por etapa no ditado.
+
+#### Fase 2: UX de escolha e base reutilizavel
+
+Ataque em conjunto:
+
+1. `Descricao de motores/modelos mais clara`
+2. `Padronizacao da UI de catalogo`
+3. `Simplificacao do Whisper para modelo unico`
+
+Racional:
+
+- esses tres itens andam melhor juntos do que separados;
+- se a UI do Whisper for retrabalhada, deve nascer no mesmo padrao de MLX, nao em mais uma variacao;
+- e a melhor oportunidade de reaproveitamento de componente na v1.
+
+#### Fase 3: prompts e arquitetura de settings
+
+Ataque em conjunto:
+
+1. `Editor unico de prompts + liberar Apple editavel`
+2. `Reorganizacao dos Ajustes`
+
+Racional:
+
+- reorganizar settings antes de estabilizar modelos e prompts gera retrabalho;
+- depois que os blocos principais estiverem consolidados, faz sentido remontar o sidebar com melhor informacao arquitetural;
+- esta fase aumenta consistencia sem ser pre-requisito para o app funcionar bem no lancamento.
+
+#### Fase 4: expansoes de v1.x ou pos-lancamento
+
+Ataque posterior:
+
+1. `Fila de varios arquivos`
+2. `Streaming Whisper / preview vivo`
+3. `Multiplos modos personalizados`
+
+Racional:
+
+- todos tem valor, mas nenhum deles resolve imediatamente os principais riscos de lancamento;
+- os tres pedem mais arquitetura do que parece;
+- sao candidatos fortes para v1.x, quando a base ja estiver estavel.
+
+### Prioridades que eu defenderia sem muita negociacao
+
+Se for preciso apertar escopo, estes sao os itens que eu defenderia como praticamente obrigatorios antes de chamar a v1 de pronta:
+
+- `MLX: crash ao concluir download`
+- `Batch: erro de MLX explicito`
+- `MLX: refresh em tempo real`
+- `Bandeja: estado real vs warmup`
+- `Whisper: cold start em arquivo`
+- `Ditado rapido: variacao de latencia`
+
+### Itens que eu so puxaria para antes do lancamento se houver folga real
+
+- `Fila de varios arquivos`
+- `Streaming Whisper / preview vivo`
+- `Multiplos modos personalizados`
+
+Esses tres sao bons, mas competem com estabilidade, performance previsivel e clareza do produto base.
 
 ## Observacoes finais
 
