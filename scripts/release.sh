@@ -21,7 +21,6 @@ set -euo pipefail
 # ── Config ─────────────────────────────────────────────────────────────────────
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 XCODE="$(bash "$REPO_DIR/scripts/xcode-dir.sh")"
-SWIFT="DEVELOPER_DIR=$XCODE swift"
 SPARKLE_BIN=".build/artifacts/sparkle/Sparkle/bin"
 BUCKET="fala-updates"
 R2_URL="https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev"
@@ -118,32 +117,17 @@ ok "Commit + tag v${VERSION}"
 
 # ── 3. Build release ──────────────────────────────────────────────────────────
 info "Compilando release…"
-eval "$SWIFT build -c release" 2>&1 | tail -3
-
-# ── 4. Create .app bundle ─────────────────────────────────────────────────────
-info "Criando app bundle…"
 APP_DIR="$TMP_DIR/${APP_NAME}.app"
-CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" release)"
-mkdir -p "$APP_DIR/Contents/MacOS"
-mkdir -p "$APP_DIR/Contents/Resources"
-mkdir -p "$APP_DIR/Contents/Frameworks"
-
-cp .build/release/Fala "$APP_DIR/Contents/MacOS/"
-cp Sources/Fala/Resources/AppIcon.icns "$APP_DIR/Contents/Resources/"
-cp Sources/Fala/Resources/Info.plist "$APP_DIR/Contents/"
-cp -R .build/release/Sparkle.framework "$APP_DIR/Contents/Frameworks/"
-install_name_tool -add_rpath @executable_path/../Frameworks "$APP_DIR/Contents/MacOS/Fala" 2>/dev/null || true
-codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP_DIR"
-
+DEVELOPER_DIR="$XCODE" bash "$REPO_DIR/scripts/build-app.sh" release --app-dir "$APP_DIR"
 ok "App bundle criado"
 
-# ── 5. Create DMG ──────────────────────────────────────────────────────────────
+# ── 4. Create DMG ──────────────────────────────────────────────────────────────
 info "Criando DMG…"
 DMG_PATH="$TMP_DIR/$DMG_NAME"
 hdiutil create -volname "$APP_NAME" -srcfolder "$APP_DIR" -ov -format UDZO "$DMG_PATH" 2>&1 | tail -1
 ok "DMG: $DMG_NAME"
 
-# ── 6. Sign with Sparkle EdDSA ─────────────────────────────────────────────────
+# ── 5. Sign with Sparkle EdDSA ─────────────────────────────────────────────────
 info "Assinando com EdDSA…"
 SIGNATURE=$("$SPARKLE_BIN/sign_update" "$DMG_PATH" 2>&1)
 ED_SIGNATURE=$(echo "$SIGNATURE" | grep -o 'sparkle:edSignature="[^"]*"' | cut -d'"' -f2)
@@ -154,7 +138,7 @@ if [[ -z "$ED_SIGNATURE" ]]; then
 fi
 ok "Assinatura: ${ED_SIGNATURE:0:20}…"
 
-# ── 7. Generate appcast.xml ───────────────────────────────────────────────────
+# ── 6. Generate appcast.xml ───────────────────────────────────────────────────
 info "Gerando appcast.xml…"
 APPCAST_PATH="$TMP_DIR/appcast.xml"
 PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
@@ -185,7 +169,7 @@ cat > "$APPCAST_PATH" <<EOF
 EOF
 ok "appcast.xml gerado"
 
-# ── 8. Upload to R2 ───────────────────────────────────────────────────────────
+# ── 7. Upload to R2 ───────────────────────────────────────────────────────────
 if $DRY_RUN; then
     info "[dry-run] Upload simulado:"
     printf "  ${GREY}%s → %s/%s${RESET}\n" "$DMG_NAME" "$BUCKET" "$DMG_NAME"

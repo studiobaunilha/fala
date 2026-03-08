@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF' >&2
-usage: scripts/build-app.sh <debug|release> [--open]
+usage: scripts/build-app.sh <debug|release> [--open] [--app-dir /path/to/Fala.app]
 EOF
     exit 1
 }
@@ -15,10 +15,16 @@ fi
 shift || true
 
 OPEN_AFTER_BUILD=0
+APP="$HOME/Applications/Fala.app"
 while (($#)); do
     case "$1" in
         --open)
             OPEN_AFTER_BUILD=1
+            ;;
+        --app-dir)
+            shift || usage
+            [[ -n "${1:-}" ]] || usage
+            APP="$1"
             ;;
         *)
             usage
@@ -44,7 +50,6 @@ esac
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
 CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" "${MODE}")"
-APP="$HOME/Applications/Fala.app"
 PRODUCTS_DIR="$REPO_DIR/$DERIVED_DATA/Build/Products/$CONFIGURATION"
 BINARY_SOURCE="$PRODUCTS_DIR/Fala"
 BUNDLE_BINARY="$APP/Contents/MacOS/Fala"
@@ -90,6 +95,37 @@ ensure_fresh_localizations() {
     verify_localization_bundle "$LOCALIZATION_BUNDLE"
 }
 
+assert_staged_path_exists() {
+    local path="$1"
+    local label="$2"
+
+    if [[ ! -e "$path" ]]; then
+        echo "error: $label ausente em $path" >&2
+        exit 1
+    fi
+}
+
+verify_staged_bundle_contents() {
+    assert_staged_path_exists "$APP/Contents/MacOS/Fala" "binário principal"
+    assert_staged_path_exists "$APP/Contents/Info.plist" "Info.plist"
+    assert_staged_path_exists "$APP/Contents/Resources/AppIcon.icns" "ícone do app"
+    assert_staged_path_exists "$APP/Contents/Resources/Fala_FalaCore.bundle" "bundle de recursos FalaCore"
+    assert_staged_path_exists "$APP/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" "metallib do runtime MLX"
+    assert_staged_path_exists "$APP/Contents/Frameworks/Sparkle.framework" "Sparkle.framework"
+
+    find "$PRODUCTS_DIR" -maxdepth 1 -type d -name '*.bundle' -print0 | while IFS= read -r -d '' bundle; do
+        assert_staged_path_exists \
+            "$APP/Contents/Resources/$(basename "$bundle")" \
+            "bundle de recurso $(basename "$bundle")"
+    done
+
+    find "$PRODUCTS_DIR" -maxdepth 1 -type d -name '*.framework' -print0 | while IFS= read -r -d '' framework; do
+        assert_staged_path_exists \
+            "$APP/Contents/Frameworks/$(basename "$framework")" \
+            "framework $(basename "$framework")"
+    done
+}
+
 stage_bundle() {
     rm -rf "$APP"
 
@@ -126,6 +162,7 @@ fi
 ensure_fresh_localizations
 
 stage_bundle
+verify_staged_bundle_contents
 
 verify_localization_bundle "$APP/Contents/Resources/Fala_FalaCore.bundle"
 
