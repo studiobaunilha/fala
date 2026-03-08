@@ -90,3 +90,12 @@ A seção que a gente chama de modelos, você na verdade seleciona o motor de tr
 Na sessão avançada, está falando de diarization, que é totalmente a ver com transcrição de arquivos, e substituição de texto no pós-processamento, que é totalmente a ver com transcrição de arquivos. Então, talvez são itens que poderiam ir para um para essa nova sessão de transcrição de arquivos.
 
 
+---
+
+- Quando eu abro a aplicação, ele está pedindo para acessar um arquivo de licença. Ele às vezes pede 3, 4 vezes. Parece que é a mesma solicitação. Não sei se ela varia, isso são arquivos diferentes, but I quero saber se tem como diminuir isso, fazer mais objetivo, sei lá. Talvez pedir uma autorização para acessar uma pasta. Não sei como que funciona. Mas é que digitar senha várias vezes é bem frustrante.
+
+
+- Quando pede para reiniciar, porque eu mudei o motor, por exemplo, ou algo do tipo, ele só fecha, ele não reinicia. Precisa saber se tem como abrir de novo. E se não tiver, aí tem que instruir corretamente para fechar e depois que tem que abrir manual. Não pode dizer que vai reiniciar e, na verdade, tá só fechando, né?
+
+
+- Na transcrição de arquivo, quando eu peço para cancelar, está demorando muito para cancelar. Tem como meio que interromper na hora?
