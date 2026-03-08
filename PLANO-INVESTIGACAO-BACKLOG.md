@@ -53,6 +53,8 @@ Toda entrega deste backlog deve respeitar estes gates:
 | --- | --- | --- |
 | Licenca: eliminar prompts repetidos de senha do Keychain `login` | Concluido | O launch deixa de disparar 3-5 pedidos equivalentes para acessar `dev.fala.app.license` nas chaves do `login`; o estado de licenca passa a ser restaurado a partir de um snapshot unico em memoria; token, email e tempo de servidor nao sao relidos em cadeia quando um estado consistente ja foi carregado; o fluxo de build usado para validar licenca deixa de depender de identidade ad hoc instavel; a UX de autorizacao fica objetiva e nao obriga repeticao manual de senha para o mesmo contexto; testes cobrem restauracao paga, trial, migracao legada e falha de acesso ao store seguro. |
 | Restart: relaunch confiavel ou fallback honesto | Concluido | Ao confirmar uma mudanca que exige reinicio, o app abre uma nova instancia de forma verificavel e so encerra a instancia atual depois disso; se o relaunch falhar, a UI deixa de prometer reinicio automatico e instrui corretamente fechamento e abertura manual; testes cobrem sucesso, falha e cancelamento. |
+| Distribuicao: bundle publicado precisa abrir em outra maquina | Concluido | O pipeline de release usa o mesmo staging validado do build local; o `.app` distribuido inclui bundles de recurso e frameworks necessarios para subir em uma maquina limpa, incluindo `Fala_FalaCore.bundle`, bundles de dependencias SwiftPM, `Sparkle.framework` e o runtime MLX com `default.metallib`; o empacotamento falha cedo se algum item obrigatorio estiver ausente; `build release` verde. |
+| Distribuicao: transcricao de arquivo nao pode depender de `ffmpeg` externo em `/opt/homebrew/bin/ffmpeg` | Concluido | O app distribuido consegue processar arquivos em maquina limpa sem exigir Homebrew; a preparacao de audio para batch passa a usar conversao nativa com `AVAudioFile` e `AVAudioConverter`; a UI deixa de instruir `brew install ffmpeg` como requisito padrao do produto distribuido; testes cobrem preparacao nativa, passthrough de WAV e auditoria de codigo para impedir regressao ao caminho antigo. |
 | MLX: crash ao concluir download | Concluido | O app nao fecha ao concluir download MLX; updates de progresso nao derrubam a bandeja; eventos de conclusao chegam na main thread; `make check`, `build debug` e `make test-mlx` verdes. |
 | Batch: erro de MLX explicito | Concluido | Batch nao ignora mais falha de MLX em silencio; usuario recebe erro ou aviso claro. |
 | MLX: refresh em tempo real | Concluido | Tela de modelos MLX reflete progresso e estado sem exigir troca de tela. |
@@ -68,14 +70,14 @@ Toda entrega deste backlog deve respeitar estes gates:
 | Descricao de motores/modelos mais clara | Concluido | Tela de escolha explica Parakeet vs Whisper em linguagem de produto, com recomendacao clara e sem exigir conhecimento tecnico. |
 | Padronizacao da UI de catalogo | Concluido para transcricao | Whisper passou a usar o mesmo padrao de catalogo local com card de resumo, linha de acao unica e componentes reutilizaveis; MLX permanece no mesmo modelo visual. |
 | Simplificacao do Whisper para modelo unico | Concluido | Usuario escolhe um unico modelo Whisper ativo; migracao preserva configuracoes antigas sem quebrar o app. |
-| Editor unico de prompts + Apple editavel | Planejado | Todo prompt relevante pode ser editado, restaurado e exibido pela mesma interface; Apple Intelligence deixa de ser somente leitura. |
-| Reorganizacao dos Ajustes | Planejado | Ajustes passam a refletir o modelo mental do produto: motor de transcricao, transcricao de arquivos, IA/LLM e configuracoes da aplicacao. |
+| Editor unico de prompts + Apple editavel | Concluido | Todo prompt relevante pode ser editado, restaurado e exibido pela mesma interface; Apple Intelligence deixa de ser somente leitura. |
+| Reorganizacao dos Ajustes | Concluido | Ajustes passam a refletir o modelo mental do produto: motor de transcricao, transcricao de arquivos, IA/LLM e configuracoes da aplicacao. |
 
 ### P2 — Expansao funcional
 
 | Item | Status atual | Definicao de pronto |
 | --- | --- | --- |
-| Fila de varios arquivos | Planejado | Usuario pode selecionar varios arquivos, ver fila, acompanhar progresso e processar em lote com estado consistente. |
+| Fila de varios arquivos | Concluido | Usuario pode selecionar varios arquivos, ver fila, acompanhar progresso e processar em lote com estado consistente. |
 | Streaming Whisper / preview vivo | Planejado com spike tecnico obrigatorio | Existe preview progressivo confiavel sem degradar insercao final nem gerar texto instavel no alvo. |
 | Multiplos modos personalizados | Planejado | Usuario pode criar e gerenciar mais de um modo customizado sem duplicar UI ou logica de prompts. |
 
@@ -88,25 +90,21 @@ Toda entrega deste backlog deve respeitar estes gates:
 - restart transacional para mudancas que exigem reinicio
 - relaunch confiavel com fallback honesto quando o app nao conseguir reabrir sozinho
 - restauracao da licenca via snapshot unico de Keychain no mesmo launch
+- pipeline de release alinhado com o staging validado do app bundle distribuido
 - avisos explicitos para falhas de MLX no batch
 - reuso de transcriber no batch e prewarm do fluxo principal
 - bandeja separando download real de preparo em background
 - validacao de integridade de modelo MLX local antes de considerar o modelo utilizavel
 - escolha de motor de transcricao em linguagem de produto
 - catalogo Whisper unificado com um unico modelo ativo para ditado e arquivos
+- fila de varios arquivos com selecao multipla, progresso por item e saida em lote consistente
 
 ## Proxima ordem de execucao
 
-### Fase 2 — Prompts e arquitetura de Ajustes
-
-1. Editor unico de prompts + Apple editavel
-2. Reorganizacao dos Ajustes
-
 ### Fase 3 — Expansoes
 
-1. Fila de varios arquivos
-2. Streaming Whisper / preview vivo
-3. Multiplos modos personalizados
+1. Streaming Whisper / preview vivo
+2. Multiplos modos personalizados
 
 ## Criterios para avancar de fase
 
@@ -120,4 +118,4 @@ Hoje, o backlog ativo esta assim:
 
 - P0: concluido
 - P1: concluido
-- P2: planejado para depois da estabilizacao final da v1
+- P2: em andamento com a fila de varios arquivos concluida
