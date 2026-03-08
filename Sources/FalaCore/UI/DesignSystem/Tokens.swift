@@ -61,25 +61,25 @@ public enum WindowSize {
     public static let settingsMinHeight: CGFloat = 700
     public static let settingsMaxHeight: CGFloat = 1000
 
-    public static let settingsDefaultWidth: CGFloat = 700
-    public static let settingsMinWidth: CGFloat = 700
+    public static let settingsDefaultWidth: CGFloat = 900
+    public static let settingsMinWidth: CGFloat = 800
     public static let settingsMaxWidth: CGFloat = 1000
 
     public static let transcribeDefaultHeight: CGFloat = 800
     public static let transcribeMinHeight: CGFloat = 700
     public static let transcribeMaxHeight: CGFloat = 1000
 
-    public static let transcribeDefaultWidth: CGFloat = 700
-    public static let transcribeMinWidth: CGFloat = 700
+    public static let transcribeDefaultWidth: CGFloat = 900
+    public static let transcribeMinWidth: CGFloat = 800
     public static let transcribeMaxWidth: CGFloat = 1000
 
-    public static let onboardingDefaultHeight: CGFloat = 640
-    public static let onboardingMinHeight: CGFloat = 620
-    public static let onboardingMaxHeight: CGFloat = 860
+    public static let onboardingDefaultHeight: CGFloat = 800
+    public static let onboardingMinHeight: CGFloat = 700
+    public static let onboardingMaxHeight: CGFloat = 1000
 
-    public static let onboardingDefaultWidth: CGFloat = 560
-    public static let onboardingMinWidth: CGFloat = 560
-    public static let onboardingMaxWidth: CGFloat = 560
+    public static let onboardingDefaultWidth: CGFloat = 700
+    public static let onboardingMinWidth: CGFloat = 600
+    public static let onboardingMaxWidth: CGFloat = 1000
 }
 
 public enum LayoutMetric {
