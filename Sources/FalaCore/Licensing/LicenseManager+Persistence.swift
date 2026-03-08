@@ -10,7 +10,7 @@ extension LicenseManager {
     }
 
     func readStoredEntitlementToken() throws -> String? {
-        try secureStore.read(account: entitlementTokenAccount)?.trimmedNonEmpty
+        try loadStoredEntitlementSnapshot().resolvedEntitlementToken
     }
 
     func loadStoredPayload() throws -> EntitlementPayload? {
@@ -27,42 +27,44 @@ extension LicenseManager {
     }
 
     func saveEntitlement(grant: EntitlementGrant, email: String?) throws {
+        let normalizedEmail = email?.trimmedNonEmpty
+        let serverTime = String(grant.serverNow.timeIntervalSince1970)
+
         try secureStore.save(token: grant.entitlementToken, for: entitlementTokenAccount)
 
-        if let email = email?.trimmedNonEmpty {
-            try secureStore.save(token: email, for: entitlementEmailAccount)
+        if let normalizedEmail {
+            try secureStore.save(token: normalizedEmail, for: entitlementEmailAccount)
         } else {
             try? secureStore.delete(account: entitlementEmailAccount)
         }
 
-        try secureStore.save(
-            token: String(grant.serverNow.timeIntervalSince1970),
-            for: lastKnownServerTimeAccount
+        try secureStore.save(token: serverTime, for: lastKnownServerTimeAccount)
+        try? secureStore.delete(account: legacyLicenseTokenAccount)
+        storeEntitlementSnapshot(
+            entitlementToken: grant.entitlementToken,
+            entitlementEmail: normalizedEmail,
+            lastKnownServerTime: serverTime
         )
     }
 
     func clearStoredEntitlement() throws {
+        let lastKnownServerTime = try loadStoredEntitlementSnapshot().lastKnownServerTime
         try secureStore.delete(account: entitlementTokenAccount)
         try secureStore.delete(account: entitlementEmailAccount)
-    }
-
-    func migrateLegacyEntitlementIfNeeded() {
-        guard (try? secureStore.read(account: entitlementTokenAccount)?.trimmedNonEmpty) == nil,
-              let legacyToken = try? secureStore.read(account: legacyLicenseTokenAccount)?.trimmedNonEmpty
-        else {
-            return
-        }
-
-        do {
-            try secureStore.save(token: legacyToken, for: entitlementTokenAccount)
-            try secureStore.delete(account: legacyLicenseTokenAccount)
-        } catch {
-            NSLog("[Fala] Failed to migrate legacy entitlement token: \(error.localizedDescription)")
-        }
+        try secureStore.delete(account: legacyLicenseTokenAccount)
+        storeEntitlementSnapshot(
+            entitlementToken: nil,
+            entitlementEmail: nil,
+            lastKnownServerTime: lastKnownServerTime
+        )
     }
 
     func clearLocalEntitlementAndReset() {
-        try? clearStoredEntitlement()
+        do {
+            try clearStoredEntitlement()
+        } catch {
+            clearEntitlementSnapshot()
+        }
         applyUnlicensedState()
     }
 

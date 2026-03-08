@@ -4,7 +4,20 @@ import Security
 public protocol SecureStringStore: Sendable {
     func save(token: String, for account: String) throws
     func read(account: String) throws -> String?
+    func read(accounts: [String]) throws -> [String: String]
     func delete(account: String) throws
+}
+
+public extension SecureStringStore {
+    func read(accounts: [String]) throws -> [String: String] {
+        var values: [String: String] = [:]
+        for account in accounts {
+            if let value = try read(account: account) {
+                values[account] = value
+            }
+        }
+        return values
+    }
 }
 
 public struct KeychainSecureStore: SecureStringStore {
@@ -16,6 +29,10 @@ public struct KeychainSecureStore: SecureStringStore {
 
     public func read(account: String) throws -> String? {
         try KeychainHelper.read(account: account)
+    }
+
+    public func read(accounts: [String]) throws -> [String: String] {
+        try KeychainHelper.read(accounts: accounts)
     }
 
     public func delete(account: String) throws {
@@ -47,6 +64,18 @@ struct InMemorySecureStore: SecureStringStore {
         storage.lock.lock()
         storage.values.removeValue(forKey: account)
         storage.lock.unlock()
+    }
+
+    func read(accounts: [String]) throws -> [String: String] {
+        storage.lock.lock()
+        defer { storage.lock.unlock() }
+        var result: [String: String] = [:]
+        for account in accounts {
+            if let value = storage.values[account] {
+                result[account] = value
+            }
+        }
+        return result
     }
 }
 
@@ -118,6 +147,51 @@ public enum KeychainHelper {
         }
 
         return token
+    }
+
+    public static func read(accounts: [String]) throws -> [String: String] {
+        let requestedAccounts = Set(accounts)
+        guard !requestedAccounts.isEmpty else {
+            return [:]
+        }
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecReturnAttributes as String: true,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitAll
+        ]
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        guard status != errSecItemNotFound else {
+            return [:]
+        }
+
+        guard status == errSecSuccess else {
+            throw KeychainError.unhandledError(status: status)
+        }
+
+        guard let entries = item as? [[String: Any]] else {
+            throw KeychainError.unexpectedData
+        }
+
+        var values: [String: String] = [:]
+        for entry in entries {
+            guard let account = entry[kSecAttrAccount as String] as? String,
+                  requestedAccounts.contains(account),
+                  let data = entry[kSecValueData as String] as? Data,
+                  let token = String(data: data, encoding: .utf8)
+            else {
+                continue
+            }
+
+            values[account] = token
+        }
+
+        return values
     }
 
     public static func delete(account: String) throws {

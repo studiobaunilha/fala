@@ -1,5 +1,6 @@
 import XCTest
 import CryptoKit
+import Security
 @testable import FalaCore
 
 final class StubLicensingClient: LicensingAPIClientProtocol, @unchecked Sendable {
@@ -132,6 +133,70 @@ final class InMemorySecureStore: SecureStringStore, @unchecked Sendable {
 
     func value(for account: String) -> String? {
         values[account]
+    }
+}
+
+final class CountingSecureStore: SecureStringStore, @unchecked Sendable {
+    private var values: [String: String]
+    private(set) var readCallCount = 0
+    private(set) var batchReadCallCount = 0
+    private(set) var saveCallCount = 0
+    private(set) var deleteCallCount = 0
+
+    init(_ initialValues: [String: String] = [:]) {
+        values = initialValues
+    }
+
+    func save(token: String, for account: String) throws {
+        saveCallCount += 1
+        values[account] = token
+    }
+
+    func read(account: String) throws -> String? {
+        readCallCount += 1
+        return values[account]
+    }
+
+    func read(accounts: [String]) throws -> [String: String] {
+        batchReadCallCount += 1
+        var result: [String: String] = [:]
+        for account in accounts {
+            if let value = values[account] {
+                result[account] = value
+            }
+        }
+        return result
+    }
+
+    func delete(account: String) throws {
+        deleteCallCount += 1
+        values.removeValue(forKey: account)
+    }
+
+    func value(for account: String) -> String? {
+        values[account]
+    }
+}
+
+final class FailingBatchReadSecureStore: SecureStringStore, @unchecked Sendable {
+    private(set) var readCallCount = 0
+    private(set) var batchReadCallCount = 0
+    private(set) var deleteCallCount = 0
+
+    func save(token: String, for account: String) throws {}
+
+    func read(account: String) throws -> String? {
+        readCallCount += 1
+        return nil
+    }
+
+    func read(accounts: [String]) throws -> [String: String] {
+        batchReadCallCount += 1
+        throw KeychainError.unhandledError(status: errSecInteractionNotAllowed)
+    }
+
+    func delete(account: String) throws {
+        deleteCallCount += 1
     }
 }
 

@@ -46,7 +46,8 @@ public final class LicenseManager: ObservableObject {
     let deviceFingerprintProvider: any DeviceFingerprintProviding
     let now: @Sendable () -> Date
 
-    private var backgroundRefreshTask: Task<Void, Never>?
+    var storedEntitlementSnapshot: StoredEntitlementSnapshot?
+    var backgroundRefreshTask: Task<Void, Never>?
     private var automaticRetryAttemptCount = 0
     private let automaticRetryDelays: [TimeInterval] = [15, 60, 300]
 
@@ -71,8 +72,6 @@ public final class LicenseManager: ObservableObject {
         self.secureStore = secureStore
         self.deviceFingerprintProvider = deviceFingerprintProvider
         self.now = now
-
-        migrateLegacyEntitlementIfNeeded()
 
         if shouldRestoreStateOnLaunch {
             restoreEntitlementState(scheduleRefreshIfNeeded: true)
@@ -183,61 +182,7 @@ private extension LicenseManager {
     }
 }
 
-private extension LicenseManager {
-    func restoreEntitlementState(scheduleRefreshIfNeeded: Bool) {
-        backgroundRefreshTask?.cancel()
-
-        do {
-            if isClockRollbackDetected() {
-                if let payload = try loadStoredPayload() {
-                    applyClockRollbackState(for: payload)
-                    if scheduleRefreshIfNeeded {
-                        scheduleBackgroundRefresh()
-                    }
-                } else {
-                    applyNeedsConnectionState(clearEmail: true)
-                }
-                return
-            }
-
-            guard let token = try readStoredEntitlementToken() else {
-                applyUnlicensedState()
-                if scheduleRefreshIfNeeded && shouldAutoStartTrial() {
-                    scheduleTrialBootstrap()
-                }
-                return
-            }
-
-            let deviceFingerprint = try resolveDeviceFingerprint()
-
-            do {
-                let payload = try validateEntitlementToken(
-                    token,
-                    allowExpired: false,
-                    expectedDeviceFingerprint: deviceFingerprint
-                )
-                applyValidatedEntitlement(payload)
-                if scheduleRefreshIfNeeded && shouldScheduleBackgroundRefresh(for: payload) {
-                    scheduleBackgroundRefresh()
-                }
-                return
-            } catch LicenseError.tokenExpired {
-                let payload = try validateEntitlementToken(
-                    token,
-                    allowExpired: true,
-                    expectedDeviceFingerprint: deviceFingerprint
-                )
-                applyNeedsConnectionState(from: payload)
-                if scheduleRefreshIfNeeded {
-                    scheduleBackgroundRefresh()
-                }
-            }
-        } catch {
-            NSLog("[Fala] Local license validation failed: \(error.localizedDescription)")
-            clearLocalEntitlementAndReset()
-        }
-    }
-
+extension LicenseManager {
     func scheduleBackgroundRefresh() {
         scheduleBackgroundRefresh(after: 0)
     }

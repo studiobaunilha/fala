@@ -12,7 +12,7 @@ extension LicenseManager {
     }
 
     func applyPaidEntitlement(_ payload: EntitlementPayload, gracePeriodEnd: Date?) {
-        let storedEmail = try? secureStore.read(account: entitlementEmailAccount)
+        let storedEmail = storedEntitlementSnapshot?.entitlementEmail
         accessState = gracePeriodEnd == nil ? .proActive : .proGracePeriod
         isPro = true
         licenseEmail = payload.email?.trimmedNonEmpty ?? storedEmail ?? nil
@@ -70,7 +70,7 @@ extension LicenseManager {
 
         switch payload.entitlementKind ?? .paid {
         case .paid:
-            licenseEmail = payload.email?.trimmedNonEmpty ?? (try? secureStore.read(account: entitlementEmailAccount))
+            licenseEmail = payload.email?.trimmedNonEmpty ?? storedEntitlementSnapshot?.entitlementEmail
             trialDaysRemaining = 0
             trialEndsAt = nil
         case .trial:

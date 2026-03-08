@@ -61,11 +61,11 @@ extension LicenseManager {
     }
 
     func shouldAutoStartTrial() -> Bool {
-        (try? secureStore.read(account: lastKnownServerTimeAccount)?.trimmedNonEmpty) == nil
+        (try? loadStoredEntitlementSnapshot().lastKnownServerTime) == nil
     }
 
     func isClockRollbackDetected() -> Bool {
-        guard let lastServerTimeRaw = try? secureStore.read(account: lastKnownServerTimeAccount)?.trimmedNonEmpty,
+        guard let lastServerTimeRaw = try? loadStoredEntitlementSnapshot().lastKnownServerTime,
               let lastServerTimestamp = Double(lastServerTimeRaw)
         else {
             return false
