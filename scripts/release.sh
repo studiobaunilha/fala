@@ -123,6 +123,7 @@ eval "$SWIFT build -c release" 2>&1 | tail -3
 # ── 4. Create .app bundle ─────────────────────────────────────────────────────
 info "Criando app bundle…"
 APP_DIR="$TMP_DIR/${APP_NAME}.app"
+CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" release)"
 mkdir -p "$APP_DIR/Contents/MacOS"
 mkdir -p "$APP_DIR/Contents/Resources"
 mkdir -p "$APP_DIR/Contents/Frameworks"
@@ -132,7 +133,7 @@ cp Sources/Fala/Resources/AppIcon.icns "$APP_DIR/Contents/Resources/"
 cp Sources/Fala/Resources/Info.plist "$APP_DIR/Contents/"
 cp -R .build/release/Sparkle.framework "$APP_DIR/Contents/Frameworks/"
 install_name_tool -add_rpath @executable_path/../Frameworks "$APP_DIR/Contents/MacOS/Fala" 2>/dev/null || true
-codesign --force --deep --sign - "$APP_DIR"
+codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP_DIR"
 
 ok "App bundle criado"
 

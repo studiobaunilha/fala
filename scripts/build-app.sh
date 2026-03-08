@@ -43,6 +43,7 @@ esac
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
+CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" "${MODE}")"
 APP="$HOME/Applications/Fala.app"
 PRODUCTS_DIR="$REPO_DIR/$DERIVED_DATA/Build/Products/$CONFIGURATION"
 BINARY_SOURCE="$PRODUCTS_DIR/Fala"
@@ -107,7 +108,7 @@ stage_bundle() {
     done
 
     install_name_tool -add_rpath @executable_path/../Frameworks "$BUNDLE_BINARY" 2>/dev/null || true
-    codesign --force --deep --sign - "$APP"
+    codesign --force --deep --sign "$CODESIGN_IDENTITY" "$APP"
 }
 
 build_with_xcode

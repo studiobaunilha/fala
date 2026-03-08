@@ -1841,6 +1841,38 @@
         }
       }
     },
+    "Feche e abra novamente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close and open again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cierra y abre de nuevo"
+          }
+        }
+      }
+    },
+    "Feche o app e abra novamente para aplicar esta mudança.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close the app and open it again to apply this change."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cierra la app y vuelve a abrirla para aplicar este cambio."
+          }
+        }
+      }
+    },
     "Obter chave": {
       "localizations": {
         "en": {
