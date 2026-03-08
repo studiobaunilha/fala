@@ -120,12 +120,12 @@ final class BatchTranscriberPool {
             return
         }
 
-        guard config.batchModel != "none" else {
+        guard config.activeWhisperModel != "none" else {
             return
         }
 
         let transcriber = await resolveWhisperTranscriber(
-            modelName: config.batchModel,
+            modelName: config.activeWhisperModel,
             language: config.transcriptionLanguage,
             temperature: config.batchTemperature
         )

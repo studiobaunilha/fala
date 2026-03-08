@@ -26,7 +26,7 @@ public enum SettingsPanel: String, CaseIterable, Identifiable, Sendable {
     public var localizedName: String {
         switch self {
         case .general: return L10n("Geral")
-        case .models: return L10n("Modelos")
+        case .models: return L10n("Motor de Transcrição")
         case .advanced: return L10n("Avançado")
         case .llm: return L10n("IA & LLM")
         case .license: return L10n("Licença")

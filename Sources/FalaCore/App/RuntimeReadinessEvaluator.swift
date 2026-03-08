@@ -221,17 +221,13 @@ private extension RuntimeReadinessEvaluator {
             return []
         }
 
-        let selectedModel = use == .dictation ? config.dictationModel : config.batchModel
+        let selectedModel = config.activeWhisperModel
         guard selectedModel != "none", modelManager.isDownloaded(selectedModel) else {
-            let scope = use == .dictation
-                ? L10n("Escolha e baixe um modelo Whisper para o ditado.")
-                : L10n("Escolha e baixe um modelo Whisper para transcrever arquivos.")
-
             return [
                 ReadinessIssue(
                     kind: .whisperModelMissing,
                     title: L10n("Modelo Whisper necessário"),
-                    message: scope,
+                    message: L10n("Escolha e baixe um modelo Whisper para continuar."),
                     action: .openSettings(.panel(.models)),
                     actionTitle: L10n("Abrir Ajustes"),
                     blocking: true

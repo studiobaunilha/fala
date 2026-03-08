@@ -82,7 +82,12 @@ public final class AppSettings: ObservableObject {
     ) {
         let catalogService = MLXCatalogService(manager: mlxModelManager)
         let normalization = catalogService.normalize(config: config)
-        let normalizedConfig = normalization.config
+        var normalizedConfig = normalization.config
+        let originalWhisperSelection = (normalizedConfig.dictationModel, normalizedConfig.batchModel)
+        normalizedConfig.normalizeWhisperModelSelection()
+        let didNormalizeWhisperSelection =
+            originalWhisperSelection.0 != normalizedConfig.dictationModel
+            || originalWhisperSelection.1 != normalizedConfig.batchModel
 
         self.config = normalizedConfig
         self.appLanguage = normalizedConfig.appLanguage
@@ -120,7 +125,7 @@ public final class AppSettings: ObservableObject {
         self.permissionProvider = permissionProvider
         self.updater = updater
 
-        if normalization.didChange {
+        if normalization.didChange || didNormalizeWhisperSelection {
             normalizedConfig.save()
         }
     }
@@ -283,6 +288,38 @@ public extension AppSettings {
         if !didRestart {
             objectWillChange.send()
         }
+    }
+
+    var activeWhisperModel: String {
+        get {
+            AppConfig.resolveActiveWhisperModel(
+                dictationModel: dictationModel,
+                batchModel: batchModel
+            )
+        }
+        set {
+            guard dictationModel != newValue || batchModel != newValue else {
+                return
+            }
+            dictationModel = newValue
+            batchModel = newValue
+        }
+    }
+
+    func selectWhisperModelAfterDownload(_ modelID: String) {
+        guard knownModels.contains(where: { $0.id == modelID }) else {
+            return
+        }
+        activeWhisperModel = modelID
+        save()
+    }
+
+    func selectMLXModelAfterDownload(_ repoID: String) {
+        guard mlxCatalogService.resolveSelection(repoID: repoID).status != .unsupported else {
+            return
+        }
+        mlxModel = repoID
+        save(includeLLMWarmup: false)
     }
 
 }

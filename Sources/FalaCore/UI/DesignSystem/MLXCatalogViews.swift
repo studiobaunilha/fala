@@ -2,9 +2,20 @@ import SwiftUI
 
 public struct MLXCatalogSelectionSummaryView: View {
     public let summary: MLXCatalogSelectionSummary
+    public let progress: Double?
+    public let primaryActionTitle: String?
+    public let primaryAction: (() -> Void)?
 
-    public init(summary: MLXCatalogSelectionSummary) {
+    public init(
+        summary: MLXCatalogSelectionSummary,
+        progress: Double? = nil,
+        primaryActionTitle: String? = nil,
+        primaryAction: (() -> Void)? = nil
+    ) {
         self.summary = summary
+        self.progress = progress
+        self.primaryActionTitle = primaryActionTitle
+        self.primaryAction = primaryAction
     }
 
     public var body: some View {
@@ -54,6 +65,12 @@ public struct MLXCatalogSelectionSummaryView: View {
             )
             .font(Typography.caption)
             .foregroundStyle(.secondary)
+
+            if let progress {
+                CatalogProgressStatusView(progress: progress)
+            } else if let primaryActionTitle, let primaryAction {
+                CatalogPrimaryActionButton(title: primaryActionTitle, action: primaryAction)
+            }
         }
         .padding(Spacing.xl)
         .background(FalaColors.surfacePrimary)
@@ -72,9 +89,10 @@ public struct MLXCatalogModelRow: View {
     public let progress: Double?
     public let isIdealForCurrentMac: Bool
     public let diskSize: String?
-    public let actionTitle: String
-    public let actionRole: ButtonRole?
-    public let action: () -> Void
+    public let primaryActionTitle: String
+    public let isPrimaryActionDisabled: Bool
+    public let primaryAction: () -> Void
+    public let removeAction: (() -> Void)?
 
     public init(
         entry: MLXCatalogEntry,
@@ -83,9 +101,10 @@ public struct MLXCatalogModelRow: View {
         progress: Double?,
         isIdealForCurrentMac: Bool,
         diskSize: String?,
-        actionTitle: String,
-        actionRole: ButtonRole? = nil,
-        action: @escaping () -> Void
+        primaryActionTitle: String,
+        isPrimaryActionDisabled: Bool = false,
+        primaryAction: @escaping () -> Void,
+        removeAction: (() -> Void)? = nil
     ) {
         self.entry = entry
         self.isDownloaded = isDownloaded
@@ -93,9 +112,10 @@ public struct MLXCatalogModelRow: View {
         self.progress = progress
         self.isIdealForCurrentMac = isIdealForCurrentMac
         self.diskSize = diskSize
-        self.actionTitle = actionTitle
-        self.actionRole = actionRole
-        self.action = action
+        self.primaryActionTitle = primaryActionTitle
+        self.isPrimaryActionDisabled = isPrimaryActionDisabled
+        self.primaryAction = primaryAction
+        self.removeAction = removeAction
     }
 
     public var body: some View {
@@ -135,18 +155,19 @@ public struct MLXCatalogModelRow: View {
             Spacer(minLength: 0)
 
             if let progress {
-                VStack(alignment: .trailing, spacing: Spacing.xs) {
-                    ProgressView(value: progress)
-                        .frame(width: LayoutMetric.compactProgressWidth)
-                        .controlSize(.small)
-                    Text("\(Int(progress * 100))%")
-                        .font(Typography.caption)
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                }
+                CatalogProgressStatusView(progress: progress)
             } else {
-                Button(actionTitle, role: actionRole, action: action)
-                    .frame(minWidth: LayoutMetric.mlxCatalogActionMinWidth)
+                HStack(spacing: Spacing.sm) {
+                    CatalogPrimaryActionButton(
+                        title: primaryActionTitle,
+                        isDisabled: isPrimaryActionDisabled,
+                        action: primaryAction
+                    )
+
+                    if let removeAction {
+                        CatalogRemoveButton(action: removeAction)
+                    }
+                }
             }
         }
         .padding(.vertical, Spacing.xs)

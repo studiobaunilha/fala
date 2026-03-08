@@ -13,11 +13,15 @@ final class LocalizedUISourceAuditTests: XCTestCase {
             "Sources/FalaCore/UI/StatusBarController.swift",
             "Sources/FalaCore/UI/SettingsView.swift",
             "Sources/FalaCore/UI/SettingsView+Ext.swift",
+            "Sources/FalaCore/UI/SettingsView+TranscriptionModels.swift",
             "Sources/FalaCore/UI/SettingsView+LLM.swift",
             "Sources/FalaCore/UI/SettingsView+LLMProviders.swift",
             "Sources/FalaCore/UI/SettingsView+License.swift",
             "Sources/FalaCore/UI/SettingsView+Modes.swift",
             "Sources/FalaCore/UI/SettingsView+Updates.swift",
+            "Sources/FalaCore/UI/DesignSystem/CatalogActionViews.swift",
+            "Sources/FalaCore/UI/DesignSystem/MLXCatalogViews.swift",
+            "Sources/FalaCore/UI/DesignSystem/WhisperCatalogViews.swift",
             "Sources/FalaCore/UI/SettingsWindowController.swift",
             "Sources/FalaCore/UI/TranscribeWindowController.swift"
         ].map { repoRoot.appendingPathComponent($0) }

@@ -119,7 +119,7 @@ private extension TranscriptionJob {
 
     static func makeWhisperBatchTranscriber(config: AppConfig) -> BatchWhisperTranscriber {
         let transcriber = Transcriber(
-            modelName: config.batchModel,
+            modelName: config.activeWhisperModel,
             language: config.transcriptionLanguage,
             temperature: config.batchTemperature,
             prompt: ""
@@ -211,7 +211,9 @@ extension TranscriptionJob {
 private extension TranscriptionJob {
     func preparationConfig() -> AppConfig {
         var config = appSettings.snapshotConfig()
-        config.batchModel = overrideModel ?? config.batchModel
+        let selectedWhisperModel = overrideModel ?? config.activeWhisperModel
+        config.dictationModel = selectedWhisperModel
+        config.batchModel = selectedWhisperModel
         config.transcriptionLanguage = overrideLanguage ?? config.transcriptionLanguage
         return config
     }
@@ -253,7 +255,7 @@ private extension TranscriptionJob {
 
         try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
 
-        let effectiveModel = overrideModel ?? config.batchModel
+        let effectiveModel = overrideModel ?? config.activeWhisperModel
         let effectiveLanguage = overrideLanguage ?? config.transcriptionLanguage
 
         let transcriber = await batchTranscriberPool.transcriber(

@@ -39,10 +39,8 @@ private extension AppSettings {
         snapshot: AppConfig,
         downloads: [String: Double]
     ) -> ModelDownloadProgress? {
-        let preferredWhisperModels = [
-            snapshot.dictationModel,
-            snapshot.batchModel
-        ].filter { !$0.isEmpty && $0 != "none" }
+        let preferredWhisperModels = [snapshot.activeWhisperModel]
+            .filter { !$0.isEmpty && $0 != "none" }
 
         for shortID in preferredWhisperModels {
             if let fraction = downloads[shortID] {

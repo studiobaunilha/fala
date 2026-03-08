@@ -8,22 +8,107 @@ public struct ModelInfo: Identifiable, Sendable {
     public let variant: String
     public let label: String
     public let estimatedSize: String
+    public let selectionPriority: Int
 }
 
 // Current size labels follow Argmax's public WhisperKit Core ML catalog on Hugging Face.
 // swiftlint:disable trailing_comma
 public let knownModels: [ModelInfo] = [
-    ModelInfo(id: "tiny", variant: "openai_whisper-tiny", label: "Tiny", estimatedSize: "66 MB"),
-    ModelInfo(id: "base", variant: "openai_whisper-base", label: "Base", estimatedSize: "145 MB"),
-    ModelInfo(id: "small", variant: "openai_whisper-small", label: "Small", estimatedSize: "483 MB"),
-    ModelInfo(id: "medium", variant: "openai_whisper-medium", label: "Medium", estimatedSize: "1.53 GB"),
     ModelInfo(
-        id: "large-v3-turbo", variant: "openai_whisper-large-v3_turbo",
-        label: "Large v3 Turbo", estimatedSize: "3.1 GB"
+        id: "tiny",
+        variant: "openai_whisper-tiny",
+        label: "Tiny",
+        estimatedSize: "66 MB",
+        selectionPriority: 10
     ),
-    ModelInfo(id: "large-v3", variant: "openai_whisper-large-v3", label: "Large v3", estimatedSize: "3.1 GB"),
+    ModelInfo(
+        id: "base",
+        variant: "openai_whisper-base",
+        label: "Base",
+        estimatedSize: "145 MB",
+        selectionPriority: 20
+    ),
+    ModelInfo(
+        id: "small",
+        variant: "openai_whisper-small",
+        label: "Small",
+        estimatedSize: "483 MB",
+        selectionPriority: 30
+    ),
+    ModelInfo(
+        id: "medium",
+        variant: "openai_whisper-medium",
+        label: "Medium",
+        estimatedSize: "1.53 GB",
+        selectionPriority: 40
+    ),
+    ModelInfo(
+        id: "large-v3-turbo",
+        variant: "openai_whisper-large-v3_turbo",
+        label: "Large v3 Turbo",
+        estimatedSize: "3.1 GB",
+        selectionPriority: 50
+    ),
+    ModelInfo(
+        id: "large-v3",
+        variant: "openai_whisper-large-v3",
+        label: "Large v3",
+        estimatedSize: "3.1 GB",
+        selectionPriority: 60
+    ),
 ]
 // swiftlint:enable trailing_comma
+
+public extension ModelInfo {
+    var summary: String {
+        switch id {
+        case "tiny":
+            return L10n("O menor download possível. Útil só para testes rápidos e casos leves.")
+        case "base":
+            return L10n("Leve e simples. Melhor que Tiny, mas ainda focado em economia de espaço.")
+        case "small":
+            return L10n("Equilíbrio recomendado entre velocidade, tamanho e qualidade para a maioria dos casos.")
+        case "medium":
+            return L10n("Mais qualidade para áudio difícil, com download maior e mais uso de memória.")
+        case "large-v3-turbo":
+            return L10n("Mais precisão com tempo de resposta melhor que o Large v3 tradicional.")
+        case "large-v3":
+            return L10n("Máxima precisão desta linha, com maior custo de memória e tempo.")
+        default:
+            return label
+        }
+    }
+
+    var audienceLabel: String {
+        switch id {
+        case "small":
+            return L10n("Recomendado")
+        case "large-v3-turbo":
+            return L10n("Mais preciso")
+        case "tiny", "base":
+            return L10n("Mais leve")
+        default:
+            return L10n("Mais controle")
+        }
+    }
+
+    var usageLabel: String {
+        switch id {
+        case "small":
+            return L10n("Maioria dos Macs")
+        case "medium":
+            return L10n("Áudio mais difícil")
+        case "large-v3-turbo", "large-v3":
+            return L10n("Alta precisão")
+        default:
+            return L10n("Download menor")
+        }
+    }
+
+    var isRecommended: Bool {
+        id == "small"
+    }
+}
 
 /// Manages WhisperKit model lifecycle: scan local cache, download, delete.
 @MainActor

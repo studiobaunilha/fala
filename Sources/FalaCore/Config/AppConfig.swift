@@ -9,8 +9,8 @@ public struct AppConfig: Codable, Sendable, Equatable {
     }
 
     public var transcriptionEngine: String = "parakeet" // "whisper" or "parakeet"
-    public var dictationModel: String = "large-v3-turbo"
-    public var batchModel: String     = "large-v3-turbo"
+    public var dictationModel: String = AppConfig.defaultWhisperModelID
+    public var batchModel: String     = AppConfig.defaultWhisperModelID
     public var outputFormat: String   = "txt"
     public var appLanguage: String = "auto"
     public var transcriptionLanguage: String = "auto"
@@ -39,6 +39,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
         localizedDefault(for: .globalSystemPrompt)
     }
 
+    public static let defaultWhisperModelID = "large-v3-turbo"
     public static let defaultMLXModelRepoID = "mlx-community/Qwen3-4B-4bit"
 
     public var globalSystemPrompt: String = AppConfig.defaultGlobalSystemPrompt
@@ -179,13 +180,14 @@ public struct AppConfig: Codable, Sendable, Equatable {
             UserDefaults.standard.synchronize()
         }
     }
+
 }
 
 extension AppConfig {
     private mutating func decodeCoreFields(from container: KeyedDecodingContainer<CodingKeys>) {
         transcriptionEngine = (try? container.decode(String.self, forKey: .transcriptionEngine)) ?? "parakeet"
-        dictationModel = (try? container.decode(String.self, forKey: .dictationModel)) ?? "large-v3-turbo"
-        batchModel = (try? container.decode(String.self, forKey: .batchModel)) ?? "large-v3-turbo"
+        dictationModel = (try? container.decode(String.self, forKey: .dictationModel)) ?? Self.defaultWhisperModelID
+        batchModel = (try? container.decode(String.self, forKey: .batchModel)) ?? Self.defaultWhisperModelID
         outputFormat = (try? container.decode(String.self, forKey: .outputFormat)) ?? "txt"
         dictationTemperature = (try? container.decode(Float.self, forKey: .dictationTemperature)) ?? 0.0
         batchTemperature = (try? container.decode(Float.self, forKey: .batchTemperature)) ?? 0.0

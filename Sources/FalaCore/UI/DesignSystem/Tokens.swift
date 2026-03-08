@@ -88,6 +88,8 @@ public enum LayoutMetric {
     public static let compactPickerIconWidth: CGFloat = 16
     public static let leadingNoticeIconWidth: CGFloat = 28
     public static let mlxCatalogActionMinWidth: CGFloat = 92
+    public static let catalogPrimaryActionMinWidth: CGFloat = 92
+    public static let catalogIconButtonSize: CGFloat = 28
 
     public static let promptEditorMinHeight: CGFloat = 150
     public static let batchPromptMinHeight: CGFloat = 80

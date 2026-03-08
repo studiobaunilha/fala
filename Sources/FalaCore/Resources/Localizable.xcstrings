@@ -6465,6 +6465,598 @@
         }
       }
     },
+    "Whisper": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper"
+          }
+        }
+      }
+    },
+    "Whisper está ativo. O mesmo modelo será usado tanto no ditado quanto na transcrição de arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper is active. The same model will be used for both dictation and file transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper está activo. El mismo modelo se usará tanto para dictado como para transcripción de archivos."
+          }
+        }
+      }
+    },
+    "WhisperKit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhisperKit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhisperKit"
+          }
+        }
+      }
+    },
+    "A seleção atual não está mais disponível. Escolha um modelo Whisper abaixo para continuar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current selection is no longer available. Choose a Whisper model below to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La selección actual ya no está disponible. Elige un modelo Whisper abajo para continuar."
+          }
+        }
+      }
+    },
+    "Alta precisão": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High accuracy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alta precisión"
+          }
+        }
+      }
+    },
+    "Áudio mais difícil": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harder audio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio más difícil"
+          }
+        }
+      }
+    },
+    "Baixe este modelo para usar o Whisper em ditado e transcrição de arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download this model to use Whisper for dictation and file transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga este modelo para usar Whisper en dictado y transcripción de archivos."
+          }
+        }
+      }
+    },
+    "Baixe um modelo, selecione-o e use o mesmo Whisper em toda a aplicação.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download a model, select it, and use the same Whisper across the app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga un modelo, selecciónalo y usa el mismo Whisper en toda la app."
+          }
+        }
+      }
+    },
+    "Download menor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smaller download"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga menor"
+          }
+        }
+      }
+    },
+    "Escolha e baixe um modelo Whisper para continuar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose and download a Whisper model to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige y descarga un modelo Whisper para continuar."
+          }
+        }
+      }
+    },
+    "Escolha o motor de transcrição. Você pode trocar depois, mas o app precisa reiniciar para aplicar a mudança.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the transcription engine. You can switch later, but the app needs to restart to apply the change."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige el motor de transcripción. Puedes cambiarlo después, pero la app necesita reiniciarse para aplicar el cambio."
+          }
+        }
+      }
+    },
+    "Escolha o tamanho do modelo e use recursos como tradução para inglês quando precisar de mais controle.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the model size and use features like English translation when you need more control."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige el tamaño del modelo y usa funciones como la traducción al inglés cuando necesites más control."
+          }
+        }
+      }
+    },
+    "Equilíbrio recomendado entre velocidade, tamanho e qualidade para a maioria dos casos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended balance between speed, size, and quality for most cases."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equilibrio recomendado entre velocidad, tamaño y calidad para la mayoría de los casos."
+          }
+        }
+      }
+    },
+    "Este modo não utiliza IA. O texto é inserido diretamente pelo motor de transcrição selecionado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This mode does not use AI. The text is inserted directly by the selected transcription engine."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este modo no usa IA. El texto se inserta directamente por el motor de transcripción seleccionado."
+          }
+        }
+      }
+    },
+    "Este modelo já está pronto para ditado e transcrição de arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This model is already ready for dictation and file transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este modelo ya está listo para dictado y transcripción de archivos."
+          }
+        }
+      }
+    },
+    "Leve e simples. Melhor que Tiny, mas ainda focado em economia de espaço.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light and simple. Better than Tiny, but still focused on saving space."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligero y simple. Mejor que Tiny, pero todavía enfocado en ahorrar espacio."
+          }
+        }
+      }
+    },
+    "Mais controle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More control"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más control"
+          }
+        }
+      }
+    },
+    "Mais controle e mais modelos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More control and more models"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más control y más modelos"
+          }
+        }
+      }
+    },
+    "Mais leve": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lighter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más liviano"
+          }
+        }
+      }
+    },
+    "Mais preciso": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More accurate"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más preciso"
+          }
+        }
+      }
+    },
+    "Mais precisão com tempo de resposta melhor que o Large v3 tradicional.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More accuracy with better response time than the traditional Large v3."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más precisión con mejor tiempo de respuesta que el Large v3 tradicional."
+          }
+        }
+      }
+    },
+    "Mais qualidade para áudio difícil, com download maior e mais uso de memória.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More quality for difficult audio, with a larger download and more memory usage."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más calidad para audio difícil, con una descarga mayor y más uso de memoria."
+          }
+        }
+      }
+    },
+    "Mais rápido no uso diário. Ideal para quem quer abrir, falar ou selecionar um arquivo e seguir em frente.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faster in daily use. Ideal for people who want to open the app, speak or select a file, and keep moving."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más rápido en el uso diario. Ideal para quien quiere abrir la app, hablar o seleccionar un archivo y seguir adelante."
+          }
+        }
+      }
+    },
+    "Maioria dos Macs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Most Macs"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mayoría de las Macs"
+          }
+        }
+      }
+    },
+    "Menos espera": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Less waiting"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos espera"
+          }
+        }
+      }
+    },
+    "Modelo Whisper Ativo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active Whisper Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Whisper activo"
+          }
+        }
+      }
+    },
+    "Modelo Whisper inválido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Whisper model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Whisper inválido"
+          }
+        }
+      }
+    },
+    "Modelo ativo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo activo"
+          }
+        }
+      }
+    },
+    "Muito rápido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Very fast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muy rápido"
+          }
+        }
+      }
+    },
+    "Máxima precisão desta linha, com maior custo de memória e tempo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum accuracy in this line, with higher memory and time cost."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máxima precisión de esta línea, con mayor costo de memoria y tiempo."
+          }
+        }
+      }
+    },
+    "O Fala agora usa um único modelo Whisper ativo para ditado e transcrição de arquivos.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fala now uses a single active Whisper model for dictation and file transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fala ahora usa un único modelo Whisper activo para dictado y transcripción de archivos."
+          }
+        }
+      }
+    },
+    "O menor download possível. Útil só para testes rápidos e casos leves.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The smallest possible download. Useful only for quick tests and lightweight cases."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La descarga más pequeña posible. Útil solo para pruebas rápidas y casos livianos."
+          }
+        }
+      }
+    },
+    "Parakeet está ativo. Ele é o caminho mais direto para uma experiência rápida no lançamento do app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet is active. It is the most direct path to a fast experience in the app's launch version."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet está activo. Es el camino más directo a una experiencia rápida en la versión de lanzamiento de la app."
+          }
+        }
+      }
+    },
+    "Recomendado para a maioria": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended for most people"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recomendado para la mayoría"
+          }
+        }
+      }
+    },
+    "Tradução": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traducción"
+          }
+        }
+      }
+    },
+    "Usar Parakeet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Parakeet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Parakeet"
+          }
+        }
+      }
+    },
+    "Usar Whisper": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Whisper"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Whisper"
+          }
+        }
+      }
+    },
     "Última tentativa automática": {
       "localizations": {
         "en": {

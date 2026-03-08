@@ -94,7 +94,13 @@ private extension MLXCatalogSectionsView {
     var mlxConfigSection: some View {
         Section(L10n("MLX Local")) {
             if let summary = catalogService.selectionSummary(for: settings.mlxModel) {
-                MLXCatalogSelectionSummaryView(summary: summary)
+                let selectedEntry = summary.entry
+                MLXCatalogSelectionSummaryView(
+                    summary: summary,
+                    progress: mlxSelectionProgress(for: selectedEntry),
+                    primaryActionTitle: mlxSummaryActionTitle(for: selectedEntry),
+                    primaryAction: mlxSummaryAction(for: selectedEntry)
+                )
             } else {
                 NoticeCard(
                     title: L10n("Modelo MLX incompatível"),
@@ -155,33 +161,52 @@ private extension MLXCatalogSectionsView {
             progress: progress,
             isIdealForCurrentMac: catalogService.isIdealForCurrentMac(entry),
             diskSize: catalogService.diskSize(repoID: entry.repoID),
-            actionTitle: mlxRowActionTitle(
+            primaryActionTitle: mlxRowPrimaryActionTitle(
                 isDownloaded: isDownloaded,
                 isSelected: isSelected
             ),
-            actionRole: isDownloaded && isSelected ? .destructive : nil
-        ) {
-            if isDownloaded && isSelected {
-                removeMLXModel(entry)
-            } else if isDownloaded {
-                settings.mlxModel = entry.repoID
-            } else {
-                modelManager.download(repoID: entry.repoID, shortID: entry.id)
-            }
+            isPrimaryActionDisabled: isDownloaded && isSelected,
+            primaryAction: {
+                performMLXPrimaryAction(entry, isDownloaded: isDownloaded)
+            },
+            removeAction: isDownloaded ? { removeMLXModel(entry) } : nil
+        )
+    }
+
+    func mlxSelectionProgress(for entry: MLXCatalogEntry) -> Double? {
+        modelManager.downloads[entry.id] ?? modelManager.downloads[entry.repoID]
+    }
+
+    func mlxSummaryActionTitle(for entry: MLXCatalogEntry) -> String? {
+        catalogService.isDownloaded(repoID: entry.repoID) ? nil : L10n("Baixar")
+    }
+
+    func mlxSummaryAction(for entry: MLXCatalogEntry) -> (() -> Void)? {
+        guard !catalogService.isDownloaded(repoID: entry.repoID) else { return nil }
+        return {
+            modelManager.download(repoID: entry.repoID, shortID: entry.id)
         }
     }
 
-    func mlxRowActionTitle(
+    func mlxRowPrimaryActionTitle(
         isDownloaded: Bool,
         isSelected: Bool
     ) -> String {
         if isDownloaded && isSelected {
-            return L10n("Remover")
+            return L10n("Ativo")
         }
         if isDownloaded {
             return L10n("Selecionar")
         }
         return L10n("Baixar")
+    }
+
+    func performMLXPrimaryAction(_ entry: MLXCatalogEntry, isDownloaded: Bool) {
+        if isDownloaded {
+            settings.mlxModel = entry.repoID
+        } else {
+            modelManager.download(repoID: entry.repoID, shortID: entry.id)
+        }
     }
 
     func removeMLXModel(_ entry: MLXCatalogEntry) {

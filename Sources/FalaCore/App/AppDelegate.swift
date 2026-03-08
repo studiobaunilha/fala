@@ -34,7 +34,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let config = AppConfig.load()
         AppLocalization.apply(languageCode: config.appLanguage)
         let whisperTranscriber = Transcriber(
-            modelName: config.dictationModel,
+            modelName: config.activeWhisperModel,
             language: config.transcriptionLanguage,
             temperature: config.dictationTemperature,
             prompt: ""
@@ -135,8 +135,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     public func showSettingsWindow() {
         settingsController?.show()
     }
+}
 
-    private func observeLanguageChanges() {
+private extension AppDelegate {
+    func observeLanguageChanges() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleLanguageChanged),
@@ -145,11 +147,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    private func observeRuntimeEvents(settings: AppSettings) {
+    func observeRuntimeEvents(settings: AppSettings) {
         NotificationCenter.default.publisher(for: .whisperModelDownloadCompleted)
             .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.handleWhisperModelDownloadCompleted()
+            .sink { [weak self] notification in
+                self?.handleWhisperModelDownloadCompleted(notification)
             }
             .store(in: &cancellables)
         NotificationCenter.default.publisher(for: .mlxDownloadCompleted)
@@ -168,24 +170,34 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         settings.readiness.refresh()
     }
 
-    private func handleWhisperModelDownloadCompleted() {
-        appSettings?.warmupCoordinator.scheduleSelectedWarmup()
-        appSettings?.readiness.refresh()
-        onboardingController?.reloadContent()
-    }
+    func handleWhisperModelDownloadCompleted(_ notification: Notification) {
+        guard let settings = appSettings else { return }
 
-    private func handleMLXModelDownloadCompleted(_ notification: Notification) {
-        if let repoID = notification.userInfo?["repoID"] as? String {
-            appSettings?.mlxDownloadWarmupGate.recordCompletion(repoID: repoID)
+        if let modelID = notification.userInfo?["modelId"] as? String {
+            settings.selectWhisperModelAfterDownload(modelID)
+        } else {
+            settings.warmupCoordinator.scheduleSelectedWarmup()
+            settings.readiness.refresh()
         }
-        // Avoid loading large MLX weights into memory immediately when a download finishes.
-        // A follow-up warmup can happen on later app activity or explicit use.
-        appSettings?.warmupCoordinator.scheduleSelectedWarmup(includeLLM: false)
-        appSettings?.readiness.refresh()
         onboardingController?.reloadContent()
     }
 
-    private func handleAppDidBecomeActive() {
+    func handleMLXModelDownloadCompleted(_ notification: Notification) {
+        guard let settings = appSettings else { return }
+
+        if let repoID = notification.userInfo?["repoID"] as? String {
+            settings.mlxDownloadWarmupGate.recordCompletion(repoID: repoID)
+            settings.selectMLXModelAfterDownload(repoID)
+        } else {
+            // Avoid loading large MLX weights into memory immediately when a download finishes.
+            // A follow-up warmup can happen on later app activity or explicit use.
+            settings.warmupCoordinator.scheduleSelectedWarmup(includeLLM: false)
+            settings.readiness.refresh()
+        }
+        onboardingController?.reloadContent()
+    }
+
+    func handleAppDidBecomeActive() {
         statusBar?.reloadLocalizedContent()
         settingsController?.reloadLocalizedContent()
         transcribeController?.reloadLocalizedContent()
@@ -195,7 +207,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         appSettings?.readiness.refresh()
     }
 
-    private func syncDownloadUI(for bar: StatusBarController, settings: AppSettings) {
+    func syncDownloadUI(for bar: StatusBarController, settings: AppSettings) {
         Publishers.CombineLatest(
             settings.modelManager.$downloads,
             settings.mlxModelManager.$downloads
@@ -219,20 +231,18 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         .store(in: &cancellables)
     }
 
-    @objc private func handleLanguageChanged() {
+    @objc func handleLanguageChanged() {
         reloadLocalizedUI()
     }
 
-    private func reloadLocalizedUI() {
+    func reloadLocalizedUI() {
         AppMainMenu.install(appDelegate: self)
         statusBar?.reloadLocalizedContent()
         settingsController?.reloadLocalizedContent()
         transcribeController?.reloadLocalizedContent()
         onboardingController?.reloadContent()
     }
-}
 
-private extension AppDelegate {
     static func prewarmDictationTranscriber(
         config: AppConfig,
         whisperTranscriber: Transcriber,
@@ -244,7 +254,7 @@ private extension AppDelegate {
                 return
             }
 
-            await whisperTranscriber.setModel(config.dictationModel)
+            await whisperTranscriber.setModel(config.activeWhisperModel)
             await whisperTranscriber.setConfig(
                 language: config.transcriptionLanguage,
                 temperature: config.dictationTemperature,

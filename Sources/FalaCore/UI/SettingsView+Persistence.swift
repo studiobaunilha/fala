@@ -6,7 +6,7 @@ enum SettingsFocusedField: Hashable {
 
 extension AppSettings {
     /// Persists current values and updates the Transcriber without requiring a restart.
-    public func save() {
+    public func save(includeLLMWarmup: Bool = true) {
         let previousLanguage = config.appLanguage
         if previousLanguage != appLanguage {
             relocalizeUntouchedDefaults(targetLanguage: appLanguage)
@@ -17,7 +17,7 @@ extension AppSettings {
         AppLocalization.apply(languageCode: appLanguage)
         config.save()
 
-        Task { await transcriber.setModel(dictationModel) }
+        Task { await transcriber.setModel(activeWhisperModel) }
         Task {
             await transcriber.setConfig(
                 language: transcriptionLanguage,
@@ -25,7 +25,7 @@ extension AppSettings {
                 prompt: ""
             )
         }
-        warmupCoordinator.scheduleSelectedWarmup()
+        warmupCoordinator.scheduleSelectedWarmup(includeLLM: includeLLMWarmup)
         readiness.refresh()
     }
 

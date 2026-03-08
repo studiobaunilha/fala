@@ -47,103 +47,6 @@ extension SettingsView {
         .navigationTitle(L10n("Ajustes Gerais"))
     }
     
-    var modelsView: some View {
-        Form {
-            Section {
-                Picker(
-                    L10n("Motor de Transcrição"),
-                    selection: Binding(
-                        get: { settings.transcriptionEngine },
-                        set: { settings.requestTranscriptionEngineChange($0) }
-                    )
-                ) {
-                    Text(L10n("Whisper (WhisperKit)")).tag("whisper")
-                    Text(L10n("Parakeet V3 (FluidAudio)")).tag("parakeet")
-                }
-            } header: {
-                Text(L10n("Motor de Transcrição"))
-            } footer: {
-                if settings.transcriptionEngine == "parakeet" {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Parakeet V3 usa CoreML/ANE para transcrição ultra-rápida. Suporta 25 idiomas europeus. Ao trocar de motor o app pede confirmação e reinicia imediatamente."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Whisper usa modelos OpenAI via WhisperKit. Ao trocar de motor o app pede confirmação e reinicia imediatamente."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Section {
-                if settings.supportsExplicitEngineLanguageSelection {
-                    Picker(L10n("Idioma do Áudio"), selection: $settings.transcriptionLanguage) {
-                        ForEach(settings.availableLanguagesForEngine) { lang in
-                            Text(lang.name).tag(lang.id)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } else {
-                    LabeledContent(L10n("Idioma do Áudio")) {
-                        Text(L10n("Detecção automática"))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            } header: {
-                Text(L10n("Idioma do Motor"))
-            } footer: {
-                if settings.supportsExplicitEngineLanguageSelection {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("O Whisper pode detectar automaticamente o idioma do áudio ou usar um idioma fixo para melhorar a transcrição e a tradução."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Na integração atual do Fala, o Parakeet opera em modo multilíngue com detecção automática. O SDK usado pelo app não expõe um parâmetro público de idioma para este motor."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if settings.transcriptionEngine == "whisper" {
-                if let issue = settings.readiness.issuesForBatch(batchPrompt: "").first(where: {
-                    $0.kind == .whisperModelMissing
-                }) {
-                    Section {
-                        readinessIssueCard(issue)
-                    }
-                }
-
-                Section {
-                    downloadedModelPicker(L10n("Modelo de Ditado"), selection: $settings.dictationModel)
-                    downloadedModelPicker(L10n("Modelo Batch / Arquivo"), selection: $settings.batchModel)
-                } header: {
-                    Text(L10n("Modelos Whisper Ativos"))
-                } footer: {
-                    Text(L10n("Recomenda-se um modelo menor e rápido para ditado, e um maior para arquivos."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if settings.transcriptionEngine == "whisper" {
-                Section(L10n("Modelos Whisper (Offline)")) {
-                    ForEach(knownModels) { model in
-                        ModelRow(
-                            model: model,
-                            manager: modelManager,
-                            isDictation: settings.dictationModel == model.id,
-                            isBatch: settings.batchModel == model.id
-                        )
-                    }
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .navigationTitle(L10n("Gerenciador de Modelos"))
-    }
-    
     var advancedView: some View {
         Form {
             if settings.transcriptionEngine == "whisper" {
@@ -285,24 +188,6 @@ extension SettingsView {
         }
         newIncorrect = ""
         newCorrect = ""
-    }
-
-    @ViewBuilder
-    func downloadedModelPicker(
-        _ label: String,
-        selection: Binding<String>
-    ) -> some View {
-        let downloaded = knownModels.filter { modelManager.isDownloaded($0.id) }
-        Picker(label, selection: selection) {
-            Text(L10n("Nenhum")).tag("none")
-            if !downloaded.isEmpty {
-                Divider()
-            }
-            ForEach(downloaded) { model in
-                Text("\(model.label)  \(model.estimatedSize)").tag(model.id)
-            }
-        }
-        .pickerStyle(.menu)
     }
 
     @ViewBuilder

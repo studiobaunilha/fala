@@ -69,7 +69,7 @@ public final class WarmupCoordinator: ObservableObject {
             guard let self else { return }
             let label = config.transcriptionEngine == "parakeet"
                 ? L10n("Parakeet V3")
-                : config.dictationModel
+                : config.activeWhisperModel
 
             await MainActor.run {
                 self.transcriptionStatus = .warming(label)
@@ -79,13 +79,13 @@ public final class WarmupCoordinator: ObservableObject {
                 if config.transcriptionEngine == "parakeet" {
                     try await self.parakeetTranscriber.loadIfNeeded()
                 } else {
-                    guard self.whisperModelIsAvailable(config.dictationModel) else {
+                    guard self.whisperModelIsAvailable(config.activeWhisperModel) else {
                         await MainActor.run {
                             self.transcriptionStatus = .idle
                         }
                         return
                     }
-                    await self.whisperTranscriber.setModel(config.dictationModel)
+                    await self.whisperTranscriber.setModel(config.activeWhisperModel)
                     try await self.whisperTranscriber.loadIfNeeded()
                 }
 

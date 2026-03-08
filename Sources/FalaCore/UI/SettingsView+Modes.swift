@@ -244,7 +244,10 @@ struct ModeDetailView: View {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(L10n("Sem pós-processamento"))
                         .font(.body)
-                    Text(L10n("Este modo não utiliza IA. O texto é inserido diretamente do Whisper."))
+                    Text(
+                        // swiftlint:disable:next line_length
+                        L10n("Este modo não utiliza IA. O texto é inserido diretamente pelo motor de transcrição selecionado.")
+                    )
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

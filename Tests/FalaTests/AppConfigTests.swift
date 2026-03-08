@@ -9,6 +9,7 @@ final class AppConfigTests: XCTestCase {
         let config = AppConfig()
         XCTAssertEqual(config.dictationModel, "large-v3-turbo")
         XCTAssertEqual(config.batchModel, "large-v3-turbo")
+        XCTAssertEqual(config.activeWhisperModel, "large-v3-turbo")
         XCTAssertEqual(config.outputFormat, "txt")
         XCTAssertEqual(config.appLanguage, "auto")
         XCTAssertEqual(config.transcriptionLanguage, "auto")
@@ -31,6 +32,7 @@ final class AppConfigTests: XCTestCase {
         let config = try JSONDecoder().decode(AppConfig.self, from: legacy)
         XCTAssertEqual(config.dictationModel, "base", "dictationModel must survive")
         XCTAssertEqual(config.batchModel, "large-v3-turbo", "batchModel must survive")
+        XCTAssertEqual(config.activeWhisperModel, "base")
         XCTAssertEqual(config.outputFormat, "txt", "outputFormat must survive")
         XCTAssertEqual(config.appLanguage, "auto", "missing appLanguage must default to auto")
         XCTAssertEqual(
@@ -128,7 +130,19 @@ final class AppConfigTests: XCTestCase {
         let decoded = try JSONDecoder().decode(AppConfig.self, from: data)
         XCTAssertEqual(decoded.dictationModel, "large-v3")
         XCTAssertEqual(decoded.batchModel, "turbo")
+        XCTAssertEqual(decoded.activeWhisperModel, "large-v3")
         XCTAssertEqual(decoded.outputFormat, "md")
+    }
+
+    func testNormalizeWhisperModelSelectionPrefersCustomBatchSelection() {
+        var config = AppConfig()
+        config.dictationModel = "base"
+        config.batchModel = "medium"
+
+        config.normalizeWhisperModelSelection()
+
+        XCTAssertEqual(config.dictationModel, "medium")
+        XCTAssertEqual(config.batchModel, "medium")
     }
 
     // MARK: – Missing file returns defaults

@@ -8,8 +8,9 @@ extension TranscribeView {
     }
     
     private var defaultModelLabel: String {
-        let modelName = knownModels.first { $0.id == job.appSettings.batchModel }?.label
-            ?? job.appSettings.batchModel
+        let activeWhisperModel = job.appSettings.activeWhisperModel
+        let modelName = knownModels.first { $0.id == activeWhisperModel }?.label
+            ?? activeWhisperModel
         return "\(L10n("Usar padrão dos Ajustes")) (\(modelName))"
     }
     

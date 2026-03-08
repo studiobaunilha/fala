@@ -87,7 +87,7 @@ public enum BatchMode {
     private static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
         var opts = BatchOptions(
             format: config.outputFormat,
-            model: config.batchModel,
+            model: config.activeWhisperModel,
             template: config.selectedDictationTemplate
         )
         var idx = 1

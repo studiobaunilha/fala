@@ -108,4 +108,10 @@ final class ModelManagerTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(sizes["large-v3-turbo"], "3.1 GB")
         XCTAssertEqual(sizes["large-v3"], "3.1 GB")
     }
+
+    func testKnownModelsExposeSingleRecommendedChoice() {
+        let recommended = knownModels.filter(\.isRecommended)
+
+        XCTAssertEqual(recommended.map(\.id), ["small"])
+    }
 }

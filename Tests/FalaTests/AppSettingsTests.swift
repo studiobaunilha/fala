@@ -23,11 +23,11 @@ final class AppSettingsTests: XCTestCase {
     func testInitFromConfig() {
         var config = AppConfig()
         config.appLanguage = "en"
-        config.dictationModel = "test-dictation"
-        config.batchModel = "test-batch"
+        config.dictationModel = "small"
+        config.batchModel = "medium"
         config.transcriptionLanguage = "es"
 
-        let transcriber = Transcriber(modelName: "test-dictation")
+        let transcriber = Transcriber(modelName: config.activeWhisperModel)
         let modelManager = ModelManager()
 
         let settings = AppSettings(
@@ -37,16 +37,18 @@ final class AppSettingsTests: XCTestCase {
         )
 
         XCTAssertEqual(settings.appLanguage, "en")
-        XCTAssertEqual(settings.dictationModel, "test-dictation")
-        XCTAssertEqual(settings.batchModel, "test-batch")
+        XCTAssertEqual(settings.activeWhisperModel, "medium")
+        XCTAssertEqual(settings.dictationModel, "medium")
+        XCTAssertEqual(settings.batchModel, "medium")
         XCTAssertEqual(settings.transcriptionLanguage, "es")
     }
 
     @MainActor
-    func testSaveUpdatesTranscriber() {
+    func testActiveWhisperModelUpdatesBothSelections() {
         var config = AppConfig()
-        config.dictationModel = "test-dictation"
-        let transcriber = Transcriber(modelName: "test-dictation")
+        config.dictationModel = "small"
+        config.batchModel = "small"
+        let transcriber = Transcriber(modelName: "small")
         let modelManager = ModelManager()
 
         let settings = AppSettings(
@@ -55,23 +57,22 @@ final class AppSettingsTests: XCTestCase {
             modelManager: modelManager
         )
 
-        settings.dictationModel = "new-dictation"
-        // Avoid calling save() here which hits the global path AppConfig.configURL
-        // To properly test save, we would need to mock the persistence layer or inject URL
-        // but checking the property update is sufficient for view model logic.
-        
-        XCTAssertEqual(settings.dictationModel, "new-dictation")
+        settings.activeWhisperModel = "medium"
+
+        XCTAssertEqual(settings.activeWhisperModel, "medium")
+        XCTAssertEqual(settings.dictationModel, "medium")
+        XCTAssertEqual(settings.batchModel, "medium")
     }
 
     @MainActor
     func testActiveModelDownloadPrefersSelectedWhisperModel() {
         var config = AppConfig()
         config.dictationModel = "small"
-        config.batchModel = "medium"
+        config.batchModel = "small"
 
         let settings = AppSettings(
             config: config,
-            transcriber: Transcriber(modelName: config.dictationModel),
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
             modelManager: ModelManager()
         )
 
@@ -95,7 +96,7 @@ final class AppSettingsTests: XCTestCase {
 
         let settings = AppSettings(
             config: config,
-            transcriber: Transcriber(modelName: config.dictationModel),
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
             modelManager: ModelManager()
         )
 
@@ -116,7 +117,7 @@ final class AppSettingsTests: XCTestCase {
 
         let settings = AppSettings(
             config: config,
-            transcriber: Transcriber(modelName: config.dictationModel),
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
             modelManager: ModelManager()
         )
 
@@ -124,6 +125,45 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertEqual(settings.mlxCatalogMigrationNotice?.title, "Catálogo MLX atualizado")
         XCTAssertTrue(
             settings.mlxCatalogMigrationNotice?.message.contains("Qwen 3 4B") == true
+        )
+    }
+
+    @MainActor
+    func testSelectWhisperModelAfterDownloadUpdatesActiveSelection() {
+        var config = AppConfig()
+        config.dictationModel = "small"
+        config.batchModel = "small"
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        settings.selectWhisperModelAfterDownload("medium")
+
+        XCTAssertEqual(settings.activeWhisperModel, "medium")
+        XCTAssertEqual(settings.dictationModel, "medium")
+        XCTAssertEqual(settings.batchModel, "medium")
+        XCTAssertEqual(settings.snapshotConfig().activeWhisperModel, "medium")
+    }
+
+    @MainActor
+    func testSelectMLXModelAfterDownloadUpdatesSelectedRepo() {
+        let config = AppConfig()
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        settings.selectMLXModelAfterDownload("mlx-community/gemma-3-text-4b-it-4bit")
+
+        XCTAssertEqual(settings.mlxModel, "mlx-community/gemma-3-text-4b-it-4bit")
+        XCTAssertEqual(
+            settings.snapshotConfig().mlxModel,
+            "mlx-community/gemma-3-text-4b-it-4bit"
         )
     }
 }
