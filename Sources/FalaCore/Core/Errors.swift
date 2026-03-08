@@ -69,16 +69,12 @@ public enum LLMError: Error, LocalizedError {
 public enum BatchError: Error, LocalizedError {
     case noInputFile
     case unsupportedFormat(String)
-    case ffmpegNotFound
-    case ffmpegFailed(Int32)
     case outputWriteFailed
 
     public var errorDescription: String? {
         switch self {
         case .noInputFile: L10n("No input file specified")
         case .unsupportedFormat(let ext): String(format: L10n("Unsupported format: %@"), ext)
-        case .ffmpegNotFound: L10n("ffmpeg not found. Install with: brew install ffmpeg")
-        case .ffmpegFailed(let code): String(format: L10n("ffmpeg exited with code %d"), code)
         case .outputWriteFailed: L10n("Failed to write output file")
         }
     }

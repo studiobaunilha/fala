@@ -28,17 +28,17 @@ extension TranscribeView {
                 .foregroundColor(.accentColor)
                 .padding(.bottom, Spacing.sm)
             
-            Text(L10n("Arraste e solte um arquivo de áudio aqui"))
+            Text(L10n("Arraste e solte arquivos de áudio aqui"))
                 .font(.title2)
                 .fontWeight(.medium)
             
-            Text(L10n("Ou selecione um arquivo para iniciar a transcrição de alta precisão."))
+            Text(L10n("Ou selecione um ou mais arquivos para iniciar a transcrição em lote."))
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: LayoutMetric.transcribeEmptyStateTextMaxWidth)
             
-            Button(L10n("Selecionar Arquivo…")) {
+            Button(L10n("Selecionar Arquivos…")) {
                 job.selectFile()
             }
             .controlSize(.large)
@@ -51,54 +51,15 @@ extension TranscribeView {
     
     var formView: some View {
         Form {
-            Section(L10n("Arquivo")) {
-                HStack(spacing: Spacing.md) {
-                    Image(systemName: "doc.audio.fill")
-                        .font(.system(size: LayoutMetric.transcribeDocumentGlyphSize))
-                        .foregroundColor(.accentColor)
-                        .frame(
-                            width: LayoutMetric.transcribeDocumentIconSize,
-                            height: LayoutMetric.transcribeDocumentIconSize
-                        )
-                        .background(Color.accentColor.opacity(0.1))
-                        .cornerRadius(CornerRadius.md)
-                    
-                    VStack(alignment: .leading, spacing: Spacing.xxs) {
-                        Text(job.inputURL?.lastPathComponent ?? "")
-                            .font(.headline)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        
-                        Text(L10n("Pronto para transcrever"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(L10n("Trocar...")) { job.selectFile() }
-                        .disabled(isWorking)
-                }
-                .padding(.vertical, Spacing.xs)
-            }
+            batchQueueSection
 
             Section {
-                EditorSurface(minHeight: LayoutMetric.batchPromptMinHeight) {
-                    TextEditor(text: $job.batchPostPrompt)
-                        .font(.body.monospaced())
-                        .scrollContentBackground(.hidden)
-                        .disabled(isWorking)
-                        .overlay(alignment: .topLeading) {
-                            if job.batchPostPrompt.isEmpty {
-                                Text(L10n("Ex: Corrija pontuação e gramática..."))
-                                    .foregroundStyle(.tertiary)
-                                    .font(.body.monospaced())
-                                    .padding(.horizontal, Spacing.sm)
-                                    .padding(.vertical, Spacing.md)
-                                    .allowsHitTesting(false)
-                            }
-                        }
-                }
+                PromptEditorPanel(
+                    text: $job.batchPostPrompt,
+                    placeholder: L10n("Ex: Corrija pontuação e gramática..."),
+                    minHeight: LayoutMetric.batchPromptMinHeight,
+                    isDisabled: isWorking
+                )
             } header: {
                 Text(L10n("Pós-processamento com IA (opcional)"))
             } footer: {
@@ -203,7 +164,7 @@ extension TranscribeView {
                 }
             } else if licenseManager.isActivated {
                 VStack(spacing: Spacing.md) {
-                    Button(L10n("Iniciar Transcrição")) {
+                    Button(primaryActionTitle) {
                         job.transcribe()
                     }
                     .buttonStyle(.borderedProminent)
@@ -237,79 +198,57 @@ extension TranscribeView {
             }
 
         case .converting:
-            HStack {
-                StatusBanner(message: L10n("Preparando arquivo de áudio…"))
-                Spacer()
-                Button(role: .cancel, action: { job.cancel() }, label: {
-                    Image(systemName: "stop.circle.fill")
-                        .foregroundColor(FalaColors.error)
-                })
-                .buttonStyle(.plain)
-                .controlSize(.large)
-            }
+            activeStatusView(message: L10n("Preparando arquivo de áudio…"))
 
         case .transcribing(let progressText):
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: Spacing.md) {
-                    StatusBanner(message: L10n("Transcrevendo…"))
-                    if !progressText.isEmpty {
-                        ScrollView {
-                            Text(progressText)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, Spacing.sm)
-                        }
-                        .frame(maxHeight: LayoutMetric.progressLogMaxHeight)
-                    }
-                }
-                Spacer()
-                Button(role: .cancel, action: { job.cancel() }, label: {
-                    Image(systemName: "stop.circle.fill")
-                        .foregroundColor(FalaColors.error)
-                })
-                .buttonStyle(.plain)
-                .controlSize(.large)
-            }
+            activeStatusView(
+                message: L10n("Transcrevendo…"),
+                progressText: progressText
+            )
             
         case .processingLLM:
-            HStack {
-                StatusBanner(message: L10n("Aprimorando com IA (LLM)…"))
-                Spacer()
-                Button(role: .cancel, action: { job.cancel() }, label: {
-                    Image(systemName: "stop.circle.fill")
-                        .foregroundColor(FalaColors.error)
-                })
-                .buttonStyle(.plain)
-                .controlSize(.large)
-            }
+            activeStatusView(message: L10n("Aprimorando com IA (LLM)…"))
 
         case .done(let path):
-            VStack(alignment: .leading, spacing: Spacing.md) {
-                if let warning = job.processingWarning {
-                    NoticeCard(
-                        title: warning.title,
-                        message: warning.message,
-                        tone: .warning
-                    )
-                }
+            if job.hasMultipleQueuedFiles {
+                queueSummaryView(
+                    title: job.failedQueueCount > 0 || job.cancelledQueueCount > 0
+                        ? L10n("Fila concluída com pendências")
+                        : L10n("Fila concluída"),
+                    systemImage: job.failedQueueCount > 0 || job.cancelledQueueCount > 0
+                        ? "exclamationmark.triangle.fill"
+                        : "checkmark.circle.fill",
+                    tint: job.failedQueueCount > 0 || job.cancelledQueueCount > 0
+                        ? FalaColors.warning
+                        : FalaColors.success
+                )
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    if let warning = job.processingWarning {
+                        NoticeCard(
+                            title: warning.title,
+                            message: warning.message,
+                            tone: .warning
+                        )
+                    }
 
-                Label(L10n("Transcrição Concluída"), systemImage: "checkmark.circle.fill")
-                    .font(.headline)
-                    .foregroundStyle(FalaColors.success)
-                Text(path)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
-                HStack {
-                    Button(L10n("Mostrar no Finder")) { job.revealInFinder() }
-                    Button(L10n("Nova Transcrição")) {
-                        withAnimation(AnimationConfig.standard) {
-                            job.reset()
+                    Label(L10n("Transcrição Concluída"), systemImage: "checkmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(FalaColors.success)
+                    Text(path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                    HStack {
+                        Button(L10n("Mostrar no Finder")) { job.revealInFinder() }
+                        Button(L10n("Nova Transcrição")) {
+                            withAnimation(AnimationConfig.standard) {
+                                job.reset()
+                            }
                         }
                     }
+                    .padding(.top, Spacing.xs)
                 }
-                .padding(.top, Spacing.xs)
             }
 
         case .error(let message):
@@ -319,25 +258,37 @@ extension TranscribeView {
     
     @ViewBuilder
     private func errorView(message: String) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            let isCanceled = message == L10n("Cancelado pelo usuário")
-            Label(isCanceled ? L10n("Transcrição Cancelada") : L10n("Falha na Transcrição"),
-                  systemImage: isCanceled ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundStyle(isCanceled ? Color.secondary : FalaColors.error)
-            
-            if !isCanceled {
-                Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Button(L10n("Tentar Novamente")) {
-                withAnimation(AnimationConfig.standard) {
-                    job.state = .idle
+        Group {
+            if job.hasMultipleQueuedFiles {
+                let isCanceled = message == L10n("Cancelado pelo usuário")
+                queueSummaryView(
+                    title: isCanceled ? L10n("Fila interrompida") : L10n("Fila concluída com pendências"),
+                    systemImage: isCanceled ? "xmark.circle.fill" : "exclamationmark.triangle.fill",
+                    tint: isCanceled ? .secondary : FalaColors.warning,
+                    detail: isCanceled ? nil : message
+                )
+            } else {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    let isCanceled = message == L10n("Cancelado pelo usuário")
+                    Label(isCanceled ? L10n("Transcrição Cancelada") : L10n("Falha na Transcrição"),
+                          systemImage: isCanceled ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .font(.headline)
+                        .foregroundStyle(isCanceled ? Color.secondary : FalaColors.error)
+                    
+                    if !isCanceled {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Button(L10n("Tentar Novamente")) {
+                        withAnimation(AnimationConfig.standard) {
+                            job.state = .idle
+                        }
+                    }
+                    .padding(.top, Spacing.xs)
                 }
             }
-            .padding(.top, Spacing.xs)
         }
     }
 

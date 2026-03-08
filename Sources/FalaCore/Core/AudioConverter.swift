@@ -53,4 +53,36 @@ public enum AudioConverter {
 
         return Array(UnsafeBufferPointer(start: channelData, count: Int(outputBuffer.frameLength)))
     }
+
+    public static func write16kMonoWAV(from inputURL: URL, to outputURL: URL) throws {
+        let samples = try toFloat16k(from: inputURL)
+
+        guard let outputFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: 16_000,
+            channels: 1,
+            interleaved: false
+        ) else {
+            throw AudioError.invalidFormat
+        }
+
+        let frameCount = AVAudioFrameCount(samples.count)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: frameCount),
+              let channelData = buffer.floatChannelData?[0]
+        else {
+            throw AudioError.bufferAllocationFailed
+        }
+
+        buffer.frameLength = frameCount
+        if !samples.isEmpty {
+            samples.withUnsafeBufferPointer { pointer in
+                if let sourceBaseAddress = pointer.baseAddress {
+                    channelData.update(from: sourceBaseAddress, count: samples.count)
+                }
+            }
+        }
+
+        let file = try AVAudioFile(forWriting: outputURL, settings: outputFormat.settings)
+        try file.write(from: buffer)
+    }
 }

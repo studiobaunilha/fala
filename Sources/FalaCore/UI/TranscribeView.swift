@@ -15,7 +15,7 @@ struct TranscribeView: View {
 
     var body: some View {
         Group {
-            if job.inputURL == nil {
+            if job.queue.isEmpty {
                 emptyStateView
             } else {
                 formView
@@ -44,13 +44,8 @@ struct TranscribeView: View {
     }
     
     private func handleDrop(_ items: [URL]) -> Bool {
-        guard let url = items.first else { return false }
-        let ext = url.pathExtension.lowercased()
-        if BatchMode.supportedExtensions.contains(ext) {
-            job.inputURL = url
-            job.state = .idle
-            return true
-        }
-        return false
+        let initialCount = job.queue.count
+        job.enqueueInputFiles(items)
+        return job.queue.count > initialCount
     }
 }

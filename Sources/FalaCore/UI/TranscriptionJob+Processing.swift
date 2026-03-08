@@ -55,14 +55,9 @@ struct ProcessingContext {
 
 extension TranscriptionJob {
 
-    func prepareAudio(from inputURL: URL, ext: String) async throws -> (URL, Bool) {
-        if ext == "wav" {
-            return (inputURL, false)
-        }
-        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-        let wavURL = tempDir.appendingPathComponent("sus_\(UUID().uuidString).wav")
-        try await FFmpegConverter.convert(input: inputURL, output: wavURL)
-        return (wavURL, true)
+    func prepareAudio(from inputURL: URL) async throws -> (URL, Bool) {
+        let preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+        return (preparedAudio.wavURL, preparedAudio.requiresCleanup)
     }
 
     static func processWithGemini(text: String, prompt: String, apiKey: String, model: String) async throws -> String {
@@ -212,6 +207,25 @@ extension TranscriptionJob {
         }
         return nil
     }
+
+    func updateLiveTranscriptionProgress(_ progress: TranscriberProgress, config: AppConfig) async {
+        let cleanedCurrent = ReplacementRule.applyAll(
+            cleanText(progress.text),
+            rules: config.replacementRules
+        )
+
+        await MainActor.run {
+            if case .transcribing = self.state {
+                if let activeQueueItemID = self.activeQueueItemID {
+                    self.updateQueueItemStatus(
+                        activeQueueItemID,
+                        status: .transcribing(cleanedCurrent)
+                    )
+                }
+                self.state = .transcribing(cleanedCurrent)
+            }
+        }
+    }
     
     // swiftlint:disable:next function_parameter_count
     func createProcessingTask(
@@ -249,17 +263,7 @@ extension TranscriptionJob {
                         currentWindowRawText = progress.text
                     }
                 }
-
-                // UI update (words appearing incrementally in the app)
-                let cleanedCurrent = ReplacementRule.applyAll(
-                    self.cleanText(progress.text), rules: config.replacementRules
-                )
-
-                await MainActor.run {
-                    if case .transcribing = self.state {
-                        self.state = .transcribing(cleanedCurrent)
-                    }
-                }
+                await updateLiveTranscriptionProgress(progress, config: config)
             }
 
             if let outcome = await processConfirmedWindowText(

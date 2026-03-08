@@ -7072,6 +7072,310 @@
           }
         }
       }
+    },
+    "No Apple Intelligence, prefira editar o prompt dentro de cada modo. Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With Apple Intelligence, prefer editing the prompt inside each mode. This global prompt still applies when you choose MLX, Gemini, or OpenAI."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con Apple Intelligence, conviene editar el prompt dentro de cada modo. Este prompt global sigue usándose cuando eliges MLX, Gemini u OpenAI."
+          }
+        }
+      }
+    },
+    "Transcrição de Arquivos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File Transcription"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripción de Archivos"
+          }
+        }
+      }
+    },
+    "Adicionar Arquivos…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Files…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agregar Archivos…"
+          }
+        }
+      }
+    },
+    "Aguardando na fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting in queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En cola"
+          }
+        }
+      }
+    },
+    "Arquivo %d de %d": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File %d of %d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo %d de %d"
+          }
+        }
+      }
+    },
+    "Arraste e solte arquivos de áudio aqui": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag and drop audio files here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra y suelta archivos de audio aquí"
+          }
+        }
+      }
+    },
+    "Concluídos: %d · Falhas: %d · Cancelados: %d": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed: %d · Failed: %d · Cancelled: %d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completados: %d · Fallidos: %d · Cancelados: %d"
+          }
+        }
+      }
+    },
+    "Fila concluída com pendências": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue completed with issues"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola completada con pendientes"
+          }
+        }
+      }
+    },
+    "Fila concluída": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue completed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola completada"
+          }
+        }
+      }
+    },
+    "Fila de Arquivos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File Queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola de Archivos"
+          }
+        }
+      }
+    },
+    "Fila interrompida": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue interrupted"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola interrumpida"
+          }
+        }
+      }
+    },
+    "Iniciar Fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar Cola"
+          }
+        }
+      }
+    },
+    "Limpar Fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar Cola"
+          }
+        }
+      }
+    },
+    "Nova Fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva Cola"
+          }
+        }
+      }
+    },
+    "Os arquivos serão processados em sequência usando as opções abaixo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Files will be processed sequentially using the options below."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los archivos se procesarán en secuencia usando las opciones siguientes."
+          }
+        }
+      }
+    },
+    "Ou selecione um ou mais arquivos para iniciar a transcrição em lote.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or select one or more files to start batch transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O selecciona uno o más archivos para iniciar la transcripción por lotes."
+          }
+        }
+      }
+    },
+    "Resumo da fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue summary"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen de la cola"
+          }
+        }
+      }
+    },
+    "Retentar Itens Pendentes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry Pending Items"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar elementos pendientes"
+          }
+        }
+      }
+    },
+    "Selecionar Arquivos…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Files…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar Archivos…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

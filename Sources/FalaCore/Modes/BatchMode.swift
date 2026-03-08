@@ -20,18 +20,9 @@ public enum BatchMode {
         let opts = parseOptions(arguments, config: config)
 
         // Convert to 16 kHz WAV if not already WAV.
-        let wavURL: URL
-        let needsCleanup: Bool
-
-        if ext == "wav" {
-            wavURL = inputURL
-            needsCleanup = false
-        } else {
-            let tempDir = URL(fileURLWithPath: NSTemporaryDirectory())
-            wavURL = tempDir.appendingPathComponent("sus_\(UUID().uuidString).wav")
-            try await FFmpegConverter.convert(input: inputURL, output: wavURL)
-            needsCleanup = true
-        }
+        let preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+        let wavURL = preparedAudio.wavURL
+        let needsCleanup = preparedAudio.requiresCleanup
 
         defer {
             if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
@@ -111,40 +102,5 @@ public enum BatchMode {
             idx += 1
         }
         return opts
-    }
-}
-
-// MARK: – FFmpeg process wrapper
-
-public enum FFmpegConverter {
-    private static let ffmpegPath = "/opt/homebrew/bin/ffmpeg"
-
-    public static func convert(input: URL, output: URL) async throws {
-        guard FileManager.default.fileExists(atPath: ffmpegPath) else {
-            throw BatchError.ffmpegNotFound
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
-        process.arguments = [
-            "-y",
-            "-i", input.path,
-            "-ar", "16000",
-            "-ac", "1",
-            "-f", "wav",
-            output.path
-        ]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError  = FileHandle.nullDevice
-
-        try process.run()
-
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            process.terminationHandler = { _ in cont.resume() }
-        }
-
-        guard process.terminationStatus == 0 else {
-            throw BatchError.ffmpegFailed(process.terminationStatus)
-        }
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 
 final class LocalizedUISourceAuditTests: XCTestCase {
+    // swiftlint:disable:next function_body_length
     func testCriticalViewsDoNotContainHardcodedUserFacingStrings() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -13,6 +14,7 @@ final class LocalizedUISourceAuditTests: XCTestCase {
             "Sources/FalaCore/UI/StatusBarController.swift",
             "Sources/FalaCore/UI/SettingsView.swift",
             "Sources/FalaCore/UI/SettingsView+Ext.swift",
+            "Sources/FalaCore/UI/SettingsView+About.swift",
             "Sources/FalaCore/UI/SettingsView+TranscriptionModels.swift",
             "Sources/FalaCore/UI/SettingsView+LLM.swift",
             "Sources/FalaCore/UI/SettingsView+LLMProviders.swift",
@@ -21,9 +23,13 @@ final class LocalizedUISourceAuditTests: XCTestCase {
             "Sources/FalaCore/UI/SettingsView+Updates.swift",
             "Sources/FalaCore/UI/DesignSystem/CatalogActionViews.swift",
             "Sources/FalaCore/UI/DesignSystem/MLXCatalogViews.swift",
+            "Sources/FalaCore/UI/DesignSystem/PromptEditorViews.swift",
             "Sources/FalaCore/UI/DesignSystem/WhisperCatalogViews.swift",
             "Sources/FalaCore/UI/SettingsWindowController.swift",
-            "Sources/FalaCore/UI/TranscribeWindowController.swift"
+            "Sources/FalaCore/UI/TranscribeWindowController.swift",
+            "Sources/FalaCore/UI/TranscribeView.swift",
+            "Sources/FalaCore/UI/TranscribeView+Ext.swift",
+            "Sources/FalaCore/UI/TranscribeView+Queue.swift"
         ].map { repoRoot.appendingPathComponent($0) }
 
         let uiLiteralPattern =

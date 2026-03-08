@@ -27,6 +27,8 @@ public struct BatchProcessingWarning: Equatable, Sendable {
 @MainActor
 public final class TranscriptionJob: ObservableObject {
     @Published public var inputURL: URL?
+    @Published public internal(set) var queue: [BatchQueueItem] = []
+    @Published public internal(set) var activeQueueItemID: BatchQueueItem.ID?
     @Published public var state: TranscriptionState = .idle
     @Published public var outputFormat: String
     @Published public var outputDirectory: URL?
@@ -36,12 +38,12 @@ public final class TranscriptionJob: ObservableObject {
     // Per-job overrides
     @Published public var overrideModel: String?
     @Published public var overrideLanguage: String?
-    
+
     // Dependency
     @Published public var appSettings: AppSettings
-    private var currentTask: Task<Void, Never>?
-    private var preparationTask: Task<Void, Never>?
-    private let batchTranscriberPool: BatchTranscriberPool
+    var currentTask: Task<Void, Never>?
+    var preparationTask: Task<Void, Never>?
+    let batchTranscriberPool: BatchTranscriberPool
 
     public convenience init(appSettings: AppSettings) {
         self.init(appSettings: appSettings, batchTranscriberPool: nil)
@@ -62,15 +64,49 @@ public final class TranscriptionJob: ObservableObject {
 
     public func selectFile() {
         let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = false
+        panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = BatchMode.supportedExtensions.compactMap {
             .init(filenameExtension: $0)
         }
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        inputURL = url
+        guard panel.runModal() == .OK else { return }
+        enqueueInputFiles(panel.urls)
+    }
+
+    public func enqueueInputFiles(_ urls: [URL]) {
+        let supportedURLs = urls
+            .map(\.standardizedFileURL)
+            .filter { BatchMode.supportedExtensions.contains($0.pathExtension.lowercased()) }
+
+        guard !supportedURLs.isEmpty else { return }
+
+        var existingURLs = Set(queue.map(\.inputURL.standardizedFileURL))
+        let newItems = supportedURLs.compactMap { url -> BatchQueueItem? in
+            guard !existingURLs.contains(url) else {
+                return nil
+            }
+            existingURLs.insert(url)
+            return BatchQueueItem(inputURL: url)
+        }
+
+        guard !newItems.isEmpty else { return }
+
+        queue.append(contentsOf: newItems)
         processingWarning = nil
         state = .idle
+        syncPrimaryInputURL()
+    }
+
+    func removeQueueItem(_ id: BatchQueueItem.ID) {
+        guard currentTask == nil else { return }
+        queue.removeAll { $0.id == id }
+        if activeQueueItemID == id {
+            activeQueueItemID = nil
+        }
+        syncPrimaryInputURL()
+        if queue.isEmpty {
+            state = .idle
+        }
     }
     
     public func selectOutputDirectory() {
@@ -84,7 +120,12 @@ public final class TranscriptionJob: ObservableObject {
     }
 
     public func transcribe() {
-        guard let inputURL else { return }
+        guard currentTask == nil else { return }
+        let processableItemIDs = queue
+            .filter { $0.status.isRetryable }
+            .map(\.id)
+        guard !processableItemIDs.isEmpty else { return }
+
         processingWarning = nil
         prepareForUse()
         if let issue = appSettings.readiness.primaryIssueForBatch(batchPrompt: batchPostPrompt) {
@@ -93,209 +134,12 @@ public final class TranscriptionJob: ObservableObject {
             }
             return
         }
-        let ext = inputURL.pathExtension.lowercased()
 
-        withAnimation(AnimationConfig.standard) {
-            state = ext == "wav" ? .transcribing("") : .converting
+        for itemID in processableItemIDs {
+            updateQueueItemStatus(itemID, status: .pending)
         }
-
         currentTask = Task {
-            await runTranscriptionTask(inputURL: inputURL, ext: ext)
-        }
-    }
-}
-
-private extension TranscriptionJob {
-    static func makeDefaultBatchTranscriberPool(config: AppConfig) -> BatchTranscriberPool {
-        BatchTranscriberPool(
-            whisperFactory: {
-                makeWhisperBatchTranscriber(config: config)
-            },
-            parakeetFactory: {
-                makeParakeetBatchTranscriber()
-            }
-        )
-    }
-
-    static func makeWhisperBatchTranscriber(config: AppConfig) -> BatchWhisperTranscriber {
-        let transcriber = Transcriber(
-            modelName: config.activeWhisperModel,
-            language: config.transcriptionLanguage,
-            temperature: config.batchTemperature,
-            prompt: ""
-        )
-        return BatchWhisperTranscriber(
-            loadIfNeeded: { progress in
-                try await transcriber.loadIfNeeded(progress: progress)
-            },
-            setModel: { modelName in
-                await transcriber.setModel(modelName)
-            },
-            setConfig: { language, temperature, prompt in
-                await transcriber.setConfig(
-                    language: language,
-                    temperature: temperature,
-                    prompt: prompt
-                )
-            },
-            transcribeSamples: { samples, task in
-                try await transcriber.transcribe(samples: samples, task: task)
-            },
-            transcribeAudioPath: { audioPath, task, progress in
-                try await transcriber.transcribe(
-                    audioPath: audioPath,
-                    task: task,
-                    progress: progress
-                )
-            }
-        )
-    }
-
-    static func makeParakeetBatchTranscriber() -> BatchPreloadableTranscriber {
-        let transcriber = ParakeetTranscriber()
-        return BatchPreloadableTranscriber(
-            loadIfNeeded: { progress in
-                try await transcriber.loadIfNeeded(progress: progress)
-            },
-            transcribeSamples: { samples, task in
-                try await transcriber.transcribe(samples: samples, task: task)
-            },
-            transcribeAudioPath: { audioPath, task, progress in
-                try await transcriber.transcribe(
-                    audioPath: audioPath,
-                    task: task,
-                    progress: progress
-                )
-            }
-        )
-    }
-}
-
-extension TranscriptionJob {
-    public func prepareForUse() {
-        preparationTask?.cancel()
-        let config = preparationConfig()
-        preparationTask = Task { [batchTranscriberPool] in
-            do {
-                try await batchTranscriberPool.warm(using: config)
-            } catch is CancellationError {
-                return
-            } catch {
-                NSLog("[Fala] Batch warmup failed: %@", error.localizedDescription)
-            }
-        }
-    }
-
-    public func cancel() {
-        currentTask?.cancel()
-        currentTask = nil
-        preparationTask?.cancel()
-        preparationTask = nil
-    }
-
-    func revealInFinder() {
-        if case .done(let path) = state {
-            NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
-        }
-    }
-
-    func reset() {
-        inputURL = nil
-        overrideModel = nil
-        overrideLanguage = nil
-        processingWarning = nil
-        state = .idle
-    }
-}
-
-private extension TranscriptionJob {
-    func preparationConfig() -> AppConfig {
-        var config = appSettings.snapshotConfig()
-        let selectedWhisperModel = overrideModel ?? config.activeWhisperModel
-        config.dictationModel = selectedWhisperModel
-        config.batchModel = selectedWhisperModel
-        config.transcriptionLanguage = overrideLanguage ?? config.transcriptionLanguage
-        return config
-    }
-
-    func runTranscriptionTask(inputURL: URL, ext: String) async {
-        do {
-            try Task.checkCancellation()
-            let (wavURL, needsCleanup) = try await prepareAudio(from: inputURL, ext: ext)
-            defer {
-                if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
-            }
-
-            try Task.checkCancellation()
-            await MainActor.run {
-                withAnimation(AnimationConfig.standard) { state = .transcribing("") }
-            }
-
-            try await executeTranscription(wavURL: wavURL, inputURL: inputURL)
-        } catch is CancellationError {
-            await MainActor.run {
-                withAnimation(AnimationConfig.standard) { state = .error("Cancelado pelo usuário") }
-            }
-        } catch {
-            await MainActor.run {
-                withAnimation(AnimationConfig.standard) { state = .error(error.localizedDescription) }
-            }
-        }
-    }
-
-    func executeTranscription(wavURL: URL, inputURL: URL) async throws {
-        var config = preparationConfig()
-        config.enableDiarization = appSettings.enableDiarization
-        let format = outputFormat
-
-        let baseDir = outputDirectory ?? inputURL.deletingLastPathComponent()
-        let outputURL = baseDir
-            .appendingPathComponent(inputURL.deletingPathExtension().lastPathComponent)
-            .appendingPathExtension(format)
-
-        try self.initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
-
-        let effectiveModel = overrideModel ?? config.activeWhisperModel
-        let effectiveLanguage = overrideLanguage ?? config.transcriptionLanguage
-
-        let transcriber = await batchTranscriberPool.transcriber(
-            using: config,
-            modelName: effectiveModel,
-            language: effectiveLanguage
-        )
-
-        let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
-        let processingTask = createProcessingTask(
-            stream: stream,
-            config: config,
-            template: batchPostPrompt.isEmpty ? .raw : .custom,
-            format: format,
-            outputURL: outputURL,
-            inputURL: inputURL,
-            batchPromptOverride: batchPostPrompt.isEmpty ? nil : batchPostPrompt
-        )
-
-        _ = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in
-            continuation.yield(progressUpdate)
-        }
-        continuation.finish()
-
-        if !batchPostPrompt.isEmpty {
-            await MainActor.run {
-                withAnimation(AnimationConfig.standard) {
-                    self.state = .processingLLM
-                }
-            }
-        }
-
-        let processingResult = await processingTask.value
-        await MainActor.run {
-            self.processingWarning = processingResult.warning
-        }
-        try Task.checkCancellation()
-
-        await MainActor.run {
-            withAnimation(AnimationConfig.standard) { state = .done(outputURL.path) }
+            await runQueueTask(itemIDs: processableItemIDs)
         }
     }
 }
