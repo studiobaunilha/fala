@@ -40,11 +40,26 @@ Isso inclui, entre outros pontos:
 - empacotamento e release
 - batch sem dependencia externa de `ffmpeg`
 
-O backlog aberto ficou reduzido a quatro frentes principais, mais um bloco curto de acabamento.
+O backlog aberto ficou reduzido a cinco frentes principais, mais um bloco curto de acabamento.
 
 ## Agora
 
-### 1. Investigacao de performance e cancelamento na transcricao de arquivos
+### 1. Limpeza final dos Ajustes e remocao completa de diarization
+
+**Motivo**
+
+Ainda existem residuos de diarization na aplicacao e tambem bugs visuais no layout dos Ajustes que passam sensacao de interface quebrada.
+
+**Definicao de pronto**
+
+- remover diarization completamente do produto
+- remover qualquer copy, toggle, estado, logica, configuracao, teste e referencia residual ligada a diarization
+- esconder o prompt global de sistema sempre que o provedor efetivo selecionado for Apple Intelligence
+- corrigir o layout dos Ajustes para que o conteudo da coluna direita respeite a area util da janela sem clipping ou scroll incorreto
+- corrigir o painel lateral para que os cantos, limites e bordas respeitem o container da janela inteira
+- cobrir as correcoes com testes de regressao e validacao real da UI empacotada
+
+### 2. Investigacao de performance e cancelamento na transcricao de arquivos
 
 **Motivo**
 
@@ -58,7 +73,7 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 - ajustar a UI para refletir o estagio real sem ambiguidade
 - adicionar testes de regressao para o caminho cancelado e para o caminho otimizado
 
-### 2. Investigacao de variacao de latencia no ditado rapido
+### 3. Investigacao de variacao de latencia no ditado rapido
 
 **Motivo**
 
@@ -73,7 +88,7 @@ O caminho rapido de ditado ainda apresenta variacao perceptivel em alguns cenari
 
 ## Proximo
 
-### 3. Streaming Whisper / preview vivo
+### 4. Streaming Whisper / preview vivo
 
 **Motivo**
 
@@ -86,7 +101,7 @@ Continua sendo a proxima expansao funcional relevante e ainda depende de spike t
 - evitar texto instavel ou piscando no alvo
 - cobrir o fluxo com testes de regressao do processamento incremental
 
-### 4. Multiplos modos personalizados
+### 5. Multiplos modos personalizados
 
 **Motivo**
 
@@ -101,9 +116,8 @@ Hoje o produto ainda suporta apenas um modo customizado.
 
 ## Backlog curto
 
-Estes itens continuam abertos, mas ficam abaixo das quatro frentes acima:
+Estes itens continuam abertos, mas ficam abaixo das cinco frentes acima:
 
-- validar diarization ponta a ponta; se for limitacao estrutural, deixar isso explicito na UI; se for bug, corrigir com cobertura
 - ocultar `Traduzir para Ingles` quando o idioma efetivo da aplicacao ja for ingles
 - revalidar se `mlx-community/Qwen3.5-4B-MLX-4bit` merece entrar no catalogo curado; so promover depois de smoke test real
 
