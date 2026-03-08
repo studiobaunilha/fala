@@ -44,14 +44,6 @@ struct SettingsView: View {
                                     helpText: L10n("Tradução requer o motor Whisper")
                                 )
                             }
-                            if template == .custom && settings.llmProvider == "apple" {
-                                Spacer()
-                                SidebarWarningIndicator(
-                                    helpText: L10n(
-                                        "Modo personalizado requer provedor diferente do Apple Intelligence"
-                                    )
-                                )
-                            }
                         }
                         .tag(SettingsSelection.template(template))
                     }
@@ -69,15 +61,9 @@ struct SettingsView: View {
                     case .models:
                         modelsView
                     case .advanced:
-                        advancedView
+                        fileTranscriptionView
                     case .llm:
                         llmView
-                    case .license:
-                        licenseView
-                    case .updates:
-                        updatesView
-                    case .about:
-                        aboutView
                     }
                 case .template(let template):
                     ModeDetailView(template: template, settings: settings)

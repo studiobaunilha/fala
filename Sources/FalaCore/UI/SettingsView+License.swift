@@ -2,19 +2,15 @@ import AppKit
 import SwiftUI
 
 extension SettingsView {
-    @ViewBuilder
-    var licenseView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.xxl) {
-                Text(L10n("Licença"))
-                    .font(.title2)
-                    .fontWeight(.bold)
+    var licenseStatusSection: some View {
+        Section(L10n("Licença")) {
+            statusBannerView
+        }
+    }
 
-                statusBannerView
-                activationFormView
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
+    var licenseActivationSection: some View {
+        Section {
+            activationFormView
         }
         .onAppear {
             scheduleActivationFieldFocusIfNeeded()

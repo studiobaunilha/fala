@@ -274,7 +274,7 @@ private extension RuntimeReadinessEvaluator {
         }
     }
 
-    private func appleLLMIssues(for template: DictationTemplate) -> [ReadinessIssue] {
+    private func appleLLMIssues(for _: DictationTemplate) -> [ReadinessIssue] {
         if !settings.isAppleProviderUsable {
             return [
                 settingsIssue(
@@ -284,18 +284,7 @@ private extension RuntimeReadinessEvaluator {
                 )
             ]
         }
-
-        guard template == .custom else {
-            return []
-        }
-
-        return [
-            settingsIssue(
-                kind: .appleIntelligenceUnavailable,
-                title: L10n("Modo incompatível com Apple Intelligence"),
-                message: L10n("O modo personalizado requer um provedor mais flexível.")
-            )
-        ]
+        return []
     }
 
     private func mlxLLMIssues(

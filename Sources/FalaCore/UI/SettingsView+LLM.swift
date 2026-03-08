@@ -5,7 +5,7 @@ extension SettingsView {
     var llmView: some View {
         Form {
             Section {
-            Picker(L10n("Provedor Padrão"), selection: $settings.llmProvider) {
+                Picker(L10n("Provedor Padrão"), selection: $settings.llmProvider) {
                     Text(L10n("Apple Intelligence (Local)")).tag("apple")
                     Text(L10n("MLX Local")).tag("mlx")
                     Text(L10n("Google Gemini (Cloud)")).tag("gemini")
@@ -18,45 +18,8 @@ extension SettingsView {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
-            if settings.llmProvider != "apple" {
-                Section {
-                    TextEditor(text: $settings.globalSystemPrompt)
-                        .frame(minHeight: 120)
-                        .font(.body.monospaced())
-                        .scrollContentBackground(.hidden)
-                        .padding(Spacing.xs)
-                        .background(Color(nsColor: .textBackgroundColor))
-                        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .stroke(Color(nsColor: .separatorColor))
-                        )
-                    
-                    let isModified = settings.globalSystemPrompt != AppConfig.defaultGlobalSystemPrompt
-                    HStack {
-                        Button(L10n("Restaurar Padrão")) {
-                            settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
-                        }
-                        .disabled(!isModified)
-                        
-                        Spacer()
-                        
-                        if isModified {
-                            Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(FalaColors.warning)
-                        }
-                    }
-                } header: {
-                    Text(L10n("Prompt de Sistema Global (Pós-processamento)"))
-                } footer: {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Anexado no final de todas as instruções. Serve para forçar a IA a agir estritamente como formatadora, sem preâmbulos."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+
+            globalPromptSection
 
             if settings.llmProvider == "apple" {
                 appleIntelligenceSection
@@ -85,6 +48,41 @@ extension SettingsView {
             }
         }
     }
+
+    private var globalPromptSection: some View {
+        Section {
+            PromptEditorPanel(
+                text: $settings.globalSystemPrompt,
+                isModified: settings.globalSystemPrompt != AppConfig.defaultGlobalSystemPrompt,
+                restoreActionTitle: L10n("Restaurar Padrão"),
+                onRestore: {
+                    settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
+                },
+                supplementary: {
+                    if settings.llmProvider == "apple" {
+                        PromptEditorNote(
+                            message: L10n(
+                                // swiftlint:disable:next line_length
+                                "No Apple Intelligence, prefira editar o prompt dentro de cada modo. Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI."
+                            )
+                        )
+                    }
+                }
+            )
+        } header: {
+            Text(L10n("Prompt de Sistema Global (Pós-processamento)"))
+        } footer: {
+            Text(
+                L10n(
+                    // swiftlint:disable:next line_length
+                    "Anexado no final de todas as instruções. Serve para forçar a IA a agir estritamente como formatadora, sem preâmbulos."
+                )
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
     // MARK: - Gemini Credentials
 
     private var geminiCredentialsSection: some View {

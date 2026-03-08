@@ -7,6 +7,7 @@ extension SettingsView {
             transcriptionLanguageSection
 
             if settings.transcriptionEngine == "whisper" {
+                whisperTemperatureTuningSection
                 whisperReadinessSection
                 whisperSelectionSummarySection
                 whisperCatalogSection
@@ -123,6 +124,25 @@ private extension SettingsView {
             Section {
                 readinessIssueCard(issue)
             }
+        }
+    }
+
+    var whisperTemperatureTuningSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("\(L10n("Temperatura Ditado")) (\(settings.dictationTemperature, specifier: "%.1f"))")
+                Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
+            }
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("\(L10n("Temperatura Batch")) (\(settings.batchTemperature, specifier: "%.1f"))")
+                Slider(value: $settings.batchTemperature, in: 0.0...1.0, step: 0.1)
+            }
+        } header: {
+            Text(L10n("Acurácia vs. Velocidade"))
+        } footer: {
+            Text(L10n("Zero significa alta acurácia (Greedy Decoding). Aplicável apenas ao motor Whisper."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

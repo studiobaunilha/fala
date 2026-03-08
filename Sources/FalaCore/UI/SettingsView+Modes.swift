@@ -34,10 +34,7 @@ struct ModeDetailView: View {
     }
 
     private var isPromptModified: Bool {
-        if template == .custom {
-            return false // Custom mode prompt is always user-defined
-        }
-        return prompt != (template.defaultSystemPrompt ?? "")
+        prompt != restoreBaselinePrompt
     }
 
     var body: some View {
@@ -70,24 +67,9 @@ struct ModeDetailView: View {
                 customNameSection
             }
 
-            if template == .custom && isEffectiveProviderAppleIntelligence {
-                Section {
-                    NoticeCard(
-                        title: L10n("Provedor incompatível"),
-                        // swiftlint:disable:next line_length
-                        message: L10n("O modo personalizado requer prompts avançados, incompatíveis com o Apple Intelligence, que aceita apenas instruções simples. Selecione outro provedor abaixo."),
-                        tone: .warning
-                    )
-                }
-            }
-
             if template.requiresLLM {
                 providerSection
-                if !isEffectiveProviderAppleIntelligence {
-                    promptSection
-                } else {
-                    appleIntelligencePromptNote
-                }
+                promptSection
             } else {
                 noLLMSection
             }
@@ -177,7 +159,7 @@ struct ModeDetailView: View {
                 }
             }
         } header: {
-            Text(L10n("Modelo"))
+            Text(L10n("Provedor de IA"))
         } footer: {
             Text(L10n("Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM."))
                 .font(.caption)
@@ -187,29 +169,27 @@ struct ModeDetailView: View {
 
     private var promptSection: some View {
         Section {
-            EditorSurface(minHeight: LayoutMetric.promptEditorMinHeight) {
-                TextEditor(text: $prompt)
-                    .font(.body.monospaced())
-                    .scrollContentBackground(.hidden)
-                    .onChange(of: prompt) { debouncedSave() }
-            }
-
-            HStack {
-                Button(L10n("Restaurar Padrão")) {
+            PromptEditorPanel(
+                text: $prompt,
+                isModified: isPromptModified,
+                restoreActionTitle: L10n("Restaurar Padrão"),
+                onRestore: {
                     if isPromptModified {
                         showRestoreConfirmation = true
                     }
+                },
+                supplementary: {
+                    if isEffectiveProviderAppleIntelligence {
+                        PromptEditorNote(
+                            message: L10n(
+                                // swiftlint:disable:next line_length
+                                "Ideal para tarefas simples como limpar e formatar texto. Para prompts criativos ou complexos (Dev, Sumário), considere Gemini, OpenAI ou MLX."
+                            )
+                        )
+                    }
                 }
-                .disabled(!isPromptModified)
-
-                Spacer()
-
-                if isPromptModified {
-                    Label(L10n("Modificado"), systemImage: "pencil.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(FalaColors.warning)
-                }
-            }
+            )
+            .onChange(of: prompt) { debouncedSave() }
         } header: {
             Text(L10n("Prompt do Sistema"))
         } footer: {
@@ -270,35 +250,16 @@ struct ModeDetailView: View {
         return effectiveProvider == "apple"
     }
 
-    private var appleIntelligencePromptNote: some View {
-        Section {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                EditorSurface(backgroundOpacity: 0.5) {
-                    Text(prompt)
-                        .font(.body.monospaced())
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                Label {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Prompt somente-leitura. O Apple Intelligence usa prompts simplificados otimizados para o modelo compacto (~3B). Para editar prompts, use outro provedor."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } icon: {
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(FalaColors.info)
-                        .font(.caption)
-                }
-            }
-        } header: {
-            Text(L10n("Prompt do Sistema (Somente Leitura)"))
-        }
-    }
-
-    private var effectiveDefaultPrompt: String {
+    private var persistedPromptFallback: String {
         if template == .custom {
             return settings.customModePrompt
+        }
+        return template.defaultSystemPrompt ?? ""
+    }
+
+    private var restoreBaselinePrompt: String {
+        if template == .custom {
+            return AppConfig.localizedDefault(for: .customModePrompt)
         }
         return template.defaultSystemPrompt ?? ""
     }
@@ -307,11 +268,11 @@ struct ModeDetailView: View {
         if let config = settings.modeConfigs[template.rawValue] {
             self.provider = config.provider ?? "global"
             self.model = config.model ?? ""
-            self.prompt = config.prompt ?? effectiveDefaultPrompt
+            self.prompt = config.prompt ?? persistedPromptFallback
         } else {
             self.provider = "global"
             self.model = ""
-            self.prompt = effectiveDefaultPrompt
+            self.prompt = persistedPromptFallback
         }
     }
 
