@@ -99,3 +99,9 @@ Na sessão avançada, está falando de diarization, que é totalmente a ver com 
 
 
 - Na transcrição de arquivo, quando eu peço para cancelar, está demorando muito para cancelar. Tem como meio que interromper na hora?
+
+
+-----
+
+- Eu quero que a gente faça uma investigação do porquê que na transcrição de arquivo parece que está demorando. Eu não sei se o gargalo está no carregamento do arquivo, na conversão do arquivo, porque a transcrição em si ela é muito rápida. Na hora que ele diz que está transcrevendo, é absurdamente rápido, porém tem algum processo anterior ali que eu vejo que tem algum gargalo, alguma coisa travando, e eu queria investigar e saber o que a gente consegue otimizar. 
+Eu cheguei a fazer um teste de converter o arquivo antes para WAV e colocar para rodar, mas mesmo assim demorou para carregar e começar a processar. Então eu tô achando isso estranho. Por que será que está ocorrendo, né?
