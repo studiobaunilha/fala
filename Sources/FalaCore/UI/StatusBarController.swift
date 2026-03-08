@@ -10,31 +10,27 @@ public enum AppState {
 
 @MainActor
 public final class StatusBarController: NSObject, NSMenuDelegate {
-    private struct DownloadActivity: Equatable {
-        let modelName: String
-        let fraction: Double
-    }
-
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
-
     // Items inserted/removed dynamically in menuWillOpen.
     private let axItem: NSMenuItem
     private let axSeparator = NSMenuItem.separator()
     private let settingsItem: NSMenuItem
-    
+    private let symbolCatalog = StatusBarSymbolCatalog()
     private let settings: AppSettings
-
     private var onSettings: (() -> Void)?
     private var onTranscribe: (() -> Void)?
-    
     private var modeItems: [NSMenuItem] = []
     private var currentState: AppState = .idle
     private var loadingMessage: String?
-    private var downloadActivity: DownloadActivity?
+    private var downloadActivity: StatusBarDownloadActivity?
     private var temporaryWarningMessage: String?
     private var temporaryWarningTask: Task<Void, Never>?
     private var renderedSymbolName = "mic"
+    private var presentationCount = 0
+    private var imageAssignmentCount = 0
+    private var lastPresentation: StatusBarPresentation?
+    private var lastImageConfiguration: StatusBarSymbolConfiguration?
 
     var settingsItemTitleForTesting: String {
         settingsItem.title
@@ -48,6 +44,18 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         renderedSymbolName
     }
 
+    var renderCountForTesting: Int {
+        presentationCount
+    }
+
+    var imageAssignmentCountForTesting: Int {
+        imageAssignmentCount
+    }
+
+    var currentImageObjectIdentifierForTesting: ObjectIdentifier? {
+        statusItem.button?.image.map(ObjectIdentifier.init)
+    }
+
     public init(
         settings: AppSettings,
         onSettings: @escaping () -> Void,
@@ -56,19 +64,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         self.settings = settings
         self.onSettings = onSettings
         self.onTranscribe = onTranscribe
-
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-
         settingsItem = Self.makeSettingsItem()
         axItem = Self.makeAccessibilityItem()
-
         super.init()
-
         axItem.target = self
-
         rebuildMenu()
-
-        setState(.idle)
+        renderStatusItem()
     }
 
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
@@ -105,7 +107,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
             menu.insertItem(axItem, at: quitIdx)
         }
     }
-    
+
     @objc private func selectMode(_ sender: NSMenuItem) {
         if let modeRaw = sender.representedObject as? String,
            let mode = DictationTemplate(rawValue: modeRaw) {
@@ -118,6 +120,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     public func setState(_ state: AppState) {
+        guard currentState != state else { return }
         currentState = state
         renderStatusItem()
     }
@@ -128,19 +131,27 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     public func setLoadingTooltip(_ message: String?) {
+        guard loadingMessage != message else { return }
         loadingMessage = message
         renderStatusItem()
     }
 
     public func setDownloadProgress(_ fraction: Double, modelName: String) {
-        downloadActivity = DownloadActivity(
+        let nextActivity = StatusBarDownloadActivity(
             modelName: modelName,
             fraction: max(0, min(fraction, 1))
         )
+        if let downloadActivity,
+           downloadActivity.modelName == nextActivity.modelName,
+           downloadActivity.displayPercent == nextActivity.displayPercent {
+            return
+        }
+        downloadActivity = nextActivity
         renderStatusItem()
     }
 
     public func clearDownloadProgress() {
+        guard downloadActivity != nil else { return }
         downloadActivity = nil
         renderStatusItem()
     }
@@ -255,14 +266,29 @@ private extension StatusBarController {
         toolTip: String?,
         isTemplate: Bool = true
     ) {
-        renderedSymbolName = symbolName
-        let image = NSImage(
-            systemSymbolName: symbolName,
-            accessibilityDescription: accessibilityDescription
+        let presentation = StatusBarPresentation(
+            symbolName: symbolName,
+            accessibilityDescription: accessibilityDescription,
+            toolTip: toolTip,
+            isTemplate: isTemplate
         )
-        image?.isTemplate = isTemplate
-        statusItem.button?.image = image
+        guard lastPresentation != presentation else { return }
+
+        presentationCount += 1
+        lastPresentation = presentation
+        renderedSymbolName = symbolName
+        let imageConfiguration = StatusBarSymbolConfiguration(
+            symbolName: symbolName,
+            isTemplate: isTemplate
+        )
+        if lastImageConfiguration != imageConfiguration {
+            lastImageConfiguration = imageConfiguration
+            let image = symbolCatalog.image(symbolName: symbolName, isTemplate: isTemplate)
+            statusItem.button?.image = image
+            imageAssignmentCount += 1
+        }
         statusItem.button?.toolTip = toolTip
+        statusItem.button?.setAccessibilityLabel(accessibilityDescription)
     }
 }
 

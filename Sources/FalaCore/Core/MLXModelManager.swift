@@ -155,10 +155,9 @@ public final class MLXModelManager: ObservableObject {
                     throw LLMError.mlxModelNotDownloaded(repoID)
                 }
                 continuation.finish()
-                NotificationCenter.default.post(
-                    name: .mlxDownloadCompleted,
-                    object: nil,
-                    userInfo: ["repoID": repoID, "shortId": shortId]
+                await DownloadNotificationDispatcher.postMLXDownloadCompleted(
+                    repoID: repoID,
+                    shortID: shortId
                 )
             } catch {
                 NSLog(

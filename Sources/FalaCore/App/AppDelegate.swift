@@ -146,35 +146,35 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func observeRuntimeEvents(settings: AppSettings) {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleWhisperModelDownloadCompleted),
-            name: .whisperModelDownloadCompleted,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleMLXModelDownloadCompleted),
-            name: .mlxDownloadCompleted,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleAppDidBecomeActive),
-            name: NSApplication.didBecomeActiveNotification,
-            object: nil
-        )
+        NotificationCenter.default.publisher(for: .whisperModelDownloadCompleted)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.handleWhisperModelDownloadCompleted()
+            }
+            .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: .mlxDownloadCompleted)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] notification in
+                self?.handleMLXModelDownloadCompleted(notification)
+            }
+            .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.handleAppDidBecomeActive()
+            }
+            .store(in: &cancellables)
 
         settings.readiness.refresh()
     }
 
-    @objc private func handleWhisperModelDownloadCompleted() {
+    private func handleWhisperModelDownloadCompleted() {
         appSettings?.warmupCoordinator.scheduleSelectedWarmup()
         appSettings?.readiness.refresh()
         onboardingController?.reloadContent()
     }
 
-    @objc private func handleMLXModelDownloadCompleted(_ notification: Notification) {
+    private func handleMLXModelDownloadCompleted(_ notification: Notification) {
         if let repoID = notification.userInfo?["repoID"] as? String {
             appSettings?.mlxDownloadWarmupGate.recordCompletion(repoID: repoID)
         }
@@ -185,7 +185,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         onboardingController?.reloadContent()
     }
 
-    @objc private func handleAppDidBecomeActive() {
+    private func handleAppDidBecomeActive() {
         statusBar?.reloadLocalizedContent()
         settingsController?.reloadLocalizedContent()
         transcribeController?.reloadLocalizedContent()
@@ -200,6 +200,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             settings.modelManager.$downloads,
             settings.mlxModelManager.$downloads
         )
+        .receive(on: RunLoop.main)
         .sink { [weak bar, weak settings] whisperDownloads, mlxDownloads in
             guard let bar, let settings else { return }
 

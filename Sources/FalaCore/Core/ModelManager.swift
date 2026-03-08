@@ -130,10 +130,9 @@ public final class ModelManager: ObservableObject {
                     continuation.yield(progress.fractionCompleted)
                 }
                 continuation.finish()
-                NotificationCenter.default.post(
-                    name: .whisperModelDownloadCompleted,
-                    object: nil,
-                    userInfo: ["modelId": shortId, "variant": variant]
+                await DownloadNotificationDispatcher.postWhisperModelDownloadCompleted(
+                    modelID: shortId,
+                    variant: variant
                 )
             } catch {
                 NSLog("[Fala] Download failed for %@: %@", shortId, error.localizedDescription)
