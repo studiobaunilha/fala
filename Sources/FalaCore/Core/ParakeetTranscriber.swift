@@ -8,6 +8,8 @@ import FluidAudio
 /// AsrManager is not Sendable but we own all calls.
 public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     private var manager: AsrManager?
+    private var loadingTask: Task<Void, Error>?
+    private var loadingToken: UUID?
     private let lock = NSLock()
     public let supportsTranslation = false
 
@@ -16,10 +18,45 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     /// Loads the Parakeet V3 model if not already loaded.
     public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         if lock.withLock({ manager != nil }) { return }
-        let downloaded = try await AsrModels.downloadAndLoad(version: .v3)
-        let mgr = AsrManager()
-        try await mgr.initialize(models: downloaded)
-        lock.withLock { self.manager = mgr }
+        if let loadingTask = lock.withLock({ loadingTask }) {
+            try await loadingTask.value
+            return
+        }
+
+        let token = UUID()
+        let task = Task<Void, Error> { [weak self] in
+            let downloaded = try await AsrModels.downloadAndLoad(version: .v3)
+            let mgr = AsrManager()
+            try await mgr.initialize(models: downloaded)
+            self?.lock.withLock {
+                if self?.manager == nil {
+                    self?.manager = mgr
+                }
+            }
+        }
+
+        lock.withLock {
+            self.loadingTask = task
+            self.loadingToken = token
+        }
+
+        do {
+            try await task.value
+            lock.withLock {
+                if self.loadingToken == token {
+                    self.loadingTask = nil
+                    self.loadingToken = nil
+                }
+            }
+        } catch {
+            lock.withLock {
+                if self.loadingToken == token {
+                    self.loadingTask = nil
+                    self.loadingToken = nil
+                }
+            }
+            throw error
+        }
     }
 
     /// Transcribes a [Float] array at 16 kHz mono.

@@ -51,9 +51,9 @@ final class IncrementalSavingTests: XCTestCase {
         continuation.finish()
         
         let finalProcessedText = await processingTask.value
-        
+
         // Check final processed text
-        XCTAssertEqual(finalProcessedText.trimmingCharacters(in: .whitespacesAndNewlines), """
+        XCTAssertEqual(finalProcessedText.fullConfirmedText.trimmingCharacters(in: .whitespacesAndNewlines), """
 Hello World
 Next block
 """)

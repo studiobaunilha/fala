@@ -97,4 +97,15 @@ final class ModelManagerTests: XCTestCase, @unchecked Sendable {
         let variants = knownModels.map(\.variant)
         XCTAssertEqual(variants.count, Set(variants).count, "Model variants must be unique")
     }
+
+    func testKnownModelsUseCurrentWhisperKitSizeLabels() {
+        let sizes = Dictionary(uniqueKeysWithValues: knownModels.map { ($0.id, $0.estimatedSize) })
+
+        XCTAssertEqual(sizes["tiny"], "66 MB")
+        XCTAssertEqual(sizes["base"], "145 MB")
+        XCTAssertEqual(sizes["small"], "483 MB")
+        XCTAssertEqual(sizes["medium"], "1.53 GB")
+        XCTAssertEqual(sizes["large-v3-turbo"], "3.1 GB")
+        XCTAssertEqual(sizes["large-v3"], "3.1 GB")
+    }
 }

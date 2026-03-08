@@ -45,10 +45,12 @@ public final class AppSettings: ObservableObject {
     public let modelManager: ModelManager
     public let mlxModelManager: MLXModelManager
     public let mlxCatalogService: MLXCatalogService
+    public let mlxDownloadWarmupGate: MLXDownloadWarmupGate
     public lazy var warmupCoordinator: WarmupCoordinator = WarmupCoordinator(
         whisperTranscriber: transcriber,
         parakeetTranscriber: parakeetTranscriber,
         mlxCatalogService: mlxCatalogService,
+        mlxDownloadWarmupGate: mlxDownloadWarmupGate,
         configProvider: { [weak self] in self?.snapshotConfig() ?? AppConfig.load() }
     )
     public lazy var readiness: RuntimeReadinessEvaluator = RuntimeReadinessEvaluator(
@@ -73,6 +75,7 @@ public final class AppSettings: ObservableObject {
         modelManager: ModelManager,
         parakeetTranscriber: ParakeetTranscriber = ParakeetTranscriber(),
         mlxModelManager: MLXModelManager = MLXModelManager(),
+        mlxDownloadWarmupGate: MLXDownloadWarmupGate = MLXDownloadWarmupGate(),
         restartCoordinator: AppRestartCoordinator = AppRestartCoordinator(),
         permissionProvider: SystemPermissionProviding = SystemPermissionProvider(),
         updater: SPUUpdater? = nil
@@ -112,6 +115,7 @@ public final class AppSettings: ObservableObject {
         self.modelManager = modelManager
         self.mlxModelManager = mlxModelManager
         self.mlxCatalogService = catalogService
+        self.mlxDownloadWarmupGate = mlxDownloadWarmupGate
         self.restartCoordinator = restartCoordinator
         self.permissionProvider = permissionProvider
         self.updater = updater

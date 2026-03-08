@@ -80,6 +80,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
     private var transcriber: MockTranscriber!
     private var inserter: MockInserter!
     private var mode: DictationMode!
+    private var prewarmer: DictationPrewarmerSpy!
     // swiftlint:enable implicitly_unwrapped_optional
 
     override func setUp() {
@@ -87,6 +88,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         recorder    = MockRecorder()
         transcriber = MockTranscriber()
         inserter    = MockInserter()
+        prewarmer   = DictationPrewarmerSpy()
         // DictationMode.init is @MainActor. XCTest runs setUp on the main
         // thread, so assumeIsolated is safe here.
         MainActor.assumeIsolated {
@@ -98,7 +100,10 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
                 recorder: recorder,
                 transcriber: transcriber,
                 inserter: inserter,
-                config: testConfig
+                config: testConfig,
+                transcriberPrewarmer: { config in
+                    await self.prewarmer.record(config: config)
+                }
             )
         }
     }
@@ -115,6 +120,20 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         await mode.startRecording()
         await mode.startRecording() // second call should be ignored
         XCTAssertEqual(recorder.startCallCount, 1, "Should not start a second recording")
+    }
+
+    func testStartRecordingTriggersTranscriberPrewarm() async {
+        let waitTask = Task {
+            await prewarmer.waitForFirstCall()
+        }
+        await mode.startRecording()
+        await waitTask.value
+
+        let callCount = await prewarmer.callCount()
+        let lastTemplate = await prewarmer.lastTemplate()
+
+        XCTAssertEqual(callCount, 1)
+        XCTAssertEqual(lastTemplate, .raw)
     }
 
     // MARK: – stopAndTranscribe
@@ -285,10 +304,43 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(inserter.savedToClipboardTexts.first, "Onde fica o arquivo")
     }
 
-    // MARK: – Helpers
+}
 
+private actor DictationPrewarmerSpy {
+    private var configs: [AppConfig] = []
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func record(config: AppConfig) {
+        configs.append(config)
+        let continuations = waiters
+        waiters.removeAll()
+        for continuation in continuations {
+            continuation.resume()
+        }
+    }
+
+    func callCount() -> Int {
+        configs.count
+    }
+
+    func lastTemplate() -> DictationTemplate? {
+        configs.last?.selectedDictationTemplate
+    }
+
+    func waitForFirstCall() async {
+        guard configs.isEmpty else {
+            return
+        }
+
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+}
+
+private extension DictationModeTests {
     /// Creates a WAV with a 440 Hz tone (RMS well above 0.001 threshold).
-    private func makeWAVWithTone(seconds: Double = 0.05) throws -> URL {
+    func makeWAVWithTone(seconds: Double = 0.05) throws -> URL {
         let sampleRate: Double = 16_000
         let format = try XCTUnwrap(
             AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate, channels: 1, interleaved: false)
@@ -307,7 +359,7 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         return url
     }
 
-    private func makeSilentWAV(seconds: Double = 0.05) throws -> URL {
+    func makeSilentWAV(seconds: Double = 0.05) throws -> URL {
         let format = try XCTUnwrap(
             AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16_000, channels: 1, interleaved: false)
         )

@@ -2,6 +2,11 @@ import AppKit
 import Sparkle
 import Combine
 
+private struct DictationTranscriberServices {
+    let resolve: (AppConfig) -> any AudioTranscribing
+    let prewarm: (AppConfig) async -> Void
+}
+
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updaterController: SPUStandardUpdaterController?
@@ -68,11 +73,21 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             onTranscribe: { transcribeCtrl.show() }
         )
 
-        let transcriberResolver: (AppConfig) -> any AudioTranscribing = { runtimeConfig in
-            runtimeConfig.transcriptionEngine == "parakeet"
-                ? parakeetTranscriber
-                : whisperTranscriber
-        }
+        let transcriberServices = DictationTranscriberServices(
+            resolve: { runtimeConfig in
+                if runtimeConfig.transcriptionEngine == "parakeet" {
+                    return parakeetTranscriber as any AudioTranscribing
+                }
+                return whisperTranscriber as any AudioTranscribing
+            },
+            prewarm: { runtimeConfig in
+                await Self.prewarmDictationTranscriber(
+                    config: runtimeConfig,
+                    whisperTranscriber: whisperTranscriber,
+                    parakeetTranscriber: parakeetTranscriber
+                )
+            }
+        )
         let feedbackCtrl = DictationFeedbackController()
         feedbackController = feedbackCtrl
 
@@ -80,7 +95,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             statusBar: bar,
             feedback: feedbackCtrl,
             configProvider: { appSettings.snapshotConfig() },
-            transcriberResolver: transcriberResolver,
+            transcriberServices: transcriberServices,
             readiness: appSettings.readiness
         )
 
@@ -91,7 +106,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         dictation.setup()
         appSettings.warmupCoordinator.scheduleSelectedWarmup()
-        syncWarmupUI(for: bar, coordinator: appSettings.warmupCoordinator)
         syncDownloadUI(for: bar, settings: appSettings)
         onboardingCtrl.showIfNeeded()
     }
@@ -100,18 +114,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBar: StatusBarController,
         feedback: DictationFeedbackController,
         configProvider: @escaping () -> AppConfig,
-        transcriberResolver: @escaping (AppConfig) -> any AudioTranscribing,
+        transcriberServices: DictationTranscriberServices,
         readiness: RuntimeReadinessEvaluator
     ) -> DictationMode {
         let initialConfig = configProvider()
         return DictationMode(
             recorder: AudioEngine(),
-            transcriber: transcriberResolver(initialConfig),
+            transcriber: transcriberServices.resolve(initialConfig),
             inserter: TextInserter(),
             statusBar: statusBar,
             feedback: feedback,
             configProvider: configProvider,
-            transcriberResolver: transcriberResolver,
+            transcriberResolver: transcriberServices.resolve,
+            transcriberPrewarmer: transcriberServices.prewarm,
             readiness: readiness
         )
     }
@@ -133,13 +148,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private func observeRuntimeEvents(settings: AppSettings) {
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleModelDownloadCompleted),
+            selector: #selector(handleWhisperModelDownloadCompleted),
             name: .whisperModelDownloadCompleted,
             object: nil
         )
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(handleModelDownloadCompleted),
+            selector: #selector(handleMLXModelDownloadCompleted),
             name: .mlxDownloadCompleted,
             object: nil
         )
@@ -153,8 +168,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         settings.readiness.refresh()
     }
 
-    @objc private func handleModelDownloadCompleted() {
+    @objc private func handleWhisperModelDownloadCompleted() {
         appSettings?.warmupCoordinator.scheduleSelectedWarmup()
+        appSettings?.readiness.refresh()
+        onboardingController?.reloadContent()
+    }
+
+    @objc private func handleMLXModelDownloadCompleted(_ notification: Notification) {
+        if let repoID = notification.userInfo?["repoID"] as? String {
+            appSettings?.mlxDownloadWarmupGate.recordCompletion(repoID: repoID)
+        }
+        // Avoid loading large MLX weights into memory immediately when a download finishes.
+        // A follow-up warmup can happen on later app activity or explicit use.
+        appSettings?.warmupCoordinator.scheduleSelectedWarmup(includeLLM: false)
         appSettings?.readiness.refresh()
         onboardingController?.reloadContent()
     }
@@ -167,27 +193,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         onboardingController?.showIfNeeded()
         appSettings?.warmupCoordinator.scheduleSelectedWarmup()
         appSettings?.readiness.refresh()
-    }
-
-    private func syncWarmupUI(for bar: StatusBarController, coordinator: WarmupCoordinator) {
-        coordinator.objectWillChange.sink { [weak bar, weak coordinator] _ in
-            guard let bar, let coordinator else { return }
-
-            if coordinator.isPreparingSelectedResources {
-                bar.setState(.loading)
-                if case .warming(let label) = coordinator.transcriptionStatus {
-                    bar.setLoadingTooltip(String(format: L10n("Carregando modelo %@…"), label))
-                    return
-                }
-                if case .warming(let label) = coordinator.llmStatus {
-                    bar.setLoadingTooltip(String(format: L10n("Preparando %@…"), label))
-                    return
-                }
-            }
-
-            bar.setLoadingTooltip(nil)
-            bar.setState(.idle)
-        }.store(in: &cancellables)
     }
 
     private func syncDownloadUI(for bar: StatusBarController, settings: AppSettings) {
@@ -224,5 +229,29 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         transcribeController?.reloadLocalizedContent()
         onboardingController?.reloadContent()
     }
+}
 
+private extension AppDelegate {
+    static func prewarmDictationTranscriber(
+        config: AppConfig,
+        whisperTranscriber: Transcriber,
+        parakeetTranscriber: ParakeetTranscriber
+    ) async {
+        do {
+            if config.transcriptionEngine == "parakeet" {
+                try await parakeetTranscriber.loadIfNeeded()
+                return
+            }
+
+            await whisperTranscriber.setModel(config.dictationModel)
+            await whisperTranscriber.setConfig(
+                language: config.transcriptionLanguage,
+                temperature: config.dictationTemperature,
+                prompt: ""
+            )
+            try await whisperTranscriber.loadIfNeeded()
+        } catch {
+            NSLog("[Fala] Dictation prewarm failed: %@", error.localizedDescription)
+        }
+    }
 }

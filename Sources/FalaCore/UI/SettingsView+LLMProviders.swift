@@ -71,9 +71,29 @@ extension SettingsView {
         .padding(.vertical, Spacing.xs)
     }
 
+}
+
+struct MLXCatalogSectionsView: View {
+    @ObservedObject private var settings: AppSettings
+    @ObservedObject private var modelManager: MLXModelManager
+    @ObservedObject private var catalogService: MLXCatalogService
+
+    init(settings: AppSettings) {
+        self._settings = ObservedObject(wrappedValue: settings)
+        self._modelManager = ObservedObject(wrappedValue: settings.mlxModelManager)
+        self._catalogService = ObservedObject(wrappedValue: settings.mlxCatalogService)
+    }
+
+    var body: some View {
+        mlxConfigSection
+        mlxModelsSection
+    }
+}
+
+private extension MLXCatalogSectionsView {
     var mlxConfigSection: some View {
         Section(L10n("MLX Local")) {
-            if let summary = settings.mlxCatalogService.selectionSummary(for: settings.mlxModel) {
+            if let summary = catalogService.selectionSummary(for: settings.mlxModel) {
                 MLXCatalogSelectionSummaryView(summary: summary)
             } else {
                 NoticeCard(
@@ -93,7 +113,7 @@ extension SettingsView {
                 )
             }
 
-            if let warning = settings.mlxCatalogService.validationWarnings.first {
+            if let warning = catalogService.validationWarnings.first {
                 NoticeCard(
                     title: L10n("Catálogo MLX em modo seguro"),
                     message: warning,
@@ -111,7 +131,7 @@ extension SettingsView {
 
     var mlxModelsSection: some View {
         Group {
-            ForEach(settings.mlxCatalogService.sections(selectedRepoID: settings.mlxModel)) { section in
+            ForEach(catalogService.sections(selectedRepoID: settings.mlxModel)) { section in
                 Section(section.title) {
                     ForEach(section.entries) { entry in
                         mlxCatalogRow(for: entry)
@@ -122,19 +142,19 @@ extension SettingsView {
     }
 
     @ViewBuilder
-    private func mlxCatalogRow(for entry: MLXCatalogEntry) -> some View {
-        let isDownloaded = settings.mlxCatalogService.isDownloaded(repoID: entry.repoID)
+    func mlxCatalogRow(for entry: MLXCatalogEntry) -> some View {
+        let isDownloaded = catalogService.isDownloaded(repoID: entry.repoID)
         let isSelected = settings.mlxModel == entry.repoID
-        let progress = settings.mlxModelManager.downloads[entry.id]
-            ?? settings.mlxModelManager.downloads[entry.repoID]
+        let progress = modelManager.downloads[entry.id]
+            ?? modelManager.downloads[entry.repoID]
 
         MLXCatalogModelRow(
             entry: entry,
             isDownloaded: isDownloaded,
             isSelected: isSelected,
             progress: progress,
-            isIdealForCurrentMac: settings.mlxCatalogService.isIdealForCurrentMac(entry),
-            diskSize: settings.mlxCatalogService.diskSize(repoID: entry.repoID),
+            isIdealForCurrentMac: catalogService.isIdealForCurrentMac(entry),
+            diskSize: catalogService.diskSize(repoID: entry.repoID),
             actionTitle: mlxRowActionTitle(
                 isDownloaded: isDownloaded,
                 isSelected: isSelected
@@ -146,12 +166,12 @@ extension SettingsView {
             } else if isDownloaded {
                 settings.mlxModel = entry.repoID
             } else {
-                settings.mlxModelManager.download(repoID: entry.repoID, shortID: entry.id)
+                modelManager.download(repoID: entry.repoID, shortID: entry.id)
             }
         }
     }
 
-    private func mlxRowActionTitle(
+    func mlxRowActionTitle(
         isDownloaded: Bool,
         isSelected: Bool
     ) -> String {
@@ -164,9 +184,9 @@ extension SettingsView {
         return L10n("Baixar")
     }
 
-    private func removeMLXModel(_ entry: MLXCatalogEntry) {
+    func removeMLXModel(_ entry: MLXCatalogEntry) {
         if settings.mlxModel == entry.repoID,
-           let fallbackRepoID = settings.mlxCatalogService.fallbackSelection(excluding: entry.repoID) {
+           let fallbackRepoID = catalogService.fallbackSelection(excluding: entry.repoID) {
             settings.mlxModel = fallbackRepoID
         }
 
@@ -179,6 +199,6 @@ extension SettingsView {
         }
 
         settings.save()
-        try? settings.mlxModelManager.delete(repoID: entry.repoID)
+        try? modelManager.delete(repoID: entry.repoID)
     }
 }

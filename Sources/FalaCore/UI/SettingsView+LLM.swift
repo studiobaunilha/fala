@@ -68,8 +68,7 @@ extension SettingsView {
                         readinessIssueCard(issue)
                     }
                 }
-                mlxConfigSection
-                mlxModelsSection
+                MLXCatalogSectionsView(settings: settings)
             } else if settings.llmProvider == "gemini" {
                 geminiCredentialsSection
             } else if settings.llmProvider == "openai" {

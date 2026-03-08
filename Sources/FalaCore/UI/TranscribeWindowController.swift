@@ -19,6 +19,7 @@ public final class TranscribeWindowController {
         if let window {
             reloadLocalizedContent()
             WindowFactory.show(window)
+            job.prepareForUse()
             return
         }
         makeWindow()
@@ -35,6 +36,7 @@ public final class TranscribeWindowController {
         let win = WindowFactory.makeWindow(config: config, content: TranscribeView(job: job))
         self.window = win
         WindowFactory.show(win)
+        job.prepareForUse()
     }
 
     private var windowConfig: WindowConfig {

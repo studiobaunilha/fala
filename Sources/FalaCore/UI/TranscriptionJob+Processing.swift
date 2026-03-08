@@ -213,82 +213,6 @@ extension TranscriptionJob {
         return nil
     }
     
-    static func applyLLM(
-        to text: String, config: AppConfig, template: DictationTemplate,
-        promptOverride: String? = nil
-    ) async -> String {
-        guard template.requiresLLM else { return text }
-        let effective = config.getEffectiveConfig(for: template)
-        let rawPrompt = promptOverride ?? effective.prompt
-        guard !rawPrompt.isEmpty else { return text }
-        var enriched = rawPrompt
-        
-        if config.enableDiarization, effective.provider != "apple" {
-            // swiftlint:disable:next line_length
-            enriched += "\n\n" + L10n("IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).")
-        }
-        
-        let prompt = promptForTemplate(
-            template,
-            enriched: enriched,
-            config: config,
-            provider: effective.provider
-        )
-        let provider = effective.provider
-        let model = effective.model
-
-        do {
-            let result: String
-            if provider == "gemini", !config.geminiKey.isEmpty {
-                result = try await processWithGemini(
-                    text: text, prompt: prompt, apiKey: config.geminiKey, model: model
-                )
-            } else if provider == "openai", !config.openAIKey.isEmpty {
-                result = try await processWithOpenAI(
-                    text: text, prompt: prompt, apiKey: config.openAIKey, model: model
-                )
-            } else if provider == "apple" {
-                result = try await processWithAppleNative(text: text, prompt: prompt)
-            } else if provider == "mlx" {
-                let modelID = model.isEmpty
-                    ? AppConfig.defaultMLXModelRepoID : model
-                result = try await processWithMLX(
-                    text: text, prompt: prompt, modelID: modelID
-                )
-            } else {
-                return text
-            }
-            return stripLLMPreamble(result)
-        } catch {
-            print("[Fala] LLM Error: \(error)")
-        }
-        return text
-    }
-
-    private static func promptForTemplate(
-        _ template: DictationTemplate,
-        enriched: String,
-        config: AppConfig,
-        provider: String
-    ) -> String {
-        if template.isConversational {
-            if provider == "apple" {
-                let preferredLanguage = config.transcriptionLanguage == "auto"
-                    ? AppLocalization.resolveLanguageCode(config.appLanguage)
-                    : config.transcriptionLanguage
-                let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
-                return enriched + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
-            }
-            return enriched
-        }
-
-        if provider == "apple" {
-            return wrapPromptForAppleIntelligence(enriched)
-        }
-
-        return wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
-    }
-
     // swiftlint:disable:next function_parameter_count
     func createProcessingTask(
         stream: AsyncStream<TranscriberProgress>,
@@ -298,25 +222,25 @@ extension TranscriptionJob {
         outputURL: URL,
         inputURL: URL,
         batchPromptOverride: String? = nil
-    ) -> Task<String, Never> {
+    ) -> Task<BatchProcessingResult, Never> {
         Task {
             var fullConfirmedText = ""
             var currentWindowId = 0
             var currentWindowRawText = ""
+            var warning: BatchProcessingWarning?
 
             for await progress in stream {
                 // If the window ID increases, the previous window is finalized.
                 if progress.windowId > currentWindowId {
-                    var cleanedLast = self.cleanText(currentWindowRawText)
-                    cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
-
-                    if !cleanedLast.isEmpty {
-                        let processed = await Self.applyLLM(
-                            to: cleanedLast, config: config, template: template,
-                            promptOverride: batchPromptOverride
-                        )
-                        fullConfirmedText += processed + "\n"
-                        self.appendToFile(url: outputURL, text: processed)
+                    if let outcome = await processConfirmedWindowText(
+                        currentWindowRawText,
+                        config: config,
+                        template: template,
+                        outputURL: outputURL,
+                        promptOverride: batchPromptOverride
+                    ) {
+                        if warning == nil { warning = outcome.warning }
+                        fullConfirmedText += outcome.text + "\n"
                     }
                     currentWindowId = progress.windowId
                     currentWindowRawText = progress.text
@@ -338,21 +262,45 @@ extension TranscriptionJob {
                 }
             }
 
-            // Stream ended. Process the very last window.
-            var cleanedLast = self.cleanText(currentWindowRawText)
-            cleanedLast = ReplacementRule.applyAll(cleanedLast, rules: config.replacementRules)
-
-            if !cleanedLast.isEmpty {
-                let processed = await Self.applyLLM(
-                    to: cleanedLast, config: config, template: template,
-                    promptOverride: batchPromptOverride
-                )
-                fullConfirmedText += processed + "\n"
-                self.appendToFile(url: outputURL, text: processed)
+            if let outcome = await processConfirmedWindowText(
+                currentWindowRawText,
+                config: config,
+                template: template,
+                outputURL: outputURL,
+                promptOverride: batchPromptOverride
+            ) {
+                if warning == nil { warning = outcome.warning }
+                fullConfirmedText += outcome.text + "\n"
             }
 
-            return fullConfirmedText
+            return BatchProcessingResult(
+                fullConfirmedText: fullConfirmedText,
+                warning: warning
+            )
         }
+    }
+
+    func processConfirmedWindowText(
+        _ rawText: String,
+        config: AppConfig,
+        template: DictationTemplate,
+        outputURL: URL,
+        promptOverride: String?
+    ) async -> LLMApplicationOutcome? {
+        var cleaned = cleanText(rawText)
+        cleaned = ReplacementRule.applyAll(cleaned, rules: config.replacementRules)
+        guard !cleaned.isEmpty else {
+            return nil
+        }
+
+        let outcome = await Self.applyLLMWithOutcome(
+            to: cleaned,
+            config: config,
+            template: template,
+            promptOverride: promptOverride
+        )
+        appendToFile(url: outputURL, text: outcome.text)
+        return outcome
     }
 }
 

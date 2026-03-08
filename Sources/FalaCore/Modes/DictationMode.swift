@@ -11,6 +11,7 @@ import Foundation
 public final class DictationMode {
     typealias ConfigProvider = () -> AppConfig
     typealias TranscriberResolver = (AppConfig) -> any AudioTranscribing
+    typealias TranscriberPrewarmer = (_ config: AppConfig) async -> Void
     typealias LLMProcessor = (
         _ text: String,
         _ prompt: String,
@@ -24,6 +25,7 @@ public final class DictationMode {
     private let feedback: DictationFeedbackController?
     private let configProvider: ConfigProvider
     private let transcriberResolver: TranscriberResolver
+    private let transcriberPrewarmer: TranscriberPrewarmer?
     private let llmProcessor: LLMProcessor?
     private let readiness: RuntimeReadinessEvaluator?
 
@@ -49,6 +51,7 @@ public final class DictationMode {
         config: AppConfig? = nil,
         configProvider: ConfigProvider? = nil,
         transcriberResolver: TranscriberResolver? = nil,
+        transcriberPrewarmer: TranscriberPrewarmer? = nil,
         llmProcessor: LLMProcessor? = nil,
         readiness: RuntimeReadinessEvaluator? = nil
     ) {
@@ -60,6 +63,7 @@ public final class DictationMode {
             config ?? AppConfig.load()
         }
         self.transcriberResolver = transcriberResolver ?? { _ in transcriber }
+        self.transcriberPrewarmer = transcriberPrewarmer
         self.llmProcessor = llmProcessor
         self.readiness = readiness
     }
@@ -95,15 +99,21 @@ public final class DictationMode {
             return
         }
         do {
+            let config = configProvider()
             // Wire RMS levels to the floating feedback panel
             if let feedback {
                 feedback.model.reset()
-                feedback.model.template = configProvider().selectedDictationTemplate
+                feedback.model.template = config.selectedDictationTemplate
                 recorder.setRMSHandler { [weak feedback] rms in
                     feedback?.model.ingestRMS(rms)
                 }
             }
             try recorder.startRecording()
+            if let transcriberPrewarmer {
+                Task {
+                    await transcriberPrewarmer(config)
+                }
+            }
             isRecording = true
             statusBar?.setState(.recording)
             feedback?.model.stage = .recording

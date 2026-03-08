@@ -22,7 +22,9 @@ public final class WarmupCoordinator: ObservableObject {
     private let whisperTranscriber: Transcriber
     private let parakeetTranscriber: ParakeetTranscriber
     private let mlxCatalogService: MLXCatalogService
+    private let mlxDownloadWarmupGate: MLXDownloadWarmupGate
     private let configProvider: @MainActor () -> AppConfig
+    private let mlxWarmer: @Sendable (String) async throws -> Void
 
     private var transcriptionTask: Task<Void, Never>?
     private var llmTask: Task<Void, Never>?
@@ -31,22 +33,34 @@ public final class WarmupCoordinator: ObservableObject {
         whisperTranscriber: Transcriber,
         parakeetTranscriber: ParakeetTranscriber,
         mlxCatalogService: MLXCatalogService,
-        configProvider: @escaping @MainActor () -> AppConfig
+        mlxDownloadWarmupGate: MLXDownloadWarmupGate = MLXDownloadWarmupGate(),
+        configProvider: @escaping @MainActor () -> AppConfig,
+        mlxWarmer: @escaping @Sendable (String) async throws -> Void = { repoID in
+            try await MLXModelCache.shared.warmup(repoID: repoID)
+        }
     ) {
         self.whisperTranscriber = whisperTranscriber
         self.parakeetTranscriber = parakeetTranscriber
         self.mlxCatalogService = mlxCatalogService
+        self.mlxDownloadWarmupGate = mlxDownloadWarmupGate
         self.configProvider = configProvider
+        self.mlxWarmer = mlxWarmer
     }
 
     public var isPreparingSelectedResources: Bool {
         transcriptionStatus.isBusy || llmStatus.isBusy
     }
 
-    public func scheduleSelectedWarmup() {
+    public func scheduleSelectedWarmup(includeLLM: Bool = true) {
         let config = configProvider()
         warmTranscriptionEngine(config: config)
-        warmSelectedLLM(config: config)
+        if includeLLM {
+            warmSelectedLLM(config: config)
+        } else {
+            llmTask?.cancel()
+            llmTask = nil
+            llmStatus = .idle
+        }
     }
 
     public func warmTranscriptionEngine(config: AppConfig) {
@@ -105,12 +119,18 @@ public final class WarmupCoordinator: ObservableObject {
                     return
                 }
 
+                guard !self.mlxDownloadWarmupGate.isCoolingDown(repoID: repoID) else {
+                    await MainActor.run { self.llmStatus = .idle }
+                    return
+                }
+
                 await MainActor.run {
                     self.llmStatus = .warming(repoID)
                 }
 
                 do {
-                    try await MLXModelCache.shared.warmup(repoID: repoID)
+                    try await self.mlxWarmer(repoID)
+                    self.mlxDownloadWarmupGate.clear(repoID: repoID)
                     await MainActor.run {
                         self.llmStatus = .ready(repoID)
                     }

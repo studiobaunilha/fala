@@ -285,6 +285,14 @@ extension TranscribeView {
 
         case .done(let path):
             VStack(alignment: .leading, spacing: Spacing.md) {
+                if let warning = job.processingWarning {
+                    NoticeCard(
+                        title: warning.title,
+                        message: warning.message,
+                        tone: .warning
+                    )
+                }
+
                 Label(L10n("Transcrição Concluída"), systemImage: "checkmark.circle.fill")
                     .font(.headline)
                     .foregroundStyle(FalaColors.success)

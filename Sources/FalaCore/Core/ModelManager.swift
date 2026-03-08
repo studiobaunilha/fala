@@ -10,17 +10,18 @@ public struct ModelInfo: Identifiable, Sendable {
     public let estimatedSize: String
 }
 
+// Current size labels follow Argmax's public WhisperKit Core ML catalog on Hugging Face.
 // swiftlint:disable trailing_comma
 public let knownModels: [ModelInfo] = [
-    ModelInfo(id: "tiny", variant: "openai_whisper-tiny", label: "Tiny", estimatedSize: "~40 MB"),
-    ModelInfo(id: "base", variant: "openai_whisper-base", label: "Base", estimatedSize: "~80 MB"),
-    ModelInfo(id: "small", variant: "openai_whisper-small", label: "Small", estimatedSize: "~240 MB"),
-    ModelInfo(id: "medium", variant: "openai_whisper-medium", label: "Medium", estimatedSize: "~480 MB"),
+    ModelInfo(id: "tiny", variant: "openai_whisper-tiny", label: "Tiny", estimatedSize: "66 MB"),
+    ModelInfo(id: "base", variant: "openai_whisper-base", label: "Base", estimatedSize: "145 MB"),
+    ModelInfo(id: "small", variant: "openai_whisper-small", label: "Small", estimatedSize: "483 MB"),
+    ModelInfo(id: "medium", variant: "openai_whisper-medium", label: "Medium", estimatedSize: "1.53 GB"),
     ModelInfo(
         id: "large-v3-turbo", variant: "openai_whisper-large-v3_turbo",
-        label: "Large v3 Turbo", estimatedSize: "~800 MB"
+        label: "Large v3 Turbo", estimatedSize: "3.1 GB"
     ),
-    ModelInfo(id: "large-v3", variant: "openai_whisper-large-v3", label: "Large v3", estimatedSize: "~1.5 GB"),
+    ModelInfo(id: "large-v3", variant: "openai_whisper-large-v3", label: "Large v3", estimatedSize: "3.1 GB"),
 ]
 // swiftlint:enable trailing_comma
 

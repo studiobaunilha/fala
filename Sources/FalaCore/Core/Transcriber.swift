@@ -8,6 +8,9 @@ extension WhisperKit: @unchecked @retroactive Sendable {}
 /// Serializes access to WhisperKit. Lazy-loads the model on first use.
 public actor Transcriber: AudioTranscribing {
     private var pipe: WhisperKit?
+    private var loadingTask: Task<WhisperKit, Error>?
+    private var loadingToken: UUID?
+    private var loadingVariant: String?
     public private(set) var modelName: String
     public let supportsTranslation = true
     /// BCP-47 language code, or "auto" for automatic detection.
@@ -25,28 +28,64 @@ public actor Transcriber: AudioTranscribing {
     /// Loads the model if not already loaded. Safe to call multiple times.
     public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         guard pipe == nil else { return }
-        // Resolve short id (e.g. "large-v3-turbo") to full variant name
-        // (e.g. "openai_whisper-large-v3_turbo") that WhisperKit expects.
-        let variant = knownModels.first { $0.id == modelName }?.variant ?? modelName
-        
-        if let progress {
-            _ = try await WhisperKit.download(variant: variant) { progressUpdate in
-                progress(progressUpdate.fractionCompleted)
+        let variant = resolvedVariant(for: modelName)
+
+        if let loadingTask, loadingVariant == variant {
+            let loaded = try await loadingTask.value
+            if loadingVariant == variant {
+                pipe = loaded
+                self.loadingTask = nil
+                loadingToken = nil
+                loadingVariant = nil
             }
+            return
         }
-        
-        pipe = try await WhisperKit(model: variant)
+
+        let token = UUID()
+        let task = Task<WhisperKit, Error> {
+            if let progress {
+                _ = try await WhisperKit.download(variant: variant) { progressUpdate in
+                    progress(progressUpdate.fractionCompleted)
+                }
+            }
+            return try await WhisperKit(model: variant)
+        }
+
+        loadingTask = task
+        loadingToken = token
+        loadingVariant = variant
+
+        do {
+            let loaded = try await task.value
+            if loadingToken == token, loadingVariant == variant {
+                pipe = loaded
+                loadingTask = nil
+                loadingToken = nil
+                loadingVariant = nil
+            }
+        } catch {
+            if loadingToken == token {
+                loadingTask = nil
+                loadingToken = nil
+                loadingVariant = nil
+            }
+            throw error
+        }
     }
 
     /// Updates the active model. Resets the pipeline so it reloads on next use.
-    public func setModel(_ name: String) {
+    public func setModel(_ name: String) async {
         guard name != modelName else { return }
+        loadingTask?.cancel()
+        loadingTask = nil
+        loadingToken = nil
+        loadingVariant = nil
         modelName = name
         pipe = nil
     }
 
     /// Updates the transcription configuration. Takes effect on next transcription.
-    public func setConfig(language: String, temperature: Float, prompt: String) {
+    public func setConfig(language: String, temperature: Float, prompt: String) async {
         self.language = language
         self.temperature = temperature
         self.prompt = prompt
@@ -127,5 +166,11 @@ public actor Transcriber: AudioTranscribing {
             options: NSString.CompareOptions.regularExpression
         ).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         return cleanText
+    }
+}
+
+private extension Transcriber {
+    func resolvedVariant(for shortId: String) -> String {
+        knownModels.first { $0.id == shortId }?.variant ?? shortId
     }
 }
