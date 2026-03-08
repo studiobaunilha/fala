@@ -19,7 +19,9 @@ extension SettingsView {
                     .foregroundStyle(.secondary)
             }
 
-            globalPromptSection
+            if settings.llmProvider != "apple" {
+                globalPromptSection
+            }
 
             if settings.llmProvider == "apple" {
                 appleIntelligenceSection
@@ -57,16 +59,6 @@ extension SettingsView {
                 restoreActionTitle: L10n("Restaurar Padrão"),
                 onRestore: {
                     settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
-                },
-                supplementary: {
-                    if settings.llmProvider == "apple" {
-                        PromptEditorNote(
-                            message: L10n(
-                                // swiftlint:disable:next line_length
-                                "No Apple Intelligence, prefira editar o prompt dentro de cada modo. Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI."
-                            )
-                        )
-                    }
                 }
             )
         } header: {

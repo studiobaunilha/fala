@@ -38,7 +38,7 @@ A página será composta pelas seguintes seções (descendo no scroll):
 3. **Features Core (Grid de Benefícios)**
    - **100% Offline:** Sem APIs externas enviando dados de clientes.
    - **System-wide Dictation:** Funciona em qualquer campo de texto (Word, Slack, Xcode).
-   - **Transcrições Batch com Diarization:** Arraste um arquivo e ganhe o texto com locutores separados.
+   - **Transcrições Batch Nativas:** Arraste um arquivo e ganhe o texto pronto para revisar, resumir ou exportar.
    - **LLM Integrado:** Modelos on-device (MLX) ou API opcional para formatar, resumir ou traduzir.
 
 4. **Demonstração do Fluxo (Como Funciona)**

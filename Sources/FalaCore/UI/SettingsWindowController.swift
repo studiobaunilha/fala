@@ -76,9 +76,7 @@ public final class SettingsWindowController {
             styleMask: [.titled, .closable, .miniaturizable],
             isResizable: true,
             minSize: NSSize(width: WindowSize.settingsMinWidth, height: WindowSize.settingsMinHeight),
-            maxSize: NSSize(width: WindowSize.settingsMaxWidth, height: WindowSize.settingsMaxHeight),
-            fullSizeContentView: true,
-            transparentTitlebar: true
+            maxSize: NSSize(width: WindowSize.settingsMaxWidth, height: WindowSize.settingsMaxHeight)
         )
     }
 }

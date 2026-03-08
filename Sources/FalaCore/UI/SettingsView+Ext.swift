@@ -22,7 +22,6 @@ extension SettingsView {
     var fileTranscriptionView: some View {
         Form {
             fileExportSection
-            diarizationSection
             replacementRulesSection
         }
         .formStyle(.grouped)
@@ -93,34 +92,6 @@ extension SettingsView {
                     .disabled(true)
                 Button(L10n("Alterar...")) { settings.selectExportPath() }
             }
-        }
-    }
-
-    private var diarizationSection: some View {
-        Section {
-            Toggle(L10n("Reconhecer múltiplos locutores"), isOn: $settings.enableDiarization)
-                .disabled(settings.llmProvider == "apple")
-        } header: {
-            Text(L10n("Diarization (Identificação de Vozes)"))
-        } footer: {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(
-                    L10n(
-                        // swiftlint:disable:next line_length
-                        "Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado."
-                    )
-                )
-                    .foregroundStyle(.secondary)
-
-                if settings.llmProvider == "apple" {
-                    Label(
-                        L10n("Indisponível com Apple Intelligence (requer modelo mais avançado)"),
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                        .foregroundStyle(FalaColors.warning)
-                }
-            }
-            .font(.caption)
         }
     }
 

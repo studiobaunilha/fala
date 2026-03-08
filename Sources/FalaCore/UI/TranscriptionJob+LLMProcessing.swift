@@ -85,18 +85,12 @@ private extension TranscriptionJob {
             return nil
         }
 
-        var enriched = rawPrompt
-        if config.enableDiarization, effective.provider != "apple" {
-            // swiftlint:disable:next line_length
-            enriched += "\n\n" + L10n("IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).")
-        }
-
         return PreparedLLMRequest(
             provider: effective.provider,
             model: effective.model,
             prompt: promptForTemplate(
                 template,
-                enriched: enriched,
+                enriched: rawPrompt,
                 config: config,
                 provider: effective.provider
             )

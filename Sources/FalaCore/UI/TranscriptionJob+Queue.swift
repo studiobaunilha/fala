@@ -338,8 +338,7 @@ extension TranscriptionJob {
         outputURL: URL,
         itemID: BatchQueueItem.ID
     ) async throws -> BatchProcessingWarning? {
-        var config = preparationConfig()
-        config.enableDiarization = appSettings.enableDiarization
+        let config = preparationConfig()
         let format = outputFormat
 
         try initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)

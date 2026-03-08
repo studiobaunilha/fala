@@ -1,0 +1,105 @@
+import XCTest
+
+final class SettingsCleanupSourceTests: XCTestCase {
+    func testDiarizationIsRemovedFromSettingsAndBatchSources() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let files = [
+            "Sources/FalaCore/Config/AppConfig.swift",
+            "Sources/FalaCore/Resources/Localizable.xcstrings",
+            "Sources/FalaCore/UI/AppSettings.swift",
+            "Sources/FalaCore/UI/SettingsView+Ext.swift",
+            "Sources/FalaCore/UI/SettingsView+Persistence.swift",
+            "Sources/FalaCore/UI/TranscribeView+Ext.swift",
+            "Sources/FalaCore/UI/TranscriptionJob+LLMProcessing.swift",
+            "Sources/FalaCore/UI/TranscriptionJob+Queue.swift",
+            "generate_xcstrings.py"
+        ].map { repoRoot.appendingPathComponent($0) }
+
+        let bannedSnippets = [
+            "enableDiarization",
+            "diarization",
+            "múltiplos locutores",
+            "multiple speakers",
+            "Locutor 1"
+        ]
+
+        for fileURL in files {
+            let source = try String(contentsOf: fileURL, encoding: .utf8)
+            for snippet in bannedSnippets {
+                XCTAssertFalse(
+                    source.localizedCaseInsensitiveContains(snippet),
+                    "\(fileURL.lastPathComponent) should not reference diarization cleanup target '\(snippet)'"
+                )
+            }
+        }
+    }
+
+    func testAppleProviderHidesGlobalPromptSection() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let llmSource = try String(
+            contentsOf: repoRoot.appendingPathComponent("Sources/FalaCore/UI/SettingsView+LLM.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(llmSource.contains("if settings.llmProvider != \"apple\""))
+        XCTAssertFalse(
+            llmSource.contains(
+                "No Apple Intelligence, prefira editar o prompt dentro de cada modo. "
+                    + "Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI."
+            )
+        )
+    }
+
+    func testSettingsWindowUsesStandardTitlebarLayout() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let source = try String(
+            contentsOf: repoRoot.appendingPathComponent("Sources/FalaCore/UI/SettingsWindowController.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertFalse(source.contains("fullSizeContentView: true"))
+        XCTAssertFalse(source.contains("transparentTitlebar: true"))
+    }
+
+    func testOfficialDocsNoLongerAdvertiseDiarization() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let files = [
+            "README.md",
+            "docs/SPEC.md",
+            "docs/WEBSITE_SPEC.md"
+        ].map { repoRoot.appendingPathComponent($0) }
+
+        let bannedSnippets = [
+            "Diarization",
+            "múltiplos locutores",
+            "multiple speakers",
+            "Locutor 1"
+        ]
+
+        for fileURL in files {
+            let source = try String(contentsOf: fileURL, encoding: .utf8)
+            for snippet in bannedSnippets {
+                XCTAssertFalse(
+                    source.localizedCaseInsensitiveContains(snippet),
+                    "\(fileURL.lastPathComponent) should not advertise removed diarization feature '\(snippet)'"
+                )
+            }
+        }
+    }
+}

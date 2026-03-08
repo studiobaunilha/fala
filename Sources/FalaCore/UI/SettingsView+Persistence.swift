@@ -82,7 +82,6 @@ extension View {
 
     func observeMoreSettingsChanges(_ settings: AppSettings) -> some View {
         self
-            .onChange(of: settings.enableDiarization) { settings.save() }
             .onChange(of: settings.selectedDictationTemplate) { settings.save() }
             .onChange(of: settings.llmProvider) { settings.save() }
             .onChange(of: settings.llmPrompt) { settings.save() }

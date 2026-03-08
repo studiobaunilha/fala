@@ -15,7 +15,6 @@ O **Fala** é uma ferramenta nativa de transcrição e pós-processamento de áu
 ### 1. Modos de Uso
 - **Ditado (Tempo Real):** Ativado por um atalho global customizável. O usuário segura a tecla para gravar (push-to-talk). Ao soltar, o áudio é transcrito, formatado pela IA (opcional) e o texto é colado automaticamente no campo ativo.
 - **Transcrição de Arquivos (Batch):** O usuário seleciona arquivos de áudio locais. O sistema transcreve o arquivo todo em background.
-  - *Diarization:* Identifica automaticamente em transcrições de arquivos as trocas de locutores e formata as respostas via LLM (ex: Locutor 1, Locutor 2).
 
 ### 2. Motores de Transcrição
 O aplicativo oferece suporte dual-engine, permitindo adequação entre performance e flexibilidade:
@@ -33,7 +32,6 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
   - [Resumir] Entrega apenas os tópicos centrais falados.
   - [Traduzir] Translada dinamicamente texto em PT-BR (ou outro idioma) para Inglês de forma nativa.
   - [Desenvolvedor] Entende instruções de código contextualizado.
-  - [Diarization] Identifica múltiplas vozes em arquivos (ex: Locutor 1, Locutor 2) via regras de prompt.
 
 ### 4. Gestão de Vocabulário e Atalhos
 - **Filtro de Dicionário Automático:** O sistema possui um sistema de *Replacement Rules* (Regras de Substituição). Qualquer termo identificado no áudio pode ser automaticamente substituído (Case-Insensitive) antes mesmo do pós-processamento (ex: "Jira" ➔ "JIRA", "píar" ➔ "PR").

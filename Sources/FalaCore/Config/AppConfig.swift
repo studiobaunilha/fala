@@ -17,7 +17,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
     
     public var dictationTemperature: Float = 0.0
     public var batchTemperature: Float = 0.0
-    public var enableDiarization: Bool = false
     
     public var defaultExportPath: String = FileManager.default.urls(
         for: .downloadsDirectory, in: .userDomainMask
@@ -60,7 +59,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case legacyLanguage = "language"
         case dictationTemperature
         case batchTemperature
-        case enableDiarization
         case defaultExportPath
         case selectedDictationTemplate
         case llmProvider
@@ -104,7 +102,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(transcriptionLanguage, forKey: .transcriptionLanguage)
         try container.encode(dictationTemperature, forKey: .dictationTemperature)
         try container.encode(batchTemperature, forKey: .batchTemperature)
-        try container.encode(enableDiarization, forKey: .enableDiarization)
         try container.encode(defaultExportPath, forKey: .defaultExportPath)
         try container.encode(selectedDictationTemplate, forKey: .selectedDictationTemplate)
         try container.encode(llmProvider, forKey: .llmProvider)
@@ -207,7 +204,6 @@ extension AppConfig {
     }
 
     private mutating func decodeAdvancedFields(from container: KeyedDecodingContainer<CodingKeys>) {
-        enableDiarization = (try? container.decode(Bool.self, forKey: .enableDiarization)) ?? false
         defaultExportPath = (try? container.decode(String.self, forKey: .defaultExportPath))
             ?? FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path
             ?? ""

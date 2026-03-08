@@ -75,6 +75,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .toolbar(removing: .sidebarToggle)
         .id(localizationObserver.revision)
         .environment(\.locale, AppLocalization.currentLocale())

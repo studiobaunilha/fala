@@ -769,22 +769,6 @@
         }
       }
     },
-    "Diarization (Identificação de Vozes)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Diarization (Voice Identification)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Diarization (Identificación de voces)"
-          }
-        }
-      }
-    },
     "Disponível": {
       "localizations": {
         "en": {
@@ -1181,22 +1165,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "IA & LLM"
-          }
-        }
-      }
-    },
-    "Identificar múltiplos locutores (Diarization)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Identify multiple speakers (Diarization)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Identificar múltiples hablantes (Diarization)"
           }
         }
       }
@@ -2337,22 +2305,6 @@
         }
       }
     },
-    "Reconhecer múltiplos locutores": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recognize multiple speakers"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reconocer múltiples hablantes"
-          }
-        }
-      }
-    },
     "Requer macOS Tahoe (26) ou superior.": {
       "localizations": {
         "en": {
@@ -3393,22 +3345,6 @@
         }
       }
     },
-    "A identificação de locutores funciona via pós-processamento com IA — não é detecção acústica. A qualidade depende do modelo de IA selecionado. Requer o campo de pós-processamento preenchido.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Speaker identification works through AI post-processing — it is not acoustic detection. Quality depends on the selected AI model. It requires the post-processing field to be filled in."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La identificación de hablantes funciona mediante posprocesamiento con IA; no es detección acústica. La calidad depende del modelo de IA seleccionado. Requiere completar el campo de posprocesamiento."
-          }
-        }
-      }
-    },
     "A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução.": {
       "localizations": {
         "en": {
@@ -3501,22 +3437,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Se agrega al final de todas las instrucciones. Sirve para obligar a la IA a actuar estrictamente como formateadora, sin preámbulos."
-          }
-        }
-      }
-    },
-    "Apenas para transcrição de arquivos. Usa pós-processamento com IA para separar locutores — não é detecção acústica. A qualidade depende do modelo de IA selecionado.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Only for file transcription. Uses AI post-processing to separate speakers — it is not acoustic detection. Quality depends on the selected AI model."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solo para transcripción de archivos. Usa posprocesamiento con IA para separar hablantes; no es detección acústica. La calidad depende del modelo de IA seleccionado."
           }
         }
       }
@@ -4081,22 +4001,6 @@
         }
       }
     },
-    "IMPORTANTE: O áudio possui múltiplos locutores. Identifique as trocas de falantes pelo contexto e formate o texto indicando quem está falando (Ex: Locutor 1: ..., Locutor 2: ...).": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IMPORTANT: The audio has multiple speakers. Identify speaker changes from context and format the text indicating who is speaking (e.g. Speaker 1: ..., Speaker 2: ...)."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IMPORTANTE: El audio tiene varios hablantes. Identifica los cambios de voz por el contexto y da formato al texto indicando quién habla (ej.: Locutor 1: ..., Locutor 2: ...)."
-          }
-        }
-      }
-    },
     "Ideal para tarefas simples como limpar e formatar texto. Para prompts criativos ou complexos (Dev, Sumário), considere Gemini, OpenAI ou MLX.": {
       "localizations": {
         "en": {
@@ -4189,22 +4093,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Incompatible"
-          }
-        }
-      }
-    },
-    "Indisponível com Apple Intelligence (requer modelo mais avançado)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unavailable with Apple Intelligence (requires a more advanced model)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No disponible con Apple Intelligence (requiere un modelo más avanzado)"
           }
         }
       }
@@ -7069,22 +6957,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Último intento automático"
-          }
-        }
-      }
-    },
-    "No Apple Intelligence, prefira editar o prompt dentro de cada modo. Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "With Apple Intelligence, prefer editing the prompt inside each mode. This global prompt still applies when you choose MLX, Gemini, or OpenAI."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Con Apple Intelligence, conviene editar el prompt dentro de cada modo. Este prompt global sigue usándose cuando eliges MLX, Gemini u OpenAI."
           }
         }
       }

@@ -14,6 +14,9 @@ Todas as mudanças notáveis do Fala serão documentadas aqui.
 
 ### Correções
 
+- **Diarization removida do produto**: O app deixa de expor diarization em Ajustes, transcrição de arquivos, prompts e configuração persistida, eliminando estados residuais do recurso.
+- **Prompt global ocultado com Apple Intelligence**: O painel `IA & LLM` deixa de mostrar o prompt global quando o provedor padrão selecionado é Apple Intelligence, evitando uma configuração sem efeito.
+- **Layout dos Ajustes corrigido**: A janela de Ajustes volta a respeitar a área útil inteira, sem clipping no conteúdo da direita e sem o painel lateral extrapolar o contêiner.
 - **Batch sem dependência externa de `ffmpeg`**: A preparação de áudio para transcrição de arquivos passa a ser nativa, evitando depender de Homebrew em máquinas limpas.
 - **Empacotamento mais confiável**: O pipeline de build e release valida o conteúdo staged do `.app` antes de empacotar, reduzindo risco de bundle incompleto na distribuição.
 

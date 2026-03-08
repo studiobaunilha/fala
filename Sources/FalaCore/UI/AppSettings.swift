@@ -26,7 +26,6 @@ public final class AppSettings: ObservableObject {
     @Published public var replacements: [String: String]
     @Published public var replacementRules: [ReplacementRule]
     @Published public var defaultExportPath: String
-    @Published public var enableDiarization: Bool
 
     @Published public var selectedDictationTemplate: DictationTemplate
     @Published public var llmProvider: String
@@ -100,7 +99,6 @@ public final class AppSettings: ObservableObject {
         self.replacements = normalizedConfig.replacements
         self.replacementRules = normalizedConfig.replacementRules
         self.defaultExportPath = normalizedConfig.defaultExportPath
-        self.enableDiarization = normalizedConfig.enableDiarization
         self.selectedDictationTemplate = normalizedConfig.selectedDictationTemplate
         self.llmProvider = normalizedConfig.llmProvider
         self.llmPrompt = normalizedConfig.llmPrompt
@@ -227,7 +225,6 @@ public extension AppSettings {
         snapshot.replacements = replacements
         snapshot.replacementRules = replacementRules
         snapshot.defaultExportPath = defaultExportPath
-        snapshot.enableDiarization = enableDiarization
         snapshot.selectedDictationTemplate = selectedDictationTemplate
         snapshot.llmProvider = llmProvider
         snapshot.llmPrompt = llmPrompt

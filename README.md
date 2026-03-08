@@ -13,7 +13,7 @@ Esqueça gravar áudios em um app, exportar, subir no navegador, esperar a trans
 
 Com o Fala, você tem um fluxo mágico e contínuo:
 1. **Dite em qualquer lugar:** Segure um atalho no teclado em qualquer aplicativo (Word, Slack, Mail, Xcode). Fale naturalmente. Ao soltar a tecla, o texto digitado magicamente aparece formatado sob o seu cursor.
-2. **Basta arrastar:** Solte um áudio (ou vídeo) gravado. O Fala transcreve, identifica locutores diferentes e te entrega uma ata arrumada em segundos.
+2. **Basta arrastar:** Solte um áudio (ou vídeo) gravado. O Fala transcreve e te entrega o texto pronto para revisar, resumir ou exportar em segundos.
 
 ## 2. Principais Funcionalidades
 
@@ -31,7 +31,6 @@ Ninguém gosta de ler transcrições cheias de "éhhh", "hmmm" e pontuação que
 * [Resumir:] Extrai direto o assunto e tópicos chaves do áudio.
 * [Traduzir:] Dite em Português e o texto será inserido em Inglês.
 * [Desenvolvedor:] Entende instruções de código contextualizado.
-* [Diarization (Múltiplas Vozes):] Identifica e formata "Locutor 1, Locutor 2" automaticamente em arquivos.
 
 ### 4. Controle Total na sua Mão
 * **Acurácia vs Velocidade:** Ajuste fino sobre o motor Whisper (via *Greedy Decoding*). Otimize caso precise de transcrições instantâneas ou extremamente apuradas.
