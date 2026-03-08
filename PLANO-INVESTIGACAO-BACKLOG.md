@@ -1,837 +1,130 @@
-# Fala — Plano de Investigacao do Backlog
-
-Documento de trabalho registrado em 7 de marco de 2026.
-
-Este arquivo existe na raiz por solicitacao direta do projeto. Ele nao substitui a documentacao oficial consolidada em `README.md`, `docs/SPEC.md` e `docs/`; trata-se de um plano de investigacao e execucao futura. Decisoes de produto so devem ser promovidas para a documentacao oficial depois de validadas.
+# Fala — Backlog de Execucao
 
 ## Objetivo
 
-Registrar, com base em leitura do codigo atual e em referencias externas atualizadas, os bugs e melhorias levantados para o Fala, junto com:
+Este documento define o backlog ativo do Fala para v1 e v1.x.
 
-- diagnostico tecnico inicial;
-- impacto em UX, arquitetura e performance;
-- sugestao de como enderecar cada item;
-- criterios de validacao;
-- riscos e dependencias.
+Ele existe para responder, com clareza:
 
-Este documento nao prioriza ainda. A matriz de valor x velocidade sera feita depois.
+- o que esta decidido;
+- o que ja foi entregue;
+- o que ainda precisa ser feito;
+- em que ordem vamos executar.
+
+Nao registra historico, indecisao antiga, tentativa descartada ou anotacao transitoria.
 
 ## Guardrails de qualidade
 
-Qualquer execucao futura deste backlog deve manter estes gates como definicao minima de pronto:
+Toda entrega deste backlog deve respeitar estes gates:
 
 - `make lint`
 - `make test`
 - `make check`
 - build debug verde
-- build release verde quando a etapa tocar comportamento distribuido
-- cobertura nova guiada por risco e regressao, sem criar mocks complexos quando um teste de integracao ou E2E trouxer mais sinal
-- nenhum fluxo novo de UI sem tokenizacao, componentizacao e alinhamento com o Design System ja existente
-- nenhuma alteracao estrutural em settings, menu bar, onboarding ou prompts sem validar aderencia ao estilo nativo do macOS
+- build release verde sempre que a entrega tocar fluxo distribuido, onboarding, warmup, menu bar ou runtime principal
+- `make test-mlx` sempre que a entrega tocar MLX, catalogo MLX, loader MLX, warmup MLX, download MLX ou pos-processamento MLX
+- testes novos guiados por risco e regressao real
+- nenhuma UI nova sem tokens, componentizacao e reaproveitamento coerente com o Design System do projeto
+- nenhum fallback silencioso em fluxos principais
+- nenhuma alteracao de performance sem instrumentacao suficiente para validar ganho ou regressao
+
+## Decisoes fechadas
+
+- Bugs e confiabilidade tem prioridade sobre expansoes de escopo.
+- O produto de lancamento precisa ser previsivel, rapido e transparente antes de ganhar novas capacidades.
+- O catalogo MLX continua curado e validado pelo app; o fluxo principal nao expoe repo customizado livre.
+- O item `mlx-community/Qwen3.5-4B-MLX-4bit` continua fora do catalogo de texto enquanto nao houver validacao explicita para uso LLM textual no runtime atual.
+- A bandeja nao deve representar warmup em background como se fosse download real ou bloqueio do usuario.
+- Pos-processamento com MLX deve ter comportamento binario:
+  - ou processa;
+  - ou bloqueia com erro explicito e estado coerente.
+- O fluxo de licenca no macOS e tratado como acesso ao Keychain, nao como selecao de arquivo; o app deve restaurar esse estado com snapshot unico e sem leituras redundantes no mesmo launch.
+- Builds usados para validar licenciamento localmente precisam de identidade de assinatura estavel; assinatura ad hoc baseada em `cdhash` nao e aceitavel como fluxo padrao para esse caso.
+- A acao `Reiniciar agora` so pode existir quando o relaunch for verificavel; se isso nao puder ser garantido, a interface deve orientar fechamento e abertura manual com copy honesta.
+- O fluxo de Whisper deve priorizar reuso e warmup corretos antes de qualquer redesign maior de UX.
+- O redesign de escolha de modelos deve convergir para componentes reutilizaveis, nao gerar mais uma interface paralela.
+- Todo prompt usado pelo app deve caminhar para um modelo editavel e restauravel pelo usuario, com uma unica linguagem de interface.
+
+## Status atual
+
+### P0 — Confiabilidade e verdade de estado
+
+| Item | Status atual | Definicao de pronto |
+| --- | --- | --- |
+| Licenca: eliminar prompts repetidos de senha do Keychain `login` | Pronto para execucao | O launch deixa de disparar 3-5 pedidos equivalentes para acessar `dev.fala.app.license` nas chaves do `login`; o estado de licenca passa a ser restaurado a partir de um snapshot unico em memoria; token, email e tempo de servidor nao sao relidos em cadeia quando um estado consistente ja foi carregado; o fluxo de build usado para validar licenca deixa de depender de identidade ad hoc instavel; a UX de autorizacao fica objetiva e nao obriga repeticao manual de senha para o mesmo contexto; testes cobrem restauracao paga, trial, migracao legada e falha de acesso ao store seguro. |
+| Restart: relaunch confiavel ou fallback honesto | Pronto para execucao | Ao confirmar uma mudanca que exige reinicio, o app abre uma nova instancia de forma verificavel e so encerra a instancia atual depois disso; se o relaunch falhar, a UI deixa de prometer reinicio automatico e instrui corretamente fechamento e abertura manual; testes cobrem sucesso, falha e cancelamento. |
+| MLX: crash ao concluir download | Concluido | O app nao fecha ao concluir download MLX; updates de progresso nao derrubam a bandeja; eventos de conclusao chegam na main thread; `make check`, `build debug` e `make test-mlx` verdes. |
+| Batch: erro de MLX explicito | Concluido | Batch nao ignora mais falha de MLX em silencio; usuario recebe erro ou aviso claro. |
+| MLX: refresh em tempo real | Concluido | Tela de modelos MLX reflete progresso e estado sem exigir troca de tela. |
+| Bandeja: estado real vs warmup | Concluido | Bandeja separa download real de warmup/preparo; tooltip e simbolo refletem estado real. |
+| Whisper: cold start em arquivo | Concluido para v1 | Batch reutiliza recursos e prewarm reduz o cold path principal. |
+| Ditado rapido: variacao de latencia | Concluido para v1 | Ditado usa prewarm e reutilizacao suficientes para o caminho principal de v1. |
+| Tamanhos errados dos modelos Whisper | Concluido | Tamanhos exibidos deixaram de mentir para o usuario. |
+
+### P1 — UX, simplificacao e base reutilizavel
+
+| Item | Status atual | Definicao de pronto |
+| --- | --- | --- |
+| Descricao de motores/modelos mais clara | Planejado | Tela de escolha explica Parakeet vs Whisper em linguagem de produto, com recomendacao clara e sem exigir conhecimento tecnico. |
+| Padronizacao da UI de catalogo | Parcial | MLX ja usa catalogo curado; Whisper ainda precisa convergir para o mesmo padrao visual e estrutural. |
+| Simplificacao do Whisper para modelo unico | Planejado | Usuario escolhe um unico modelo Whisper ativo; migracao preserva configuracoes antigas sem quebrar o app. |
+| Editor unico de prompts + Apple editavel | Planejado | Todo prompt relevante pode ser editado, restaurado e exibido pela mesma interface; Apple Intelligence deixa de ser somente leitura. |
+| Reorganizacao dos Ajustes | Planejado | Ajustes passam a refletir o modelo mental do produto: motor de transcricao, transcricao de arquivos, IA/LLM e configuracoes da aplicacao. |
+
+### P2 — Expansao funcional
+
+| Item | Status atual | Definicao de pronto |
+| --- | --- | --- |
+| Fila de varios arquivos | Planejado | Usuario pode selecionar varios arquivos, ver fila, acompanhar progresso e processar em lote com estado consistente. |
+| Streaming Whisper / preview vivo | Planejado com spike tecnico obrigatorio | Existe preview progressivo confiavel sem degradar insercao final nem gerar texto instavel no alvo. |
+| Multiplos modos personalizados | Planejado | Usuario pode criar e gerenciar mais de um modo customizado sem duplicar UI ou logica de prompts. |
+
+## Entregas ja consolidadas
+
+- readiness e onboarding baseados em estado valido
+- warmup coordenado e regras de prontidao centralizadas
+- catalogo MLX curado por manifesto
+- bloqueio de uso sem modelo local valido
+- restart transacional para mudancas que exigem reinicio
+- avisos explicitos para falhas de MLX no batch
+- reuso de transcriber no batch e prewarm do fluxo principal
+- bandeja separando download real de preparo em background
+- validacao de integridade de modelo MLX local antes de considerar o modelo utilizavel
+
+## Proxima ordem de execucao
+
+### Fase 0 — Bugs restantes de v1
+
+1. Licenca: reduzir prompts repetidos de Keychain no launch
+2. Restart: relaunch confiavel ou fallback honesto
+
+### Fase 1 — UX de escolha e simplificacao de modelos
+
+1. Descricao de motores/modelos mais clara
+2. Padronizacao da UI de catalogo
+3. Simplificacao do Whisper para modelo unico
+
+### Fase 2 — Prompts e arquitetura de Ajustes
+
+1. Editor unico de prompts + Apple editavel
+2. Reorganizacao dos Ajustes
+
+### Fase 3 — Expansoes
+
+1. Fila de varios arquivos
+2. Streaming Whisper / preview vivo
+3. Multiplos modos personalizados
+
+## Criterios para avancar de fase
+
+- Nenhum item da fase atual pode depender de correcao posterior de bug conhecido na mesma area.
+- Nenhuma fase nova comeca com gates vermelhos.
+- Nenhuma simplificacao de UX entra antes do fluxo atual estar estavel no runtime real.
+
+## Resumo executivo
 
-Para investigacoes de performance e crash:
+Hoje, o backlog ativo esta assim:
 
-- adicionar instrumentacao com `Logger`/signposts antes de otimizar;
-- reproduzir com fixtures reais e tempos comparaveis;
-- usar Instruments quando houver suspeita de pico de memoria, cold start ou regressao de latencia.
-
-## Base de investigacao
-
-### Codigo inspecionado
-
-- `Sources/FalaCore/UI/StatusBarController.swift`
-- `Sources/FalaCore/App/AppDelegate.swift`
-- `Sources/FalaCore/App/WarmupCoordinator.swift`
-- `Sources/FalaCore/Core/Transcriber.swift`
-- `Sources/FalaCore/Core/ParakeetTranscriber.swift`
-- `Sources/FalaCore/Core/AudioEngine.swift`
-- `Sources/FalaCore/Core/AudioConverter.swift`
-- `Sources/FalaCore/Core/ModelManager.swift`
-- `Sources/FalaCore/Core/MLXModelManager.swift`
-- `Sources/FalaCore/UI/SettingsView.swift`
-- `Sources/FalaCore/UI/SettingsPanel.swift`
-- `Sources/FalaCore/UI/SettingsView+Ext.swift`
-- `Sources/FalaCore/UI/SettingsView+LLM.swift`
-- `Sources/FalaCore/UI/SettingsView+LLMProviders.swift`
-- `Sources/FalaCore/UI/SettingsView+Modes.swift`
-- `Sources/FalaCore/UI/TranscribeView.swift`
-- `Sources/FalaCore/UI/TranscribeView+Ext.swift`
-- `Sources/FalaCore/UI/TranscriptionJob.swift`
-- `Sources/FalaCore/UI/TranscriptionJob+Processing.swift`
-- `Sources/FalaCore/Modes/DictationMode.swift`
-- `Sources/FalaCore/Config/DictationTemplate.swift`
-- `Sources/FalaCore/Licensing/LicenseManager.swift`
-- `Sources/FalaCore/UI/SettingsView+License.swift`
-- `Sources/FalaCore/UI/SettingsView+Updates.swift`
-- `Sources/FalaCore/UI/SettingsView+About.swift`
-
-### Referencias externas consultadas
-
-- Apple HIG: [Designing for macOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-macos)
-- Apple HIG: [Settings](https://developer.apple.com/design/human-interface-guidelines/settings)
-- Apple HIG: [Menus](https://developer.apple.com/design/human-interface-guidelines/menus)
-- WhisperKit oficial: [argmaxinc/WhisperKit](https://github.com/argmaxinc/WhisperKit)
-- Exemplo oficial de streaming do WhisperKit: [WhisperAX example](https://github.com/argmaxinc/WhisperKit/tree/main/Examples/WhisperAX)
-- Implementacao oficial de streaming no WhisperKit: [AudioStreamTranscriber.swift](https://github.com/argmaxinc/WhisperKit/blob/main/Sources/WhisperKit/Core/Audio/AudioStreamTranscriber.swift)
-- FluidAudio oficial: [FluidInference/FluidAudio](https://github.com/FluidInference/FluidAudio)
-
-## Achados transversais
-
-Antes de detalhar item por item, alguns problemas estruturais se repetem em varios pontos:
-
-- O app ainda mistura "estado de fundo" com "estado visivel ao usuario". O exemplo mais claro e o warmup: preloading em segundo plano hoje consegue parecer bloqueio ou carregamento real.
-- O pipeline de batch e o pipeline de ditado nao compartilham completamente os mesmos recursos aquecidos. Em especial, o Whisper de arquivos continua frio mesmo quando o app ja fez warmup do modelo de ditado.
-- A UI de Whisper e a UI de MLX estao em niveis diferentes de maturidade visual e arquitetural. A selecao de MLX ja esta mais proxima de um catalogo nativo; a de Whisper ainda usa uma interface mais antiga.
-- Ha pontos importantes em que o erro e engolido em vez de ser convertido em estado de interface. Isso reduz confiabilidade percebida e dificulta diagnostico.
-- Algumas decisoes do produto ainda estao acopladas demais a enums fixos e a settings espalhados. Isso trava evolucoes como multiplos modos personalizados e uma organizacao mais coerente das preferencias.
-
-## Itens investigados
-
-### 1. Icone de espera da bandeja e tooltip mentindo sobre carregamento
-
-**Problema observado**
-
-- Em estado teoricamente pronto, o item da barra mostra um simbolo de seta/refresh.
-- O tooltip pode dizer que esta carregando o Parakeet mesmo quando isso nao representa um bloqueio real para o usuario.
-
-**Evidencia no codigo**
-
-- `StatusBarController.renderStatusItem()` usa `clock.arrow.circlepath` para `.loading`.
-- `AppDelegate.syncWarmupUI` coloca a bandeja em `.loading` sempre que `WarmupCoordinator.isPreparingSelectedResources` for verdadeiro.
-- O warmup e disparado no launch, em `didBecomeActive`, depois de salvar settings e depois de download concluido.
-
-**Diagnostico inicial**
-
-- O icone atual representa "preparando em segundo plano", mas visualmente se parece com "atualizando", "recarregando" ou "algo pendente".
-- O warmup esta sendo exposto como se fosse um estado operacional primario, quando na pratica deveria ser secundario e nao-bloqueante na maior parte dos casos.
-- O tooltip atual descreve a atividade do coordenador, nao necessariamente a realidade percebida pelo usuario.
-
-**Direcao recomendada**
-
-- Separar semanticamente:
-  - `ready`
-  - `busy-user-blocking`
-  - `background-preparing`
-  - `downloading`
-  - `warning-actionable`
-- Manter o icone padrao do app em `ready`.
-- Mostrar icone de download apenas para download real.
-- Tratar warmup como estado de fundo:
-  - opcao 1: nao alterar o icone da bandeja;
-  - opcao 2: expor apenas uma linha discreta no menu ao abrir;
-  - opcao 3: mostrar tooltip de fundo somente se o prewarm estiver realmente atrasando o proximo uso.
-- Rever a copy do tooltip para refletir fato e nao inferencia.
-
-**Validacao futura**
-
-- testes unitarios para mapeamento `WarmupStatus`/downloads -> apresentacao da bandeja;
-- teste de regressao para garantir que warmup nao use iconografia de download;
-- checklist manual com app ocioso, warmup em background e download real.
-
-### 2. Whisper demora demais na primeira transcricao
-
-**Problema observado**
-
-- O primeiro uso do Whisper continua lento, especialmente em arquivo.
-
-**Evidencia no codigo**
-
-- `WarmupCoordinator.warmTranscriptionEngine()` aquece apenas o `dictationModel` quando o motor ativo e Whisper.
-- `TranscriptionJob.executeTranscription()` cria um `Transcriber` novo para batch, com `effectiveModel = overrideModel ?? config.batchModel`.
-- `Transcriber.loadIfNeeded()` faz cold load do pipeline `WhisperKit(model: variant)` no primeiro uso da instancia.
-
-**Diagnostico inicial**
-
-- O warmup atual nao cobre o caso mais importante da transcricao de arquivo quando `batchModel != dictationModel`.
-- Mesmo quando cobre o modelo, o batch cria outra instancia de `Transcriber`, perdendo boa parte do beneficio do aquecimento anterior.
-- Parte da latencia tambem vem do caminho de audio: o ditado grava em arquivo WAV temporario e depois converte tudo para `Float` via `AudioConverter.toFloat16k(from:)`.
-
-**Direcao recomendada**
-
-- Introduzir um pool/coordenador de engines de transcricao com cache por combinacao relevante:
-  - engine;
-  - modelo;
-  - idioma;
-  - parametros que realmente invalidam o pipeline.
-- Aquecer explicitamente:
-  - o modelo ativo de ditado;
-  - o modelo ativo de batch quando Whisper estiver selecionado;
-  - override recente, se o usuario usar override com frequencia.
-- Fazer `TranscriptionJob` pedir uma engine compartilhada, e nao instanciar um `Transcriber` ad hoc.
-- Medir separadamente:
-  - tempo de conversao de audio;
-  - tempo de model init;
-  - tempo ate primeira janela de texto;
-  - tempo total.
-
-**Validacao futura**
-
-- benchmark com fixture curta e fixture longa;
-- regressao de cold start para `dictationModel` e `batchModel`;
-- teste de integracao garantindo reuso de pipeline aquecido.
-
-### 3. Whisper parece mais lento no geral; avaliar streaming ou escrita progressiva
-
-**Problema observado**
-
-- Ha percepcao de que o Whisper, alem do cold start, e mais lento no geral.
-- Existe interesse em avaliar escrita progressiva ou quase em tempo real.
-
-**Evidencia no codigo**
-
-- No ditado, `DictationMode.stopAndTranscribe()` espera o audio inteiro, converte o arquivo todo e so depois chama `transcribe(samples:)`.
-- O caminho de batch com Whisper ja recebe updates progressivos por callback e atualiza a UI durante o processo.
-- O app nao usa a infraestrutura de streaming do WhisperKit no caminho de ditado.
-
-**Base externa**
-
-- O WhisperKit oficial ja expoe caminho de streaming/real-time, inclusive no exemplo `WhisperAX` e no `AudioStreamTranscriber`.
-- O uso atual do app continua em modo batch para o ditado.
-
-**Diagnostico inicial**
-
-- Existe uma oportunidade real de melhorar a experiencia do Whisper, mas isso nao e um "toggle".
-- Streaming de texto final e mais complexo do que streaming de preview porque hipoteses parciais podem mudar ao longo da fala.
-- O Parakeet, na integracao atual do app, tambem nao esta sendo usado em fluxo realmente incremental.
-
-**Direcao recomendada**
-
-- Fase 1: instrumentar e reduzir cold path antes de mudar UX.
-- Fase 2: adicionar preview progressivo em overlay, sem inserir texto no alvo ate a confirmacao final.
-- Fase 3: avaliar modo opcional de insercao incremental apenas se houver estrategia robusta de reconciliacao.
-- Manter a proposta de UX clara:
-  - preview vivo para Whisper pode fazer sentido;
-  - insercao viva em qualquer app precisa muito cuidado para nao "brigar" com o usuario.
-
-**Validacao futura**
-
-- spike tecnico separado para Whisper streaming;
-- testes de regressao em ditado curto e longo;
-- validacao manual em editores reais para evitar flicker e correcao destrutiva.
-
-### 4. Descricao dos motores e modelos esta tecnica e confusa
-
-**Problema observado**
-
-- A escolha entre Parakeet e Whisper continua tecnica demais.
-- O app ainda exige conhecimento demais para escolher rapido.
-
-**Evidencia no codigo**
-
-- O footer de `SettingsView+Ext.swift` descreve o motor mais pela tecnologia do que pelo resultado pratico.
-- A lista `knownModels` so traz `label` e `estimatedSize`, sem framing de uso.
-
-**Diagnostico inicial**
-
-- Falta hierarquia de informacao orientada a decisao:
-  - "recomendado para quase todo mundo";
-  - "melhor para controle e arquivos maiores";
-  - "mais rapido";
-  - "mais configuravel".
-
-**Direcao recomendada**
-
-- Reescrever a UX de selecao de motor com linguagem de produto:
-  - `Parakeet (Recomendado)` -> rapido, simples, ideal para a maioria;
-  - `Whisper (Mais controle)` -> mais opcoes de modelo e traducao.
-- Para Whisper, exibir um subtitulo por modelo focado em cenario, nao em arquitetura.
-- Manter o nome tecnico visivel, mas secundario.
-
-**Validacao futura**
-
-- snapshot/UI tests para copy e badges;
-- validacao manual com usuario nao tecnico.
-
-### 5. Whisper com dois modelos ativos esta complexo demais
-
-**Problema observado**
-
-- Hoje existe `Modelo de Ditado` e `Modelo Batch / Arquivo`.
-- A interface transmite complexidade desnecessaria.
-
-**Evidencia no codigo**
-
-- `SettingsView+Ext.swift` mostra dois pickers em "Modelos Whisper Ativos".
-- `AppConfig` e `AppSettings` mantem `dictationModel` e `batchModel` separadamente.
-
-**Diagnostico inicial**
-
-- Do ponto de vista de produto, a separacao existe, mas a UX nao justifica bem por que o usuario deveria gerenciar isso.
-- O custo cognitivo e alto e a warmup strategy fica mais dificil.
-
-**Direcao recomendada**
-
-- Simplificar o produto para "Modelo ativo do Whisper".
-- Se a equipe ainda quiser preservar flexibilidade, esconder a separacao atras de um disclosure de nivel avancado.
-- Se a simplificacao for aprovada, planejar migracao:
-  - novo campo unico em config;
-  - mapeamento de legacy settings;
-  - remocao de badges `dictation`/`batch` do row atual.
-
-**Validacao futura**
-
-- testes de migracao de config;
-- testes de regressao de warmup e readiness;
-- QA manual de onboarding e batch.
-
-### 6. Tamanhos estimados dos modelos Whisper estao errados
-
-**Problema observado**
-
-- Exemplo relatado: `large-v3-turbo` aparece como `~800 MB`, mas download real observado e muito maior.
-
-**Evidencia no codigo**
-
-- `knownModels` em `ModelManager.swift` ainda usa `estimatedSize` hardcoded.
-
-**Diagnostico inicial**
-
-- A informacao atual gera desconfiança porque parece precisa, mas nao e.
-- Para modelos nao baixados, o numero serve mais como promessa do que como dado.
-
-**Direcao recomendada**
-
-- Curto prazo: remover estimativa quando ela nao for confiavel.
-- Medio prazo: alimentar tamanho por manifesto validado, com dado revisado periodicamente.
-- Longo prazo: se a origem permitir, mostrar faixa ou tamanho remoto confirmado em vez de numero fixo.
-
-**Validacao futura**
-
-- teste de UI para nao renderizar estimativa enganosa;
-- revisao de manifesto ou tabela de metadados com fonte explicita.
-
-### 7. Batch deveria aceitar varios arquivos e montar fila
-
-**Problema observado**
-
-- O fluxo atual permite apenas um arquivo por vez.
-
-**Evidencia no codigo**
-
-- `TranscriptionJob.selectFile()` usa `panel.allowsMultipleSelection = false`.
-- `TranscribeView.handleDrop(_:)` pega apenas `items.first`.
-- `TranscriptionJob` modela um unico `inputURL`.
-
-**Diagnostico inicial**
-
-- A arquitetura da janela de transcricao ainda e monolitica e centrada em um unico job.
-- Isso limita um caso forte de uso, principalmente quando o engine e Parakeet.
-
-**Direcao recomendada**
-
-- Criar uma fila explicita de jobs:
-  - `QueuedTranscriptionItem`;
-  - `BatchQueueCoordinator`;
-  - estados `pending`, `preparing`, `transcribing`, `processing`, `done`, `failed`, `canceled`.
-- Permitir:
-  - selecao multipla no `NSOpenPanel`;
-  - drop de varios arquivos;
-  - reorder, retry e reveal por item.
-- Comecar com concorrencia `1` por padrao.
-- Avaliar concorrencia configuravel mais tarde, principalmente para Parakeet.
-
-**Validacao futura**
-
-- testes de fila, cancelamento e persistencia de output;
-- testes de batch misto com e sem pos-processamento;
-- QA com 5 a 10 arquivos curtos.
-
-### 8. Tela de modelos MLX nao atualiza em tempo real
-
-**Problema observado**
-
-- O download ou o estado do modelo so aparece atualizado depois de trocar de tela e voltar.
-
-**Evidencia no codigo**
-
-- `SettingsView` observa `settings` e `modelManager`, mas nao observa `mlxModelManager`.
-- `SettingsView+LLMProviders.swift` le `settings.mlxModelManager.downloads[...]`, mas a view pai nao recebe invalidacao direta desse child object.
-
-**Diagnostico inicial**
-
-- Este item esta praticamente confirmado como bug de observacao/refresh da UI.
-
-**Direcao recomendada**
-
-- Extrair a area de catalogo MLX para subviews com `@ObservedObject` explicito do `mlxModelManager` e do `mlxCatalogService`.
-- Garantir atualizacao em tempo real para:
-  - progresso;
-  - status de download concluido;
-  - erro;
-  - tamanho em disco;
-  - CTA `Baixar` -> `Selecionar` -> `Remover`.
-
-**Validacao futura**
-
-- teste de view source/integacao para refresh em mudanca de `downloads`;
-- QA manual iniciando e concluindo downloads sem navegar para fora da tela.
-
-### 9. Pos-processamento com MLX parece ignorado
-
-**Problema observado**
-
-- O usuario percebe que o MLX nao esta sendo aplicado no pos-processamento de batch.
-- Existe alerta visual em algum ponto, mas sem explicacao util.
-
-**Evidencia no codigo**
-
-- `TranscriptionJob+Processing.applyLLM(...)` captura erro, faz `print("[Fala] LLM Error: ...")` e devolve o texto bruto.
-- No batch, esse erro nao e traduzido para `state`, `NoticeCard` ou mensagem persistente na janela.
-
-**Diagnostico inicial**
-
-- O comportamento atual falha de forma silenciosa demais.
-- Mesmo quando a readiness deixa iniciar, o processamento pode falhar depois e o usuario recebe um resultado que parece "ignorado".
-
-**Direcao recomendada**
-
-- Tornar erro de LLM em batch um estado de produto, nao apenas log:
-  - banner explicando que a transcricao saiu sem pos-processamento;
-  - opcao de reprocessar texto ja transcrito;
-  - detalhes minimos do motivo.
-- Separar claramente:
-  - erro de configuracao/readiness;
-  - erro de inferencia/runtime;
-  - fallback deliberado para texto cru.
-
-**Validacao futura**
-
-- testes de integracao cobrindo erro de MLX e fallback explicitado;
-- QA manual com modelo ausente, modelo invalido e erro de runtime.
-
-### 10. Download de modelos MLX pode travar e fechar o app ao concluir
-
-**Problema observado**
-
-- Existe relato de fechamento da aplicacao quando o download termina.
-
-**Evidencia no codigo**
-
-- `MLXModelManager.download(...)` so baixa os arquivos e, ao concluir, publica `.mlxDownloadCompleted`.
-- `AppDelegate.handleModelDownloadCompleted()` dispara `warmupCoordinator.scheduleSelectedWarmup()`.
-- `WarmupCoordinator.warmSelectedLLM()` pode chamar `MLXModelCache.shared.warmup(repoID:)` imediatamente apos o download, o que carrega o modelo na memoria.
-
-**Diagnostico inicial**
-
-- O comentario em `MLXModelManager` tenta evitar OOM durante download, mas o app pode reintroduzir pico de memoria exatamente na conclusao ao aquecer automaticamente o modelo selecionado.
-- Este item ainda precisa reproducao instrumentada com crash log e medicao de memoria para confirmacao.
-
-**Direcao recomendada**
-
-- Investigar com prioridade de confiabilidade:
-  - crash reports;
-  - Allocations;
-  - VM Tracker;
-  - Time Profiler.
-- Adiar o warmup automatico de MLX recem-baixado ate o app estar realmente ocioso.
-- Gatear warmup por heuristica de memoria disponivel e classe de hardware.
-- Se necessario, trocar warmup completo por validacao leve de integridade no fim do download.
-
-**Validacao futura**
-
-- reproducao com modelo pequeno e medio;
-- teste manual com download concluindo em foreground e background;
-- telemetria local de tempo/memoria durante pos-download.
-
-### 11. Whisper e MLX usam interfaces de selecao de modelo diferentes
-
-**Problema observado**
-
-- A interface nova de MLX esta melhor do que a de Whisper.
-- O produto aparenta duas geracoes de UI convivendo no mesmo fluxo.
-
-**Evidencia no codigo**
-
-- Whisper usa `ModelRow` e pickers legados.
-- MLX usa `MLXCatalogSelectionSummaryView` e `MLXCatalogModelRow`.
-
-**Diagnostico inicial**
-
-- A falta de padrao piora a curva de aprendizado e aumenta custo de manutencao.
-
-**Direcao recomendada**
-
-- Definir um componente de catalogo de modelos reutilizavel para motores locais:
-  - cabecalho/resumo do selecionado;
-  - rows com descricao, tamanho, estado e acao primaria;
-  - badges de recomendado/ativo/ideal para este Mac.
-- Adaptar Whisper para esse mesmo dialeto visual, respeitando diferencas reais do motor.
-
-**Validacao futura**
-
-- snapshot/UI tests dos dois catalogos;
-- auditoria de tokens/componentes para evitar novo hardcode.
-
-### 12. Prompts nao deveriam ser escondidos ou somente leitura
-
-**Problema observado**
-
-- O fluxo atual deixa alguns prompts editaveis e outros somente leitura, principalmente no Apple Intelligence.
-- Isso quebra a expectativa de controle total.
-
-**Evidencia no codigo**
-
-- `SettingsView+Modes.swift` usa `appleIntelligencePromptNote` com editor somente leitura.
-- O global prompt tambem tem outra interface separada em `SettingsView+LLM.swift`.
-
-**Diagnostico inicial**
-
-- A restricao foi feita por limitacao pratica do provider, nao porque o produto precise esconder a instrucao.
-- Mesmo com provider mais fraco, o melhor caminho e expor o prompt com aviso de capacidade e opcao de restaurar o padrao.
-
-**Direcao recomendada**
-
-- Criar um componente unico de edicao de prompt:
-  - titulo;
-  - editor;
-  - ajuda contextual;
-  - contador/limite quando aplicavel;
-  - restaurar padrao;
-  - badge de compatibilidade do provider.
-- Permitir edicao tambem no Apple Intelligence, mas com aviso claro:
-  - o modelo e compacto;
-  - prompts longos/complexos podem degradar o resultado.
-- Uniformizar o visual entre:
-  - prompt global;
-  - prompt por modo;
-  - prompt customizado.
-
-**Validacao futura**
-
-- testes de persistencia e restauracao;
-- QA manual para Apple, MLX, Gemini e OpenAI.
-
-### 13. Talvez faca sentido unificar Licenca, Atualizacoes e Sobre
-
-**Problema observado**
-
-- O sidebar de Ajustes esta ficando fragmentado.
-
-**Evidencia no codigo**
-
-- `SettingsPanel` ainda mantem `license`, `updates` e `about` como paineis separados.
-
-**Diagnostico inicial**
-
-- Ha sinal de fragmentacao real.
-- Em paralelo, opcoes de transcricao de arquivo e de motor estao espalhadas em paineis que nao refletem bem o modelo mental do usuario.
-
-**Direcao recomendada**
-
-- Reestruturar o sidebar para menos categorias e mais coerencia:
-  - `Geral`
-  - `Motor de Transcricao`
-  - `Transcricao de Arquivos`
-  - `IA & Prompts`
-  - `Aplicacao`
-- Em `Aplicacao`, agrupar:
-  - licenca/trial;
-  - atualizacoes;
-  - versao/sobre.
-- Seguir HIG: sidebar curta, nomenclatura orientada ao que o usuario quer fazer, nao a implementacao interna.
-
-**Validacao futura**
-
-- testes de navegacao e selecao de painel;
-- auditoria de strings/localizacao;
-- QA manual de discoverability.
-
-### 14. Mais de um modo personalizado
-
-**Problema observado**
-
-- Um unico modo personalizado parece pouco.
-
-**Evidencia no codigo**
-
-- `DictationTemplate` e um enum fixo com `raw`, `translate`, `custom`, `askAI`.
-- `customModeName` e `customModePrompt` sao unicos.
-
-**Diagnostico inicial**
-
-- Este item e valioso, mas nao e ajuste pontual.
-- Ele exige remodelar:
-  - persistencia;
-  - menu da bandeja;
-  - sidebar de Ajustes;
-  - onboarding e possivelmente readiness.
-
-**Direcao recomendada**
-
-- Evoluir para modelo de dados dinamico:
-  - templates built-in continuam fixos;
-  - `UserMode` vira colecao persistida;
-  - menu rapido e settings passam a renderizar lista de modos do usuario.
-- Manter um fluxo claro de criar, duplicar, renomear, ordenar e remover.
-
-**Validacao futura**
-
-- testes de migracao do `custom` atual;
-- testes de renderizacao dinamica no menu rapido;
-- QA manual com 3 ou mais modos criados.
-
-### 15. Parakeet as vezes fica muito lento no ditado rapido
-
-**Problema observado**
-
-- O fluxo "segurou, falou, soltou, inseriu" precisa ser o caminho mais otimizado do produto, mas ainda apresenta variacao de latencia.
-
-**Evidencia no codigo**
-
-- `DictationMode.stopAndTranscribe()` sempre:
-  - finaliza gravacao em arquivo;
-  - converte o arquivo inteiro para `Float`;
-  - calcula RMS/silencio;
-  - so entao chama a engine.
-- O caminho grava em disco temporario mesmo quando o destino final e somente o ditado rapido.
-
-**Diagnostico inicial**
-
-- Parte da variacao pode estar antes da inferencia, e nao no Parakeet em si.
-- O caminho atual tem IO de arquivo + conversao de audio + inferencia + pos-processamento + insercao.
-- Sem instrumentacao, a percepcao de "Parakeet lento" pode estar mascarando custo de pipeline ao redor dele.
-
-**Direcao recomendada**
-
-- Adicionar signposts por etapa:
-  - stop recording;
-  - conversao;
-  - transcricao;
-  - pos-processamento;
-  - insercao.
-- Investigar caminho em memoria para ditado, evitando hop desnecessario por WAV temporario.
-- Priorizar o fluxo de ditado como trilha critica do produto.
-
-**Validacao futura**
-
-- benchmark repetido com audio curto;
-- mediana e p95 por etapa;
-- regressao automatizada de latencia onde for viavel.
-
-### 16. Reorganizacao dos Ajustes por modelo mental do produto
-
-**Problema observado**
-
-- Itens relacionados a transcricao de arquivo estao espalhados entre `Geral`, `Modelos` e `Avancado`.
-- "Modelos" na pratica e "Motor de Transcricao".
-
-**Evidencia no codigo**
-
-- `generalView` contem `Armazenamento`, que afeta apenas transcricao de arquivo.
-- `advancedView` mistura temperatura Whisper com diarization e substituicao de texto, que sao itens de arquivo/pipeline.
-- `modelsView` mistura escolha de engine com gerenciamento de modelos.
-
-**Diagnostico inicial**
-
-- O sidebar atual reflete crescimento incremental do app, nao uma arquitetura de preferencia consolidada.
-
-**Direcao recomendada**
-
-- Proposta de redistribuicao:
-  - `Geral`: atalho global, idioma da interface.
-  - `Motor de Transcricao`: escolha de engine, idioma do engine, catalogo Whisper/Parakeet.
-  - `Transcricao de Arquivos`: armazenamento, diarization, pos-processamento de batch, substituicoes, formato de saida.
-  - `IA & Prompts`: provider global, catalogo MLX, credenciais cloud, prompts.
-  - `Aplicacao`: licenca, atualizacoes, sobre.
-- Renomear `Modelos` para `Motor de Transcricao`.
-
-**Validacao futura**
-
-- testes de navegacao;
-- QA de copy e localizacao;
-- revisao de onboarding e deep links de readiness.
-
-## Recomendacoes de implementacao por trilha
-
-### Trilha A: Confiabilidade e verdade de estado
-
-- corrigir semantica da bandeja;
-- corrigir refresh em tempo real do MLX;
-- parar de engolir erro de pos-processamento;
-- investigar crash no fim do download MLX.
-
-### Trilha B: Performance de transcricao
-
-- instrumentar ditado e batch;
-- reusar engine/modelo aquecido;
-- aquecer Whisper batch corretamente;
-- depois avaliar streaming do Whisper.
-
-### Trilha C: Simplificacao de UX
-
-- melhorar copy de motores/modelos;
-- simplificar Whisper para modelo ativo unico ou modo avancado oculto;
-- remover estimativas de tamanho nao confiaveis;
-- padronizar catalogos de modelos.
-
-### Trilha D: Informacao arquitetural e customizacao
-
-- unificar editor de prompts;
-- permitir edicao de prompt para Apple;
-- preparar evolucao para multiplos modos personalizados.
-
-### Trilha E: Arquitetura dos Ajustes
-
-- reestruturar sidebar;
-- agrupar itens de transcricao de arquivo;
-- consolidar itens de aplicacao.
-
-## Priorizacao proposta para v1
-
-### Base de decisao
-
-Para a primeira versao de lancamento, a ordem proposta abaixo usa estes criterios, nesta ordem:
-
-1. bugs que quebram confianca, causam crash, mascaram erro ou mentem sobre o estado real do app;
-2. fluxo principal do produto, especialmente ditado rapido e primeira transcricao;
-3. reducao de friccao forte de usabilidade que afeta quase todo usuario;
-4. melhorias que, alem de resolver o problema, deixam uma base mais limpa para evolucao futura;
-5. epicos de expansao funcional ou UX mais ambiciosa, desde que nao prejudiquem estabilidade do lancamento.
-
-Regra adicional para execucao:
-
-- sempre que um item tocar selecao de modelos, prompts ou settings, a entrega deve aproveitar a mudanca para extrair componente compartilhado, token e estado reutilizavel; nao vale corrigir localmente e deixar a duplicacao viva.
-
-### Matriz proposta
-
-Legenda:
-
-- `Valor`: impacto direto no sucesso da v1.
-- `Velocidade`: velocidade relativa para entregar com qualidade.
-- `Risco`: risco tecnico e de regressao.
-- `Prioridade`: ordem recomendada de ataque.
-
-### Atualizacao P0 em 2026-03-07
-
-- `Concluido`: `Batch: erro de MLX explicito`
-- `Concluido`: `MLX: refresh em tempo real`
-- `Concluido`: `Bandeja: estado real vs warmup`
-- `Concluido`: `Whisper: cold start em arquivo`
-- `Concluido`: `Ditado rapido: variacao de latencia`
-- `Concluido`: `Tamanhos errados dos modelos Whisper`
-- `Concluido com validacao manual recomendada`: `MLX: crash ao concluir download`
-
-Notas:
-
-- o item de crash em download MLX foi neutralizado no codigo com bloqueio explicito de warmup LLM logo apos a conclusao do download e com `cooldown gate` dedicado, coberto por testes;
-- ainda assim, por ser um problema historicamente observado em runtime real e nao em fixture deterministica, a validacao manual continua recomendada antes de chamar de encerrado em producao.
-
-| Prioridade | Item | Valor | Velocidade | Risco | Justificativa |
-| --- | --- | --- | --- | --- | --- |
-| P0 | MLX: crash ao concluir download | Muito alto | Media | Alto | Crash e problema de confiabilidade absoluta. Antes de lancar, qualquer fechamento inesperado ao concluir download precisa ser investigado e neutralizado. |
-| P0 | Batch: erro de MLX explicito | Muito alto | Media | Medio | Hoje o app pode prometer pos-processamento e entregar texto cru sem explicar. Isso e bug funcional e quebra de confianca. |
-| P0 | MLX: refresh em tempo real | Alto | Rapida | Baixo | Bug confirmado de UI/observacao. Alto impacto de usabilidade, baixo risco relativo, e melhora percepcao geral do produto. |
-| P0 | Bandeja: estado real vs warmup | Alto | Rapida | Baixo | O menu bar extra e a face do app o tempo todo. Icone e tooltip errados passam sensacao de bug permanente. |
-| P0 | Whisper: cold start em arquivo | Muito alto | Media | Medio | Primeira transcricao lenta atinge uma capacidade central do produto. Ja existe um gap arquitetural claro entre warmup e batch. |
-| P0 | Ditado rapido: variacao de latencia | Muito alto | Media | Medio | O ditado e o loop mais sensivel do app. Mesmo quando a causa exata ainda precisa instrumentacao, a investigacao e mitigacao entram como prioridade de lancamento. |
-| P0 | Tamanhos errados dos modelos Whisper | Medio | Rapida | Baixo | Nao bloqueia o produto, mas mina confianca e e simples de corrigir removendo ou saneando estimativas enganosas. |
-| P1 | Descricao de motores/modelos mais clara | Alto | Rapida | Baixo | Alto retorno de usabilidade para quase todos os usuarios. Pode ser entregue junto da padronizacao da UI de modelos. |
-| P1 | Padronizacao da UI de catalogo | Alto | Media | Medio | Entrega valor de UX e reduz manutencao. Deve ser feita junto do retrabalho de Whisper, nao isoladamente. |
-| P1 | Simplificacao do Whisper para modelo unico | Alto | Media | Medio | Reduz bastante a carga cognitiva da v1, mas exige migracao de config e ajuste de readiness/warmup. |
-| P1 | Editor unico de prompts + liberar Apple editavel | Alto | Media | Medio | Alto valor para consistencia e controle do usuario. Tambem e ponto importante de reutilizacao/componentizacao. |
-| P1 | Reorganizacao dos Ajustes | Medio-alto | Media | Medio | Melhora discoverability, mas deve vir depois de estabilizar os blocos funcionais que vao compor essa nova arquitetura de settings. |
-| P1 | Fila de varios arquivos | Alto | Lenta | Medio-alto | Grande valor agregado, mas e expansao funcional maior. Vale atacar quando os bugs e a base de transcricao estiverem estaveis. |
-| P2 | Streaming Whisper / preview vivo | Medio-alto | Lenta | Alto | Oportunidade boa, mas e mudanca de UX e arquitetura. Nao deve entrar antes de estabilizar o fluxo atual. |
-| P2 | Multiplos modos personalizados | Medio | Lenta | Alto | E um epico estrutural. Valioso, mas nao deveria competir com bugs e confiabilidade da v1. |
-
-### Ordem recomendada de execucao
-
-#### Fase 0: confiabilidade e verdade do produto
-
-Ataque imediato:
-
-1. `MLX: crash ao concluir download`
-2. `Batch: erro de MLX explicito`
-3. `MLX: refresh em tempo real`
-4. `Bandeja: estado real vs warmup`
-5. `Tamanhos errados dos modelos Whisper`
-
-Racional:
-
-- esta fase limpa bugs reais, reduz suporte reativo e faz o produto parar de mentir para o usuario;
-- tres desses itens sao bugs claros de primeira impressao;
-- todos podem ser entregues sem redesenhar o produto inteiro;
-- `MLX: refresh em tempo real` e `Bandeja` sao quick wins de alto valor;
-- `Tamanhos errados` entra aqui porque e barato e melhora credibilidade imediatamente.
-
-#### Fase 1: performance do fluxo principal
-
-Ataque logo depois:
-
-1. `Whisper: cold start em arquivo`
-2. `Ditado rapido: variacao de latencia`
-
-Racional:
-
-- sem performance consistente, a proposta do Fala perde forca mesmo com UI boa;
-- esta fase deve comecar por instrumentacao, nao por chute;
-- o ideal e fechar primeiro:
-  - warmup correto do `batchModel`;
-  - reuso de engine/modelo aquecido;
-  - mapa de tempo por etapa no ditado.
-
-#### Fase 2: UX de escolha e base reutilizavel
-
-Ataque em conjunto:
-
-1. `Descricao de motores/modelos mais clara`
-2. `Padronizacao da UI de catalogo`
-3. `Simplificacao do Whisper para modelo unico`
-
-Racional:
-
-- esses tres itens andam melhor juntos do que separados;
-- se a UI do Whisper for retrabalhada, deve nascer no mesmo padrao de MLX, nao em mais uma variacao;
-- e a melhor oportunidade de reaproveitamento de componente na v1.
-
-#### Fase 3: prompts e arquitetura de settings
-
-Ataque em conjunto:
-
-1. `Editor unico de prompts + liberar Apple editavel`
-2. `Reorganizacao dos Ajustes`
-
-Racional:
-
-- reorganizar settings antes de estabilizar modelos e prompts gera retrabalho;
-- depois que os blocos principais estiverem consolidados, faz sentido remontar o sidebar com melhor informacao arquitetural;
-- esta fase aumenta consistencia sem ser pre-requisito para o app funcionar bem no lancamento.
-
-#### Fase 4: expansoes de v1.x ou pos-lancamento
-
-Ataque posterior:
-
-1. `Fila de varios arquivos`
-2. `Streaming Whisper / preview vivo`
-3. `Multiplos modos personalizados`
-
-Racional:
-
-- todos tem valor, mas nenhum deles resolve imediatamente os principais riscos de lancamento;
-- os tres pedem mais arquitetura do que parece;
-- sao candidatos fortes para v1.x, quando a base ja estiver estavel.
-
-### Prioridades que eu defenderia sem muita negociacao
-
-Se for preciso apertar escopo, estes sao os itens que eu defenderia como praticamente obrigatorios antes de chamar a v1 de pronta:
-
-- `MLX: crash ao concluir download`
-- `Batch: erro de MLX explicito`
-- `MLX: refresh em tempo real`
-- `Bandeja: estado real vs warmup`
-- `Whisper: cold start em arquivo`
-- `Ditado rapido: variacao de latencia`
-
-### Itens que eu so puxaria para antes do lancamento se houver folga real
-
-- `Fila de varios arquivos`
-- `Streaming Whisper / preview vivo`
-- `Multiplos modos personalizados`
-
-Esses tres sao bons, mas competem com estabilidade, performance previsivel e clareza do produto base.
-
-## Observacoes finais
-
-- A automacao de validacao de licenca ja esta mais madura do que a percepcao inicial sugeria. O `LicenseManager` atual ja tenta bootstrap do trial e retries automáticos; o problema aqui e mais de feedback e organizacao da interface do que ausencia completa de logica.
-- O item "Whisper em tempo real" deve ser tratado como uma investigacao de produto e arquitetura, nao como ajuste fino. A base externa permite isso, mas a experiencia final precisa proteger o usuario de texto instavel.
-- O item "mais de um modo personalizado" tambem precisa ser tratado como epico, nao como ajuste de tela.
+- P0: reaberto com 2 bugs de experiencia e confiabilidade
+- P1: planejado e ainda nao executado por completo
+- P2: planejado para depois da estabilizacao final da v1
