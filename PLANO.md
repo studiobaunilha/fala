@@ -35,6 +35,7 @@ Isso inclui, entre outros pontos:
 - warmup principal
 - catalogo e selecao de modelos
 - reorganizacao dos Ajustes
+- restauracao do chrome nativo da janela de Ajustes
 - editor unificado de prompts
 - fila de varios arquivos
 - empacotamento e release
@@ -42,9 +43,21 @@ Isso inclui, entre outros pontos:
 
 O backlog aberto ficou reduzido a quatro frentes principais, mais um bloco curto de acabamento.
 
+## Checkpoint de retomada
+
+- **Frente 1 - batch / performance e cancelamento**: em andamento; esta retomada fechou instrumentacao por estagio, cancelamento mais honesto, `--profile`, `--prepare-only`, entrypoint async no CLI, regressao E2E com `AAC/M4A` gerado pela stack da Apple e baseline frio para `WAV`
+- **Frente 2 - latencia no ditado rapido**: nao iniciada nesta retomada; continua apenas planejada
+- **Frente 3 - streaming Whisper / preview vivo**: nao iniciada nesta retomada; continua apenas planejada
+- **Frente 4 - multiplos modos personalizados**: nao iniciada nesta retomada; continua apenas planejada
+- **Backlog curto**: sem avancos nesta retomada
+
 ## Agora
 
 ### 1. Investigacao de performance e cancelamento na transcricao de arquivos
+
+**Status**
+
+- em andamento
 
 **Motivo**
 
@@ -88,6 +101,10 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 
 ### 2. Investigacao de variacao de latencia no ditado rapido
 
+**Status**
+
+- nao iniciado nesta retomada
+
 **Motivo**
 
 O caminho rapido de ditado ainda apresenta variacao perceptivel em alguns cenarios, mesmo quando o runtime deveria estar quente.
@@ -103,6 +120,10 @@ O caminho rapido de ditado ainda apresenta variacao perceptivel em alguns cenari
 
 ### 3. Streaming Whisper / preview vivo
 
+**Status**
+
+- nao iniciado nesta retomada
+
 **Motivo**
 
 Continua sendo a proxima expansao funcional relevante e ainda depende de spike tecnico antes de implementacao final.
@@ -115,6 +136,10 @@ Continua sendo a proxima expansao funcional relevante e ainda depende de spike t
 - cobrir o fluxo com testes de regressao do processamento incremental
 
 ### 4. Multiplos modos personalizados
+
+**Status**
+
+- nao iniciado nesta retomada
 
 **Motivo**
 
