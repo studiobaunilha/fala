@@ -18,6 +18,7 @@ public final class LicenseManager: ObservableObject {
     @Published public internal(set) var requiresOnlineValidation = false
     @Published public internal(set) var lastOnlineValidationAttemptAt: Date?
     @Published public internal(set) var nextAutomaticRetryAt: Date?
+    @Published public internal(set) var isReconcilingOnLaunch = false
 
     public var isTrialActive: Bool { accessState == .trialActive }
     public var isActivated: Bool {
@@ -158,6 +159,8 @@ public final class LicenseManager: ObservableObject {
             return
         }
 
+        isReconcilingOnLaunch = true
+
         restoreEntitlementState(
             scheduleRefreshIfNeeded: true,
             forceSecureStoreReload: true
@@ -167,6 +170,7 @@ public final class LicenseManager: ObservableObject {
               licensingClient.isBackendConfigured,
               LicensingConfiguration.entitlementPublicKey != nil
         else {
+            isReconcilingOnLaunch = false
             return
         }
 
@@ -181,6 +185,9 @@ public final class LicenseManager: ObservableObject {
                 forceSecureStoreReload: false,
                 allowBootstrapWithoutStoredToken: true
             )
+            await MainActor.run {
+                self?.isReconcilingOnLaunch = false
+            }
         }
     }
 

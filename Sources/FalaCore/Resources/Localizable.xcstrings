@@ -7280,6 +7280,38 @@
           }
         }
       }
+    },
+    "Ativar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar"
+          }
+        }
+      }
+    },
+    "Validar online ou iniciar trial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Validate online or start trial"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Validar en línea o iniciar trial"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

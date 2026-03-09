@@ -13,12 +13,21 @@ public struct OnboardingStep: Identifiable, Equatable {
 private struct OnboardingStepCard: View {
     let step: OnboardingStep
     let onAction: (ReadinessIssue) -> Void
+    @ObservedObject var viewModel: OnboardingViewModel
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.lg) {
-            Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(step.completed ? FalaColors.success : FalaColors.warning)
-                .font(.title2)
+            ZStack {
+                Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(step.completed ? FalaColors.success : FalaColors.warning)
+                    .font(.title2)
+                    .opacity(showProgress ? 0 : 1)
+                
+                if showProgress {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(step.title)
@@ -26,8 +35,11 @@ private struct OnboardingStepCard: View {
                 Text(step.message)
                     .foregroundStyle(.secondary)
 
-                if let issue = step.issue,
-                   let actionTitle = issue.actionTitle {
+                if step.id == "license" && !step.completed && !showProgress {
+                    licenseInputView
+                } else if let issue = step.issue,
+                          let actionTitle = issue.actionTitle,
+                          !showProgress {
                     Button(actionTitle) {
                         onAction(issue)
                     }
@@ -42,159 +54,38 @@ private struct OnboardingStepCard: View {
         .background(Color(nsColor: .textBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xl))
     }
-}
 
-@MainActor
-public final class OnboardingViewModel: ObservableObject {
-    @Published public private(set) var hasCompletedEssentials = false
-
-    private let settings: AppSettings
-    private let readiness: RuntimeReadinessEvaluator
-    private let licenseManager: LicenseManager
-    private let permissionProvider: SystemPermissionProviding
-    private let defaults: UserDefaults
-    private let completionKey = "dev.fala.onboarding-essential-complete"
-    private var cancellables = Set<AnyCancellable>()
-
-    public init(
-        settings: AppSettings,
-        readiness: RuntimeReadinessEvaluator,
-        licenseManager: LicenseManager = .shared,
-        permissionProvider: SystemPermissionProviding,
-        defaults: UserDefaults = .standard
-    ) {
-        self.settings = settings
-        self.readiness = readiness
-        self.licenseManager = licenseManager
-        self.permissionProvider = permissionProvider
-        self.defaults = defaults
-        self.hasCompletedEssentials = defaults.bool(forKey: completionKey)
-
-        readiness.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
+    private var showProgress: Bool {
+        step.id == "license" && viewModel.isProcessingLicense
     }
 
-    public var shouldPresentOnLaunch: Bool {
-        !hasCompletedEssentials || !readiness.isOnboardingReady
-    }
-
-    public var isReadyToContinue: Bool {
-        readiness.isOnboardingReady
-    }
-
-    public var steps: [OnboardingStep] {
-        let issues = readiness.issuesForOnboarding()
-        return [
-            step(
-                id: "microphone",
-                title: L10n("Microfone"),
-                fallbackMessage: L10n("Permita o microfone para usar o ditado."),
-                issueKind: .microphonePermission,
-                issues: issues
-            ),
-            step(
-                id: "accessibility",
-                title: L10n("Acessibilidade"),
-                fallbackMessage: L10n("Permita acessibilidade para inserir texto no app em foco."),
-                issueKind: .accessibilityPermission,
-                issues: issues
-            ),
-            step(
-                id: "license",
-                title: L10n("Licença ou trial"),
-                fallbackMessage: L10n("A licença ou o trial deste Mac já estão válidos."),
-                issueKind: .licenseInactive,
-                issues: issues
-            ),
-            step(
-                id: "engine",
-                title: L10n("Motor e modelo prontos"),
-                fallbackMessage: L10n("O motor selecionado já está com a configuração mínima válida."),
-                issueKind: .whisperModelMissing,
-                issues: issues
-            ),
-            step(
-                id: "llm",
-                title: L10n("IA pronta para o modo atual"),
-                fallbackMessage: L10n("O provedor e o modelo de IA do modo atual já estão válidos."),
-                issueKind: llmIssueKind(from: issues),
-                issues: issues
-            )
-        ]
-    }
-
-    public func markCompleted() {
-        defaults.set(true, forKey: completionKey)
-        hasCompletedEssentials = true
-    }
-
-    public func refresh() {
-        readiness.refresh()
-        objectWillChange.send()
-    }
-
-    public func performAction(for issue: ReadinessIssue?) {
-        guard let issue else {
-            return
-        }
-
-        switch issue.action {
-        case .none:
-            break
-        case .openSettings(let selection):
-            settings.openSettings(selection)
-        case .openMicrophoneSettings:
-            Task {
-                if permissionProvider.microphonePermissionState() == .notDetermined {
-                    _ = await permissionProvider.requestMicrophoneAccess()
-                } else {
-                    permissionProvider.openMicrophoneSettings()
+    private var licenseInputView: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                TextField(L10n("Cole seu código de ativação"), text: $viewModel.activationCode)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
+                
+                Button(L10n("Ativar")) {
+                    viewModel.activateLicense()
                 }
-                refresh()
+                .buttonStyle(.borderedProminent)
+                .disabled(viewModel.activationCode.isEmpty)
             }
-        case .openAccessibilitySettings:
-            permissionProvider.openAccessibilitySettings()
-            refresh()
-        case .validateLicense:
-            Task {
-                await licenseManager.refreshEntitlement()
-                refresh()
+            
+            Button(L10n("Validar online ou iniciar trial")) {
+                viewModel.startTrial()
+            }
+            .buttonStyle(.link)
+            .controlSize(.small)
+            
+            if let error = viewModel.licenseManager.errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(FalaColors.error)
             }
         }
-    }
-
-    private func step(
-        id: String,
-        title: String,
-        fallbackMessage: String,
-        issueKind: ReadinessIssueKind,
-        issues: [ReadinessIssue]
-    ) -> OnboardingStep {
-        let issue = issues.first(where: { $0.kind == issueKind })
-        return OnboardingStep(
-            id: id,
-            title: title,
-            message: issue?.message ?? fallbackMessage,
-            completed: issue == nil,
-            issue: issue
-        )
-    }
-
-    private func llmIssueKind(from issues: [ReadinessIssue]) -> ReadinessIssueKind {
-        if issues.contains(where: { $0.kind == .mlxModelMissing }) {
-            return .mlxModelMissing
-        }
-        if issues.contains(where: { $0.kind == .cloudAPIKeyMissing }) {
-            return .cloudAPIKeyMissing
-        }
-        if issues.contains(where: { $0.kind == .appleIntelligenceUnavailable }) {
-            return .appleIntelligenceUnavailable
-        }
-        return .restartRecommended
+        .padding(.top, Spacing.xs)
     }
 }
 
@@ -216,9 +107,9 @@ struct OnboardingView: View {
 
             VStack(spacing: Spacing.lg) {
                 ForEach(viewModel.steps) { step in
-                    OnboardingStepCard(step: step) { issue in
+                    OnboardingStepCard(step: step, onAction: { issue in
                         viewModel.performAction(for: issue)
-                    }
+                    }, viewModel: viewModel)
                 }
             }
 

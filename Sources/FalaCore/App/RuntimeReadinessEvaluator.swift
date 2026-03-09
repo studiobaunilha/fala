@@ -169,8 +169,8 @@ private extension RuntimeReadinessEvaluator {
             kind: .licenseInactive,
             title: L10n("Licença ou trial necessários"),
             message: message,
-            action: .openSettings(.panel(.general)),
-            actionTitle: L10n("Abrir Ajustes"),
+            action: .none,
+            actionTitle: nil,
             blocking: true
         )
     }
