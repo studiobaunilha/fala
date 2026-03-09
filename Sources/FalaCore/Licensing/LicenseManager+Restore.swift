@@ -1,11 +1,14 @@
 import Foundation
 
 extension LicenseManager {
-    func restoreEntitlementState(scheduleRefreshIfNeeded: Bool) {
+    func restoreEntitlementState(
+        scheduleRefreshIfNeeded: Bool,
+        forceSecureStoreReload: Bool = false
+    ) {
         backgroundRefreshTask?.cancel()
 
         do {
-            let snapshot = try loadStoredEntitlementSnapshot()
+            let snapshot = try loadStoredEntitlementSnapshot(forceReload: forceSecureStoreReload)
             try restoreEntitlementState(
                 from: snapshot,
                 scheduleRefreshIfNeeded: scheduleRefreshIfNeeded
@@ -89,7 +92,7 @@ extension LicenseManager {
     func handleRestoreEntitlementFailure(_ error: Error) {
         NSLog("[Fala] Local license validation failed: \(error.localizedDescription)")
         if error is KeychainError {
-            clearEntitlementSnapshot()
+            invalidateEntitlementSnapshotCache()
             applyUnlicensedState()
         } else {
             clearLocalEntitlementAndReset()

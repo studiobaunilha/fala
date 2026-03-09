@@ -200,6 +200,57 @@ final class FailingBatchReadSecureStore: SecureStringStore, @unchecked Sendable 
     }
 }
 
+final class FlakyBatchReadSecureStore: SecureStringStore, @unchecked Sendable {
+    private var values: [String: String]
+    private var remainingBatchFailures: Int
+    private(set) var readCallCount = 0
+    private(set) var batchReadCallCount = 0
+    private(set) var deleteCallCount = 0
+
+    init(
+        _ initialValues: [String: String] = [:],
+        batchFailures: Int = 1
+    ) {
+        values = initialValues
+        remainingBatchFailures = batchFailures
+    }
+
+    func save(token: String, for account: String) throws {
+        values[account] = token
+    }
+
+    func read(account: String) throws -> String? {
+        readCallCount += 1
+        return values[account]
+    }
+
+    func read(accounts: [String]) throws -> [String: String] {
+        batchReadCallCount += 1
+
+        if remainingBatchFailures > 0 {
+            remainingBatchFailures -= 1
+            throw KeychainError.unhandledError(status: errSecInteractionNotAllowed)
+        }
+
+        var result: [String: String] = [:]
+        for account in accounts {
+            if let value = values[account] {
+                result[account] = value
+            }
+        }
+        return result
+    }
+
+    func delete(account: String) throws {
+        deleteCallCount += 1
+        values.removeValue(forKey: account)
+    }
+
+    func value(for account: String) -> String? {
+        values[account]
+    }
+}
+
 struct EntitlementTokenSigner {
     private let privateKey = Curve25519.Signing.PrivateKey()
 

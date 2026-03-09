@@ -117,7 +117,7 @@ public final class LicenseManager: ObservableObject {
     }
 
     public func validateLocalToken() {
-        restoreEntitlementState(scheduleRefreshIfNeeded: true)
+        restoreEntitlementState(scheduleRefreshIfNeeded: true, forceSecureStoreReload: true)
     }
 
     public func deactivate() async {
@@ -146,7 +146,42 @@ public final class LicenseManager: ObservableObject {
     }
 
     public func refreshEntitlement() async {
-        await refreshStoredEntitlement(silently: false)
+        await refreshStoredEntitlement(
+            silently: false,
+            forceSecureStoreReload: true,
+            allowBootstrapWithoutStoredToken: true
+        )
+    }
+
+    public func reconcileEntitlementOnAppLaunch() {
+        guard !isActivating, !isDeactivating, !isRefreshingEntitlement else {
+            return
+        }
+
+        restoreEntitlementState(
+            scheduleRefreshIfNeeded: true,
+            forceSecureStoreReload: true
+        )
+
+        guard !isActivated,
+              licensingClient.isBackendConfigured,
+              LicensingConfiguration.entitlementPublicKey != nil
+        else {
+            return
+        }
+
+        backgroundRefreshTask?.cancel()
+        nextAutomaticRetryAt = nil
+        backgroundRefreshTask = Task { [weak self] in
+            await MainActor.run {
+                self?.lastOnlineValidationAttemptAt = self?.now()
+            }
+            await self?.refreshStoredEntitlement(
+                silently: true,
+                forceSecureStoreReload: false,
+                allowBootstrapWithoutStoredToken: true
+            )
+        }
     }
 
     #if DEBUG
@@ -265,7 +300,11 @@ extension LicenseManager {
         }
     }
 
-    func refreshStoredEntitlement(silently: Bool) async {
+    func refreshStoredEntitlement(
+        silently: Bool,
+        forceSecureStoreReload: Bool = false,
+        allowBootstrapWithoutStoredToken: Bool = false
+    ) async {
         if !silently {
             isRefreshingEntitlement = true
         }
@@ -279,9 +318,12 @@ extension LicenseManager {
         }
 
         do {
-            guard let token = try readStoredEntitlementToken() else {
+            guard let token = try readStoredEntitlementToken(forceReload: forceSecureStoreReload) else {
+                let shouldBootstrapTrial =
+                    allowBootstrapWithoutStoredToken ||
+                    shouldAutoStartTrial(forceReload: forceSecureStoreReload)
                 if silently {
-                    if shouldAutoStartTrial() {
+                    if shouldBootstrapTrial {
                         await beginVerifiedTrial(silently: true)
                     } else {
                         applyUnlicensedState()

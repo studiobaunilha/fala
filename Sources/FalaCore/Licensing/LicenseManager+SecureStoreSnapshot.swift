@@ -116,4 +116,8 @@ extension LicenseManager {
     func clearEntitlementSnapshot() {
         storedEntitlementSnapshot = .empty
     }
+
+    func invalidateEntitlementSnapshotCache() {
+        storedEntitlementSnapshot = nil
+    }
 }

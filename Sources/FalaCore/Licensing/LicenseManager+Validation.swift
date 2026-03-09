@@ -60,8 +60,8 @@ extension LicenseManager {
         return Data(base64Encoded: base64, options: .ignoreUnknownCharacters)
     }
 
-    func shouldAutoStartTrial() -> Bool {
-        (try? loadStoredEntitlementSnapshot().lastKnownServerTime) == nil
+    func shouldAutoStartTrial(forceReload: Bool = false) -> Bool {
+        (try? loadStoredEntitlementSnapshot(forceReload: forceReload).lastKnownServerTime) == nil
     }
 
     func isClockRollbackDetected() -> Bool {

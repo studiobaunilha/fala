@@ -31,6 +31,7 @@ Hoje, o que estava em P0 e P1 ja foi fechado.
 Isso inclui, entre outros pontos:
 
 - licenca e relaunch
+- revalidacao automatica de licenca no launch e recuperacao mais resiliente do entitlement local
 - onboarding e readiness
 - warmup principal
 - catalogo e selecao de modelos

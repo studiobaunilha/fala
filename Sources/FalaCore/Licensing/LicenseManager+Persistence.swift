@@ -9,12 +9,12 @@ extension LicenseManager {
         }
     }
 
-    func readStoredEntitlementToken() throws -> String? {
-        try loadStoredEntitlementSnapshot().resolvedEntitlementToken
+    func readStoredEntitlementToken(forceReload: Bool = false) throws -> String? {
+        try loadStoredEntitlementSnapshot(forceReload: forceReload).resolvedEntitlementToken
     }
 
-    func loadStoredPayload() throws -> EntitlementPayload? {
-        guard let token = try readStoredEntitlementToken() else {
+    func loadStoredPayload(forceReload: Bool = false) throws -> EntitlementPayload? {
+        guard let token = try readStoredEntitlementToken(forceReload: forceReload) else {
             return nil
         }
 

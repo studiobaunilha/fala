@@ -105,6 +105,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         observeRuntimeEvents(settings: appSettings)
 
         dictation.setup()
+        LicenseManager.shared.reconcileEntitlementOnAppLaunch()
         appSettings.warmupCoordinator.scheduleSelectedWarmup()
         syncDownloadUI(for: bar, settings: appSettings)
         onboardingCtrl.showIfNeeded()

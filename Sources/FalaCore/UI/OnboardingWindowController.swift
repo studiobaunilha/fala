@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 public struct OnboardingStep: Identifiable, Equatable {
@@ -53,6 +54,7 @@ public final class OnboardingViewModel: ObservableObject {
     private let permissionProvider: SystemPermissionProviding
     private let defaults: UserDefaults
     private let completionKey = "dev.fala.onboarding-essential-complete"
+    private var cancellables = Set<AnyCancellable>()
 
     public init(
         settings: AppSettings,
@@ -67,6 +69,13 @@ public final class OnboardingViewModel: ObservableObject {
         self.permissionProvider = permissionProvider
         self.defaults = defaults
         self.hasCompletedEssentials = defaults.bool(forKey: completionKey)
+
+        readiness.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
     }
 
     public var shouldPresentOnLaunch: Bool {
