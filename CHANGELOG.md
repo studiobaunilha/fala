@@ -11,12 +11,14 @@ Todas as mudanças notáveis do Fala serão documentadas aqui.
 - **Ajustes reorganizados**: O painel de Ajustes passa a refletir melhor o modelo mental do produto, separando motor de transcrição, transcrição de arquivos, IA/LLM e configurações da aplicação.
 - **Editor único de prompts**: Prompts relevantes passam a usar a mesma interface de edição, e o prompt do Apple Intelligence deixa de ser somente leitura.
 - **Fila de vários arquivos**: A transcrição de arquivos ganha seleção múltipla, fila visível, progresso por item, retentativa e atalho para abrir saídas no Finder.
+- **Telemetria de batch**: Cada execução de transcrição de arquivos passa a registrar tempos de preparo de áudio, preparo do motor, transcrição, pós-processamento e total.
 
 ### Correções
 
 - **Diarization removida do produto**: O app deixa de expor diarization em Ajustes, transcrição de arquivos, prompts e configuração persistida, eliminando estados residuais do recurso.
 - **Prompt global ocultado com Apple Intelligence**: O painel `IA & LLM` deixa de mostrar o prompt global quando o provedor padrão selecionado é Apple Intelligence, evitando uma configuração sem efeito.
 - **Layout dos Ajustes corrigido**: A janela de Ajustes volta a respeitar a área útil inteira, sem clipping no conteúdo da direita e sem o painel lateral extrapolar o contêiner.
+- **Batch com estágios e cancelamento honestos**: A UI de transcrição de arquivos passa a distinguir preparo do motor, transcrição e cancelamento, e o pipeline interrompe mais cedo quando o usuário cancela.
 - **Batch sem dependência externa de `ffmpeg`**: A preparação de áudio para transcrição de arquivos passa a ser nativa, evitando depender de Homebrew em máquinas limpas.
 - **Empacotamento mais confiável**: O pipeline de build e release valida o conteúdo staged do `.app` antes de empacotar, reduzindo risco de bundle incompleto na distribuição.
 

@@ -50,13 +50,27 @@ O backlog aberto ficou reduzido a quatro frentes principais, mais um bloco curto
 
 Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cancelamento ainda precisa ficar mais responsivo no fluxo batch.
 
+**Ja avancado**
+
+- batch agora distingue preparo do motor, transcricao e pos-processamento na UI
+- cancelamento passou a interromper a task de processamento e a respeitar cancelamento durante a transcricao incremental
+- cada execucao batch agora registra tempos de preparo de audio, preparo do motor, transcricao, pos-processamento e total
+- regressao adicionada para estado `preparingModel`, cancelamento durante preparo e captura de metricas
+- validacao ja rodada com `make check`, `make test-mlx`, build debug e build release
+
+**Ainda falta**
+
+- comparar arquivos WAV vs nao WAV com a nova instrumentacao para localizar o gargalo dominante no uso real
+- decidir se o proximo corte deve atacar preparo de audio, warmup/pool ou inicializacao do runtime
+- revisar se ainda existe algum trecho longo sem cancelamento bounded no caminho de batch
+
 **Definicao de pronto**
 
-- instrumentar o pipeline inteiro de batch: selecao, warmup, preparo, conversao, abertura do arquivo, transcricao e pos-processamento
-- identificar o gargalo dominante em arquivo WAV e em arquivo nao WAV
-- tornar o cancelamento imediato ou claramente bounded nas etapas longas
-- ajustar a UI para refletir o estagio real sem ambiguidade
-- adicionar testes de regressao para o caminho cancelado e para o caminho otimizado
+- usar a instrumentacao nova para fechar diagnostico comparativo entre WAV e nao WAV
+- eliminar o principal gargalo identificado sem perder estabilidade
+- manter cancelamento imediato ou claramente bounded nas etapas longas
+- preservar a UI refletindo o estagio real sem ambiguidade
+- manter regressao cobrindo caminho cancelado e caminho otimizado
 
 ### 2. Investigacao de variacao de latencia no ditado rapido
 
