@@ -109,6 +109,10 @@ extension LicenseManager {
             return licenseError
         }
 
+        if let keychainError = error as? KeychainError {
+            return .keychainAccessDenied(message: keychainError.localizedDescription)
+        }
+
         return .apiFailure(code: nil, message: error.localizedDescription)
     }
 }

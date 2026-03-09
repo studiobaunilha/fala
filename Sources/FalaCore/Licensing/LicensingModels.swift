@@ -65,10 +65,11 @@ public enum LicenseError: Error, LocalizedError {
     case invalidDeviceBinding
     case clockRollbackDetected
     case onlineValidationRequired
+    case keychainAccessDenied(message: String)
 
     var isTransient: Bool {
         switch self {
-        case .networkUnavailable:
+        case .networkUnavailable, .keychainAccessDenied:
             return true
         case .apiFailure(let code, _):
             return code == "network_error" || code == "server_unavailable"
@@ -133,6 +134,8 @@ public enum LicenseError: Error, LocalizedError {
             return "O relógio do sistema voltou no tempo. Conecte este Mac para validar a licença novamente."
         case .onlineValidationRequired:
             return "Conecte este Mac à internet para validar sua licença e continuar."
+        case .keychainAccessDenied(let message):
+            return "Acesso bloqueado ao Keychain: \(message)"
         }
     }
 }
