@@ -8,7 +8,7 @@ final class BatchAudioPreparerTests: XCTestCase {
         durationSeconds: Double,
         fileExtension: String
     ) throws -> URL {
-        let format = try XCTUnwrap(
+        let pcmFormat = try XCTUnwrap(
             AVAudioFormat(
                 commonFormat: .pcmFormatFloat32,
                 sampleRate: sampleRate,
@@ -17,14 +17,31 @@ final class BatchAudioPreparerTests: XCTestCase {
             )
         )
         let frameCount = AVAudioFrameCount(sampleRate * durationSeconds)
-        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: pcmFormat, frameCapacity: frameCount))
         buffer.frameLength = frameCount
 
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("batch-audio-\(UUID().uuidString)")
             .appendingPathExtension(fileExtension)
 
-        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        let settings: [String: Any]
+        if fileExtension == "m4a" {
+            settings = [
+                AVFormatIDKey: kAudioFormatMPEG4AAC,
+                AVSampleRateKey: sampleRate,
+                AVNumberOfChannelsKey: 1,
+                AVEncoderBitRateKey: 128_000
+            ]
+        } else {
+            settings = pcmFormat.settings
+        }
+
+        let file = try AVAudioFile(
+            forWriting: url,
+            settings: settings,
+            commonFormat: .pcmFormatFloat32,
+            interleaved: false
+        )
         try file.write(from: buffer)
         return url
     }
@@ -47,7 +64,7 @@ final class BatchAudioPreparerTests: XCTestCase {
         let sourceURL = try makeSilentAudioFile(
             sampleRate: 44_100,
             durationSeconds: 0.25,
-            fileExtension: "caf"
+            fileExtension: "m4a"
         )
         defer { try? FileManager.default.removeItem(at: sourceURL) }
 
@@ -66,5 +83,35 @@ final class BatchAudioPreparerTests: XCTestCase {
         let file = try AVAudioFile(forReading: prepared.wavURL)
         XCTAssertEqual(file.processingFormat.sampleRate, 16_000, accuracy: 0.1)
         XCTAssertEqual(file.processingFormat.channelCount, 1)
+    }
+
+    func testPrepareTranscriptionInputCleansPartialFileWhenConversionIsCancelled() throws {
+        let sourceURL = try makeSilentAudioFile(
+            sampleRate: 44_100,
+            durationSeconds: 1.0,
+            fileExtension: "m4a"
+        )
+        let tempDirectory = try makeTemporaryDirectory()
+        defer {
+            try? FileManager.default.removeItem(at: sourceURL)
+            try? FileManager.default.removeItem(at: tempDirectory)
+        }
+
+        XCTAssertThrowsError(
+            try BatchAudioPreparer.prepareTranscriptionInput(
+                from: sourceURL,
+                temporaryDirectory: tempDirectory
+            ) {
+                throw CancellationError()
+            }
+        ) { error in
+            XCTAssertTrue(error is CancellationError)
+        }
+
+        let createdFiles = try FileManager.default.contentsOfDirectory(
+            at: tempDirectory,
+            includingPropertiesForKeys: nil
+        )
+        XCTAssertTrue(createdFiles.isEmpty)
     }
 }

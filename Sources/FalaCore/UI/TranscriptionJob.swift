@@ -27,6 +27,8 @@ public struct BatchProcessingWarning: Equatable, Sendable {
 
 @MainActor
 public final class TranscriptionJob: ObservableObject {
+    typealias AudioPreparationHandler = @Sendable (URL) async throws -> PreparedBatchAudio
+
     @Published public var inputURL: URL?
     @Published public internal(set) var queue: [BatchQueueItem] = []
     @Published public internal(set) var activeQueueItemID: BatchQueueItem.ID?
@@ -48,6 +50,7 @@ public final class TranscriptionJob: ObservableObject {
     var preparationTask: Task<Void, Never>?
     var processingTask: Task<BatchProcessingResult, Never>?
     let batchTranscriberPool: BatchTranscriberPool
+    let audioPreparationHandler: AudioPreparationHandler
 
     public convenience init(appSettings: AppSettings) {
         self.init(appSettings: appSettings, batchTranscriberPool: nil)
@@ -55,7 +58,8 @@ public final class TranscriptionJob: ObservableObject {
 
     init(
         appSettings: AppSettings,
-        batchTranscriberPool: BatchTranscriberPool?
+        batchTranscriberPool: BatchTranscriberPool?,
+        audioPreparationHandler: AudioPreparationHandler? = nil
     ) {
         self.appSettings = appSettings
         let config = AppConfig.load()
@@ -64,6 +68,7 @@ public final class TranscriptionJob: ObservableObject {
             self.outputDirectory = URL(fileURLWithPath: config.defaultExportPath)
         }
         self.batchTranscriberPool = batchTranscriberPool ?? Self.makeDefaultBatchTranscriberPool(config: config)
+        self.audioPreparationHandler = audioPreparationHandler ?? Self.defaultAudioPreparation
     }
 
     public func selectFile() {

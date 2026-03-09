@@ -56,7 +56,7 @@ struct ProcessingContext {
 extension TranscriptionJob {
 
     func prepareAudio(from inputURL: URL) async throws -> (URL, Bool) {
-        let preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+        let preparedAudio = try await audioPreparationHandler(inputURL)
         return (preparedAudio.wavURL, preparedAudio.requiresCleanup)
     }
 
@@ -338,6 +338,24 @@ extension TranscriptionJob {
         }
         appendToFile(url: context.outputURL, text: outcome.text)
         return outcome
+    }
+}
+
+extension TranscriptionJob {
+    nonisolated static func defaultAudioPreparation(from inputURL: URL) async throws -> PreparedBatchAudio {
+        let task = Task.detached(priority: .userInitiated) {
+            try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL) {
+                try Task.checkCancellation()
+            }
+        }
+
+        return try await withTaskCancellationHandler {
+            let preparedAudio = try await task.value
+            try Task.checkCancellation()
+            return preparedAudio
+        } onCancel: {
+            task.cancel()
+        }
     }
 }
 

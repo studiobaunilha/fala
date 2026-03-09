@@ -4,7 +4,7 @@ Este e o unico plano ativo do repositorio.
 
 Ele consolida apenas trabalho ainda em aberto, com base em:
 
-- commits ja entregues no Git ate `c790194`
+- commits ja entregues no Git
 - backlog anterior
 - notas em `docs/brainstorming/`
 
@@ -53,9 +53,11 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 **Ja avancado**
 
 - batch agora distingue preparo do motor, transcricao e pos-processamento na UI
+- preparo de audio do batch saiu do `MainActor`, reduzindo travamento perceptivel antes da transcricao comecar
 - cancelamento passou a interromper a task de processamento e a respeitar cancelamento durante a transcricao incremental
+- cancelamento durante preparo de audio agora aborta o pipeline antes do warmup/transcribe e limpa arquivo temporario parcial
 - cada execucao batch agora registra tempos de preparo de audio, preparo do motor, transcricao, pos-processamento e total
-- regressao adicionada para estado `preparingModel`, cancelamento durante preparo e captura de metricas
+- regressao adicionada para estado `preparingModel`, cancelamento durante preparo de audio, limpeza de temporario cancelado e captura de metricas
 - validacao ja rodada com `make check`, `make test-mlx`, build debug e build release
 
 **Ainda falta**
@@ -63,6 +65,7 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 - comparar arquivos WAV vs nao WAV com a nova instrumentacao para localizar o gargalo dominante no uso real
 - decidir se o proximo corte deve atacar preparo de audio, warmup/pool ou inicializacao do runtime
 - revisar se ainda existe algum trecho longo sem cancelamento bounded no caminho de batch
+- avaliar se faz sentido atacar cancelamento mais fino dentro da propria conversao de audio, sem trocar estabilidade por responsividade artificial
 
 **Definicao de pronto**
 

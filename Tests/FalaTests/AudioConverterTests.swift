@@ -6,6 +6,9 @@ import AVFoundation
 /// No microphone or hardware access is required — AVAudioFile can write/read
 /// from disk in test processes.
 final class AudioConverterTests: XCTestCase {
+    private final class CancellationCheckCounter: @unchecked Sendable {
+        var value = 0
+    }
 
     // MARK: – Helpers
 
@@ -77,5 +80,30 @@ final class AudioConverterTests: XCTestCase {
     func testNonExistentFileThrows() {
         let url = URL(fileURLWithPath: "/nonexistent/file.wav")
         XCTAssertThrowsError(try AudioConverter.toFloat16k(from: url))
+    }
+
+    func testWrite16kMonoWAVPropagatesCancellationCheck() throws {
+        let sourceURL = try makeSilentWAV(sampleRate: 44_100, durationSeconds: 1.0)
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("cancelled-\(UUID().uuidString)")
+            .appendingPathExtension("wav")
+        defer {
+            try? FileManager.default.removeItem(at: sourceURL)
+            try? FileManager.default.removeItem(at: outputURL)
+        }
+
+        let counter = CancellationCheckCounter()
+
+        XCTAssertThrowsError(
+            try AudioConverter.write16kMonoWAV(from: sourceURL, to: outputURL) {
+                counter.value += 1
+                if counter.value >= 1 {
+                    throw CancellationError()
+                }
+            }
+        ) { error in
+            XCTAssertTrue(error is CancellationError)
+        }
+        XCTAssertEqual(counter.value, 1)
     }
 }

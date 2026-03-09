@@ -156,6 +156,30 @@ func makeSilentWAV(in directory: URL, named name: String) throws -> URL {
     return url
 }
 
+func makeSilentAudioFile(
+    in directory: URL,
+    named name: String,
+    fileExtension: String,
+    sampleRate: Double = 44_100
+) throws -> URL {
+    let format = try XCTUnwrap(
+        AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: sampleRate,
+            channels: 1,
+            interleaved: false
+        )
+    )
+    let frameCount = AVAudioFrameCount(sampleRate * 0.1)
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+    buffer.frameLength = frameCount
+
+    let url = directory.appendingPathComponent(name).appendingPathExtension(fileExtension)
+    let file = try AVAudioFile(forWriting: url, settings: format.settings)
+    try file.write(from: buffer)
+    return url
+}
+
 @MainActor
 func waitUntil(
     timeout: Duration = .seconds(2),
@@ -263,5 +287,37 @@ actor DelayedBatchTranscriberSpy {
 
     func transcribeAudioCallCount() -> Int {
         transcribeAudioCallCountValue
+    }
+
+    func didStartLoading() -> Bool {
+        loadStarted
+    }
+}
+
+actor DelayedBatchAudioPreparationSpy {
+    private let delay: Duration
+    private var started = false
+
+    init(delay: Duration) {
+        self.delay = delay
+    }
+
+    func prepare(inputURL: URL) async throws -> PreparedBatchAudio {
+        started = true
+        if delay > .zero {
+            try await Task.sleep(for: delay)
+        }
+        return PreparedBatchAudio(wavURL: inputURL, requiresCleanup: false)
+    }
+
+    func waitForStart(timeout: Duration = .seconds(1)) async throws {
+        let deadline = ContinuousClock.now + timeout
+        while ContinuousClock.now < deadline {
+            if started {
+                return
+            }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTFail("Timed out waiting for audio preparation to start")
     }
 }

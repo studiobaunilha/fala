@@ -54,8 +54,14 @@ public enum AudioConverter {
         return Array(UnsafeBufferPointer(start: channelData, count: Int(outputBuffer.frameLength)))
     }
 
-    public static func write16kMonoWAV(from inputURL: URL, to outputURL: URL) throws {
+    public static func write16kMonoWAV(
+        from inputURL: URL,
+        to outputURL: URL,
+        cancellationCheck: @escaping @Sendable () throws -> Void = {}
+    ) throws {
+        try cancellationCheck()
         let samples = try toFloat16k(from: inputURL)
+        try cancellationCheck()
 
         guard let outputFormat = AVAudioFormat(
             commonFormat: .pcmFormatFloat32,

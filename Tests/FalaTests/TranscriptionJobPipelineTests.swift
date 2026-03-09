@@ -67,6 +67,46 @@ final class TranscriptionJobPipelineTests: TranscriptionJobTestCase {
         XCTAssertFalse(job.isCancelling)
     }
 
+    func testCancelDuringAudioPreparationStopsBeforeModelPreparationBegins() async throws {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        let transcriberSpy = DelayedBatchTranscriberSpy(loadDelay: .zero)
+        let audioPreparationSpy = DelayedBatchAudioPreparationSpy(delay: .seconds(5))
+        let job = TranscriptionJob(
+            appSettings: makeTestSettings(config: config),
+            batchTranscriberPool: makeDelayedBatchPool(spy: transcriberSpy),
+            audioPreparationHandler: { inputURL in
+                try await audioPreparationSpy.prepare(inputURL: inputURL)
+            }
+        )
+        let inputDir = try makeTemporaryDirectory()
+        let outputDir = try makeTemporaryDirectory()
+        let inputURL = inputDir.appendingPathComponent("convertendo").appendingPathExtension("m4a")
+        FileManager.default.createFile(atPath: inputURL.path, contents: Data())
+        job.outputDirectory = outputDir
+
+        job.enqueueInputFiles([inputURL])
+        job.transcribe()
+        try await audioPreparationSpy.waitForStart()
+        try await waitUntil {
+            job.state == .converting
+        }
+
+        job.cancel()
+        XCTAssertTrue(job.isCancelling)
+
+        try await waitUntil {
+            job.queue.allSatisfy(\.status.isTerminal)
+        }
+
+        XCTAssertEqual(job.state, .error(L10n("Cancelado pelo usuário")))
+        XCTAssertEqual(job.queue.map(\.status), [.cancelled])
+        let transcribeCallCount = await transcriberSpy.transcribeAudioCallCount()
+        XCTAssertEqual(transcribeCallCount, 0)
+        XCTAssertNil(job.lastExecutionMetrics?.modelPreparation)
+        XCTAssertFalse(job.isCancelling)
+    }
+
     func testTranscribeCapturesStageMetricsForSuccessfulRun() async throws {
         var config = AppConfig()
         config.transcriptionEngine = "parakeet"
