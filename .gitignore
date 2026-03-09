@@ -35,3 +35,7 @@ Icon
 
 # User runtime config (gerado em ~/.config/sussurro/ — não versionar)
 # /config/ é o config de exemplo e DEVE ser versionado
+
+# Profiling
+*.profraw
+
