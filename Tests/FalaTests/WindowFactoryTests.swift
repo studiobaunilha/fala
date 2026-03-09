@@ -49,4 +49,20 @@ final class WindowFactoryTests: XCTestCase {
 
         XCTAssertEqual(window.minSize, minSize)
     }
+
+    @MainActor
+    func testWindowFactoryAppliesFullSizeSidebarChrome() {
+        let config = WindowConfig(
+            title: "Test",
+            width: 100,
+            height: 100,
+            fullSizeContentView: true,
+            transparentTitlebar: true
+        )
+        let window = WindowFactory.makeWindow(config: config, content: Text("Test"))
+
+        XCTAssertTrue(window.styleMask.contains(.fullSizeContentView))
+        XCTAssertTrue(window.titlebarAppearsTransparent)
+        XCTAssertEqual(window.titleVisibility, .hidden)
+    }
 }

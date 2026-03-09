@@ -24,6 +24,7 @@ Tudo abaixo nesta seção já entrou no `main` depois da `1.1` e fica aguardando
 - **Diarization removida do produto**: O app deixa de expor diarization em Ajustes, transcrição de arquivos, prompts e configuração persistida, eliminando estados residuais do recurso.
 - **Prompt global ocultado com Apple Intelligence**: O painel `IA & LLM` deixa de mostrar o prompt global quando o provedor padrão selecionado é Apple Intelligence, evitando uma configuração sem efeito.
 - **Layout dos Ajustes corrigido**: A janela de Ajustes volta a respeitar a área útil inteira, sem clipping no conteúdo da direita e sem o painel lateral extrapolar o contêiner.
+- **Chrome nativo dos Ajustes restaurado**: A janela de Ajustes volta a usar o comportamento nativo de sidebar full-height do macOS, com traffic lights e toggle da barra lateral alinhados ao padrão Apple.
 - **CLI de batch destravado**: O entrypoint do executável deixa de bloquear trabalho async com semáforo e passa a executar o fluxo de transcrição de arquivos corretamente.
 - **Batch com estágios e cancelamento honestos**: A UI de transcrição de arquivos passa a distinguir preparo do motor, transcrição e cancelamento, e o pipeline interrompe mais cedo quando o usuário cancela.
 - **Preparo de áudio do batch deixa de bloquear a UI**: A conversão inicial passa a rodar fora do `MainActor`, o cancelamento interrompe o pipeline antes do warmup/transcribe e arquivos temporários parciais são limpos ao abortar.

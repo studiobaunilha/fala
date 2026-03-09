@@ -34,6 +34,23 @@ final class LocalizationRuntimeReloadTests: XCTestCase {
         controller.currentWindow?.orderOut(nil)
     }
 
+    func testSettingsWindowUsesNativeFullHeightSidebarChrome() {
+        let settings = makeSettings()
+        let controller = SettingsWindowController(settings: settings)
+
+        controller.show()
+
+        guard let window = controller.currentWindow else {
+            return XCTFail("Settings window should exist after show()")
+        }
+
+        XCTAssertTrue(window.styleMask.contains(.fullSizeContentView))
+        XCTAssertTrue(window.titlebarAppearsTransparent)
+        XCTAssertEqual(window.titleVisibility, .hidden)
+        XCTAssertLessThan(window.contentLayoutRect.height, window.frame.height)
+        window.orderOut(nil)
+    }
+
     func testTranscribeWindowControllerRehostsContentWhenLanguageChanges() {
         let settings = makeSettings()
         let controller = TranscribeWindowController(settings: settings)

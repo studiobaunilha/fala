@@ -58,19 +58,24 @@ final class SettingsCleanupSourceTests: XCTestCase {
         )
     }
 
-    func testSettingsWindowUsesStandardTitlebarLayout() throws {
+    func testSettingsWindowRestoresNativeSidebarChrome() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
 
-        let source = try String(
+        let windowSource = try String(
             contentsOf: repoRoot.appendingPathComponent("Sources/FalaCore/UI/SettingsWindowController.swift"),
             encoding: .utf8
         )
+        let viewSource = try String(
+            contentsOf: repoRoot.appendingPathComponent("Sources/FalaCore/UI/SettingsView.swift"),
+            encoding: .utf8
+        )
 
-        XCTAssertFalse(source.contains("fullSizeContentView: true"))
-        XCTAssertFalse(source.contains("transparentTitlebar: true"))
+        XCTAssertTrue(windowSource.contains("fullSizeContentView: true"))
+        XCTAssertTrue(windowSource.contains("transparentTitlebar: true"))
+        XCTAssertFalse(viewSource.contains(".toolbar(removing: .sidebarToggle)"))
     }
 
     func testOfficialDocsNoLongerAdvertiseDiarization() throws {

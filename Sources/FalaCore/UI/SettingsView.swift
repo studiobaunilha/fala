@@ -76,10 +76,8 @@ struct SettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .toolbar(removing: .sidebarToggle)
         .id(localizationObserver.revision)
         .environment(\.locale, AppLocalization.currentLocale())
-        .frame(minWidth: WindowSize.settingsDefaultWidth, minHeight: WindowSize.settingsDefaultHeight)
         .observeSettingsChanges(settings)
     }
 }
