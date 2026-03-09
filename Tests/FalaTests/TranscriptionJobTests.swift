@@ -1,22 +1,8 @@
-import AVFoundation
 import XCTest
 @testable import FalaCore
 
 @MainActor
-final class TranscriptionJobTests: XCTestCase {
-    override func setUp() async throws {
-        await MainActor.run {
-            AnimationConfig.enabled = false
-            LicenseManager.shared.setTestActivated(true)
-        }
-    }
-
-    override func tearDown() async throws {
-        await MainActor.run {
-            LicenseManager.shared.setTestActivated(false)
-        }
-    }
-
+final class TranscriptionJobTests: TranscriptionJobTestCase {
     func testInitialStateIsIdle() {
         let job = TranscriptionJob(appSettings: makeTestSettings())
         XCTAssertEqual(job.state, .idle)
@@ -48,7 +34,7 @@ final class TranscriptionJobTests: XCTestCase {
     }
 
     func testPrepareForUseWarmsPoolWithOverrideModelAndLanguage() async {
-        let whisperSpy = WhisperBatchSpy()
+        let whisperSpy = TranscriptionJobWhisperBatchSpy()
         var config = AppConfig()
         config.transcriptionEngine = "whisper"
         let job = TranscriptionJob(
@@ -178,170 +164,5 @@ final class TranscriptionJobTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: secondOutput.path))
         XCTAssertEqual(try String(contentsOf: firstOutput, encoding: .utf8), "REUNIAO\n")
         XCTAssertEqual(try String(contentsOf: secondOutput, encoding: .utf8), "REUNIAO\n")
-    }
-}
-
-@MainActor
-private func makeTestSettings(config: AppConfig = AppConfig()) -> AppSettings {
-    let transcriber = Transcriber(modelName: "", language: "")
-    return AppSettings(config: config, transcriber: transcriber, modelManager: ModelManager())
-}
-
-@MainActor
-private func makeTestBatchPool(whisperSpy: WhisperBatchSpy? = nil) -> BatchTranscriberPool {
-    BatchTranscriberPool(
-        whisperFactory: {
-            BatchWhisperTranscriber(
-                loadIfNeeded: { _ in
-                    if let whisperSpy {
-                        try await whisperSpy.loadIfNeeded()
-                    }
-                },
-                setModel: { modelName in
-                    if let whisperSpy {
-                        await whisperSpy.setModel(modelName)
-                    }
-                },
-                setConfig: { language, temperature, prompt in
-                    if let whisperSpy {
-                        await whisperSpy.setConfig(
-                            language: language,
-                            temperature: temperature,
-                            prompt: prompt
-                        )
-                    }
-                },
-                transcribeSamples: { _, _ in "" },
-                transcribeAudioPath: { _, _, _ in "" }
-            )
-        },
-        parakeetFactory: {
-            BatchPreloadableTranscriber(
-                loadIfNeeded: { _ in },
-                transcribeSamples: { _, _ in "" },
-                transcribeAudioPath: { _, _, _ in "" }
-            )
-        }
-    )
-}
-
-@MainActor
-private func makeTestBatchPool(queueSpy: BatchQueueTranscriberSpy) -> BatchTranscriberPool {
-    BatchTranscriberPool(
-        whisperFactory: {
-            BatchWhisperTranscriber(
-                loadIfNeeded: { _ in },
-                setModel: { _ in },
-                setConfig: { _, _, _ in },
-                transcribeSamples: { _, _ in "" },
-                transcribeAudioPath: { audioPath, _, progress in
-                    await queueSpy.record(audioPath: audioPath)
-                    let stem = URL(fileURLWithPath: audioPath).deletingPathExtension().lastPathComponent
-                    progress?(TranscriberProgress(text: stem.uppercased(), windowId: 0))
-                    return stem.uppercased()
-                }
-            )
-        },
-        parakeetFactory: {
-            BatchPreloadableTranscriber(
-                loadIfNeeded: { _ in },
-                transcribeSamples: { _, _ in "" },
-                transcribeAudioPath: { audioPath, _, progress in
-                    await queueSpy.record(audioPath: audioPath)
-                    let stem = URL(fileURLWithPath: audioPath).deletingPathExtension().lastPathComponent
-                    progress?(TranscriberProgress(text: stem.uppercased(), windowId: 0))
-                    return stem.uppercased()
-                }
-            )
-        }
-    )
-}
-
-private func makeTemporaryDirectory() throws -> URL {
-    let directory = FileManager.default.temporaryDirectory
-        .appendingPathComponent("fala-tests-\(UUID().uuidString)", isDirectory: true)
-    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    return directory
-}
-
-private func makeSilentWAV(in directory: URL, named name: String) throws -> URL {
-    let format = try XCTUnwrap(
-        AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: 16_000,
-            channels: 1,
-            interleaved: false
-        )
-    )
-    let frameCount = AVAudioFrameCount(16_000 * 0.1)
-    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
-    buffer.frameLength = frameCount
-
-    let url = directory.appendingPathComponent(name).appendingPathExtension("wav")
-    let file = try AVAudioFile(forWriting: url, settings: format.settings)
-    try file.write(from: buffer)
-    return url
-}
-
-@MainActor
-private func waitUntil(
-    timeout: Duration = .seconds(2),
-    condition: @escaping @MainActor () -> Bool
-) async throws {
-    let deadline = ContinuousClock.now + timeout
-    while ContinuousClock.now < deadline {
-        if condition() {
-            return
-        }
-        try await Task.sleep(for: .milliseconds(20))
-    }
-    XCTFail("Condition not met before timeout")
-}
-
-private actor WhisperBatchSpy {
-    struct Snapshot {
-        let models: [String]
-        let languages: [String]
-        let loadCount: Int
-    }
-
-    private var models: [String] = []
-    private var languages: [String] = []
-    private var loadCountValue = 0
-
-    func loadIfNeeded() async throws {
-        loadCountValue += 1
-    }
-
-    func setModel(_ name: String) {
-        models.append(name)
-    }
-
-    func setConfig(language: String, temperature: Float, prompt: String) {
-        languages.append(language)
-    }
-
-    func snapshot() -> Snapshot {
-        Snapshot(
-            models: models,
-            languages: languages,
-            loadCount: loadCountValue
-        )
-    }
-}
-
-private actor BatchQueueTranscriberSpy {
-    struct Snapshot {
-        let audioPaths: [String]
-    }
-
-    private var audioPaths: [String] = []
-
-    func record(audioPath: String) {
-        audioPaths.append(audioPath)
-    }
-
-    func snapshot() -> Snapshot {
-        Snapshot(audioPaths: audioPaths)
     }
 }

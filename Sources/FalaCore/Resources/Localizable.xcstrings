@@ -513,6 +513,22 @@
         }
       }
     },
+    "Cancelando…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelling…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelando…"
+          }
+        }
+      }
+    },
     "Cancelar": {
       "localizations": {
         "en": {
@@ -2061,6 +2077,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparando archivo de audio…"
+          }
+        }
+      }
+    },
+    "Preparando motor de transcrição…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing transcription engine…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando motor de transcripción…"
           }
         }
       }

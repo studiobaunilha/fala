@@ -150,12 +150,15 @@ public actor Transcriber: AudioTranscribing {
         }
         
         let callback: TranscriptionCallback = { progressData in
+            if Task.isCancelled {
+                return false
+            }
             let update = TranscriberProgress(
                 text: progressData.text,
                 windowId: progressData.windowId
             )
             progress?(update)
-            return true
+            return !Task.isCancelled
         }
         
         let results = try await wk.transcribe(audioPath: audioPath, decodeOptions: options, callback: callback)

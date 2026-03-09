@@ -6,6 +6,7 @@ import AppKit
 public enum TranscriptionState: Equatable {
     case idle
     case converting
+    case preparingModel
     case transcribing(String)
     case processingLLM
     case done(String)  // output file path
@@ -34,6 +35,8 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var outputDirectory: URL?
     @Published public var batchPostPrompt: String = ""
     @Published public var processingWarning: BatchProcessingWarning?
+    @Published var lastExecutionMetrics: BatchExecutionMetrics?
+    @Published public internal(set) var isCancelling = false
 
     // Per-job overrides
     @Published public var overrideModel: String?
@@ -43,6 +46,7 @@ public final class TranscriptionJob: ObservableObject {
     @Published public var appSettings: AppSettings
     var currentTask: Task<Void, Never>?
     var preparationTask: Task<Void, Never>?
+    var processingTask: Task<BatchProcessingResult, Never>?
     let batchTranscriberPool: BatchTranscriberPool
 
     public convenience init(appSettings: AppSettings) {
@@ -127,6 +131,7 @@ public final class TranscriptionJob: ObservableObject {
         guard !processableItemIDs.isEmpty else { return }
 
         processingWarning = nil
+        lastExecutionMetrics = nil
         prepareForUse()
         if let issue = appSettings.readiness.primaryIssueForBatch(batchPrompt: batchPostPrompt) {
             withAnimation(AnimationConfig.standard) {

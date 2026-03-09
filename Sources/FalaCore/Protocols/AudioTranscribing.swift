@@ -14,6 +14,7 @@ public struct TranscriberProgress: Sendable {
 /// Enables testing without loading ML models.
 public protocol AudioTranscribing: Sendable {
     var supportsTranslation: Bool { get }
+    func loadIfNeeded(progress: (@Sendable (Double) -> Void)?) async throws
     func transcribe(samples: [Float], task: String) async throws -> String
     func transcribe(
         audioPath: String,
@@ -24,6 +25,8 @@ public protocol AudioTranscribing: Sendable {
 
 public extension AudioTranscribing {
     var supportsTranslation: Bool { true }
+
+    func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {}
 
     func transcribe(samples: [Float]) async throws -> String {
         try await transcribe(samples: samples, task: "transcribe")

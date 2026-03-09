@@ -24,17 +24,20 @@ final class IncrementalSavingTests: XCTestCase {
         try job.initializeOutputFile(url: outputURL, format: "txt", inputURL: inputURL)
         
         let testConfig = AppConfig() // default config, no LLM processing
+        let context = ProcessingContext(
+            config: testConfig,
+            template: .raw,
+            format: "txt",
+            outputURL: outputURL,
+            inputURL: inputURL
+        )
         
         // Mock stream yielding two distinct windows
         let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
         
         let processingTask = job.createProcessingTask(
             stream: stream,
-            config: testConfig,
-            template: .raw,
-            format: "txt",
-            outputURL: outputURL,
-            inputURL: inputURL
+            context: context
         )
         
         // First window, incrementally growing
@@ -53,16 +56,22 @@ final class IncrementalSavingTests: XCTestCase {
         let finalProcessedText = await processingTask.value
 
         // Check final processed text
-        XCTAssertEqual(finalProcessedText.fullConfirmedText.trimmingCharacters(in: .whitespacesAndNewlines), """
+        XCTAssertEqual(
+            finalProcessedText.fullConfirmedText.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            """
 Hello World
 Next block
-""")
+"""
+        )
         
         // Check file content directly to verify `appendToFile` worked
         let fileContent = try String(contentsOf: outputURL, encoding: .utf8)
-        XCTAssertEqual(fileContent.trimmingCharacters(in: .whitespacesAndNewlines), """
+        XCTAssertEqual(
+            fileContent.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+            """
 Hello World
 Next block
-""")
+"""
+        )
     }
 }

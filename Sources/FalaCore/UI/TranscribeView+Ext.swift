@@ -182,16 +182,19 @@ extension TranscribeView {
             }
 
         case .converting:
-            activeStatusView(message: L10n("Preparando arquivo de áudio…"))
+            activeStatusView(message: activeWorkMessage(L10n("Preparando arquivo de áudio…")))
+
+        case .preparingModel:
+            activeStatusView(message: activeWorkMessage(L10n("Preparando motor de transcrição…")))
 
         case .transcribing(let progressText):
             activeStatusView(
-                message: L10n("Transcrevendo…"),
+                message: activeWorkMessage(L10n("Transcrevendo…")),
                 progressText: progressText
             )
             
         case .processingLLM:
-            activeStatusView(message: L10n("Aprimorando com IA (LLM)…"))
+            activeStatusView(message: activeWorkMessage(L10n("Aprimorando com IA (LLM)…")))
 
         case .done(let path):
             if job.hasMultipleQueuedFiles {
@@ -238,6 +241,10 @@ extension TranscribeView {
         case .error(let message):
             errorView(message: message)
         }
+    }
+
+    private func activeWorkMessage(_ defaultMessage: String) -> String {
+        job.isCancelling ? L10n("Cancelando…") : defaultMessage
     }
     
     @ViewBuilder

@@ -4,6 +4,7 @@ public struct BatchQueueItem: Identifiable, Equatable, Sendable {
     public enum Status: Equatable, Sendable {
         case pending
         case converting
+        case preparingModel
         case transcribing(String)
         case processingLLM
         case done(URL, warning: BatchProcessingWarning?)
@@ -14,7 +15,7 @@ public struct BatchQueueItem: Identifiable, Equatable, Sendable {
             switch self {
             case .done, .error, .cancelled:
                 return true
-            case .pending, .converting, .transcribing, .processingLLM:
+            case .pending, .converting, .preparingModel, .transcribing, .processingLLM:
                 return false
             }
         }
@@ -23,7 +24,7 @@ public struct BatchQueueItem: Identifiable, Equatable, Sendable {
             switch self {
             case .pending, .error, .cancelled:
                 return true
-            case .converting, .transcribing, .processingLLM, .done:
+            case .converting, .preparingModel, .transcribing, .processingLLM, .done:
                 return false
             }
         }

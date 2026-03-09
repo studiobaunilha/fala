@@ -87,6 +87,8 @@ extension TranscriptionJob {
     }
 
     public func cancel() {
+        isCancelling = true
+        processingTask?.cancel()
         currentTask?.cancel()
         preparationTask?.cancel()
     }
@@ -114,6 +116,9 @@ extension TranscriptionJob {
         inputURL = nil
         activeQueueItemID = nil
         processingWarning = nil
+        lastExecutionMetrics = nil
+        isCancelling = false
+        processingTask = nil
         state = .idle
     }
 
@@ -270,6 +275,8 @@ extension TranscriptionJob {
         activeQueueItemID = nil
         currentTask = nil
         preparationTask = nil
+        processingTask = nil
+        isCancelling = false
         syncPrimaryInputURL()
         withAnimation(AnimationConfig.standard) {
             state = .error(L10n("Cancelado pelo usuário"))
@@ -280,6 +287,8 @@ extension TranscriptionJob {
         activeQueueItemID = nil
         currentTask = nil
         preparationTask = nil
+        processingTask = nil
+        isCancelling = false
         syncPrimaryInputURL()
 
         if let lastCompletedOutputPath = summary.lastCompletedOutputPath {
@@ -301,88 +310,4 @@ extension TranscriptionJob {
         }
     }
 
-    func runQueueItem(
-        itemID: BatchQueueItem.ID,
-        inputURL: URL,
-        ext: String,
-        outputURL: URL
-    ) async throws -> BatchProcessingWarning? {
-        try Task.checkCancellation()
-        updateQueueItemStatus(itemID, status: ext == "wav" ? .transcribing("") : .converting)
-        withAnimation(AnimationConfig.standard) {
-            state = ext == "wav" ? .transcribing("") : .converting
-        }
-
-        let (wavURL, needsCleanup) = try await prepareAudio(from: inputURL)
-        defer {
-            if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
-        }
-
-        try Task.checkCancellation()
-        updateQueueItemStatus(itemID, status: .transcribing(""))
-        withAnimation(AnimationConfig.standard) {
-            state = .transcribing("")
-        }
-
-        return try await executeTranscription(
-            wavURL: wavURL,
-            inputURL: inputURL,
-            outputURL: outputURL,
-            itemID: itemID
-        )
-    }
-
-    func executeTranscription(
-        wavURL: URL,
-        inputURL: URL,
-        outputURL: URL,
-        itemID: BatchQueueItem.ID
-    ) async throws -> BatchProcessingWarning? {
-        let config = preparationConfig()
-        let format = outputFormat
-
-        try initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
-
-        let effectiveModel = overrideModel ?? config.activeWhisperModel
-        let effectiveLanguage = overrideLanguage ?? config.transcriptionLanguage
-        let transcriber = await batchTranscriberPool.transcriber(
-            using: config,
-            modelName: effectiveModel,
-            language: effectiveLanguage
-        )
-
-        let (stream, continuation) = AsyncStream<TranscriberProgress>.makeStream()
-        let processingTask = createProcessingTask(
-            stream: stream,
-            config: config,
-            template: batchPostPrompt.isEmpty ? .raw : .custom,
-            format: format,
-            outputURL: outputURL,
-            inputURL: inputURL,
-            batchPromptOverride: batchPostPrompt.isEmpty ? nil : batchPostPrompt
-        )
-
-        do {
-            _ = try await transcriber.transcribe(audioPath: wavURL.path) { progressUpdate in
-                continuation.yield(progressUpdate)
-            }
-            continuation.finish()
-        } catch {
-            continuation.finish()
-            throw error
-        }
-
-        if !batchPostPrompt.isEmpty {
-            updateQueueItemStatus(itemID, status: .processingLLM)
-            withAnimation(AnimationConfig.standard) {
-                state = .processingLLM
-            }
-        }
-
-        let processingResult = await processingTask.value
-        processingWarning = processingResult.warning
-        try Task.checkCancellation()
-
-        return processingResult.warning
-    }
 }

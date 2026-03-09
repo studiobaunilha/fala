@@ -227,14 +227,9 @@ extension TranscriptionJob {
         }
     }
     
-    // swiftlint:disable:next function_parameter_count
     func createProcessingTask(
         stream: AsyncStream<TranscriberProgress>,
-        config: AppConfig,
-        template: DictationTemplate,
-        format: String,
-        outputURL: URL,
-        inputURL: URL,
+        context: ProcessingContext,
         batchPromptOverride: String? = nil
     ) -> Task<BatchProcessingResult, Never> {
         Task {
@@ -244,66 +239,104 @@ extension TranscriptionJob {
             var warning: BatchProcessingWarning?
 
             for await progress in stream {
-                // If the window ID increases, the previous window is finalized.
+                guard !Task.isCancelled else {
+                    return processingResult(
+                        fullConfirmedText: fullConfirmedText,
+                        warning: warning
+                    )
+                }
                 if progress.windowId > currentWindowId {
-                    if let outcome = await processConfirmedWindowText(
+                    (fullConfirmedText, warning) = await mergeConfirmedWindowText(
                         currentWindowRawText,
-                        config: config,
-                        template: template,
-                        outputURL: outputURL,
+                        fullConfirmedText: fullConfirmedText,
+                        warning: warning,
+                        context: context,
                         promptOverride: batchPromptOverride
-                    ) {
-                        if warning == nil { warning = outcome.warning }
-                        fullConfirmedText += outcome.text + "\n"
-                    }
+                    )
                     currentWindowId = progress.windowId
                     currentWindowRawText = progress.text
-                } else {
-                    if !progress.text.isEmpty {
-                        currentWindowRawText = progress.text
-                    }
+                } else if !progress.text.isEmpty {
+                    currentWindowRawText = progress.text
                 }
-                await updateLiveTranscriptionProgress(progress, config: config)
+                await updateLiveTranscriptionProgress(progress, config: context.config)
             }
 
-            if let outcome = await processConfirmedWindowText(
+            guard !Task.isCancelled else {
+                return processingResult(
+                    fullConfirmedText: fullConfirmedText,
+                    warning: warning
+                )
+            }
+            (fullConfirmedText, warning) = await mergeConfirmedWindowText(
                 currentWindowRawText,
-                config: config,
-                template: template,
-                outputURL: outputURL,
+                fullConfirmedText: fullConfirmedText,
+                warning: warning,
+                context: context,
                 promptOverride: batchPromptOverride
-            ) {
-                if warning == nil { warning = outcome.warning }
-                fullConfirmedText += outcome.text + "\n"
-            }
+            )
 
-            return BatchProcessingResult(
+            return processingResult(
                 fullConfirmedText: fullConfirmedText,
                 warning: warning
             )
         }
     }
 
+    private func mergeConfirmedWindowText(
+        _ rawText: String,
+        fullConfirmedText: String,
+        warning: BatchProcessingWarning?,
+        context: ProcessingContext,
+        promptOverride: String?
+    ) async -> (String, BatchProcessingWarning?) {
+        guard let outcome = await processConfirmedWindowText(
+            rawText,
+            context: context,
+            promptOverride: promptOverride
+        ) else {
+            return (fullConfirmedText, warning)
+        }
+
+        return (
+            fullConfirmedText + outcome.text + "\n",
+            warning ?? outcome.warning
+        )
+    }
+
+    private func processingResult(
+        fullConfirmedText: String,
+        warning: BatchProcessingWarning?
+    ) -> BatchProcessingResult {
+        BatchProcessingResult(
+            fullConfirmedText: fullConfirmedText,
+            warning: warning
+        )
+    }
+
     func processConfirmedWindowText(
         _ rawText: String,
-        config: AppConfig,
-        template: DictationTemplate,
-        outputURL: URL,
+        context: ProcessingContext,
         promptOverride: String?
     ) async -> LLMApplicationOutcome? {
+        guard !Task.isCancelled else {
+            return nil
+        }
         var cleaned = cleanText(rawText)
-        cleaned = ReplacementRule.applyAll(cleaned, rules: config.replacementRules)
+        cleaned = ReplacementRule.applyAll(cleaned, rules: context.config.replacementRules)
         guard !cleaned.isEmpty else {
             return nil
         }
 
         let outcome = await Self.applyLLMWithOutcome(
             to: cleaned,
-            config: config,
-            template: template,
+            config: context.config,
+            template: context.template,
             promptOverride: promptOverride
         )
-        appendToFile(url: outputURL, text: outcome.text)
+        guard !Task.isCancelled else {
+            return nil
+        }
+        appendToFile(url: context.outputURL, text: outcome.text)
         return outcome
     }
 }

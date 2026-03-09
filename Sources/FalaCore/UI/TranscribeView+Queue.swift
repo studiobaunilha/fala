@@ -239,6 +239,8 @@ private struct BatchQueueRowView: View {
             return L10n("Aguardando na fila")
         case .converting:
             return L10n("Preparando arquivo de áudio…")
+        case .preparingModel:
+            return L10n("Preparando motor de transcrição…")
         case .transcribing:
             return L10n("Transcrevendo…")
         case .processingLLM:
@@ -258,6 +260,8 @@ private struct BatchQueueRowView: View {
             return "list.bullet.clipboard"
         case .converting:
             return "waveform"
+        case .preparingModel:
+            return "cpu"
         case .transcribing:
             return "waveform.and.magnifyingglass"
         case .processingLLM:
@@ -275,7 +279,7 @@ private struct BatchQueueRowView: View {
         switch item.status {
         case .pending:
             return .accentColor
-        case .converting, .transcribing, .processingLLM:
+        case .converting, .preparingModel, .transcribing, .processingLLM:
             return FalaColors.info
         case .done:
             return FalaColors.success
