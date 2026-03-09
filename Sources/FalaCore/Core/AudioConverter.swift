@@ -1,57 +1,81 @@
 @preconcurrency import AVFoundation
 
+private final class AudioConversionState: @unchecked Sendable {
+    var cancellationError: Error?
+}
+
 /// Converts any AVAudioFile to a [Float] array at 16 kHz mono,
 /// which is the format expected by WhisperKit.
 public enum AudioConverter {
-    public static func toFloat16k(from url: URL) throws -> [Float] {
+    public static func toFloat16k(
+        from url: URL,
+        cancellationCheck: @escaping @Sendable () throws -> Void = {}
+    ) throws -> [Float] {
         let sourceFile = try AVAudioFile(forReading: url)
-        let sourceFormat = sourceFile.processingFormat
+        let targetFormat = try make16kMonoFloatFormat()
 
-        guard let targetFormat = AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: 16_000,
-            channels: 1,
-            interleaved: false
-        ) else { throw AudioError.invalidFormat }
-
-        guard let converter = AVAudioConverter(from: sourceFormat, to: targetFormat) else {
+        guard let converter = AVAudioConverter(
+            from: sourceFile.processingFormat,
+            to: targetFormat
+        ) else {
             throw AudioError.conversionFailed
         }
 
-        let ratio = targetFormat.sampleRate / sourceFormat.sampleRate
+        let ratio = targetFormat.sampleRate / sourceFile.processingFormat.sampleRate
         let outputCapacity = AVAudioFrameCount(Double(sourceFile.length) * ratio) + 1
+        let outputBuffer = try makePCMBuffer(
+            format: targetFormat,
+            frameCapacity: outputCapacity
+        )
+        let inputBuffer = try makePCMBuffer(
+            format: sourceFile.processingFormat,
+            frameCapacity: 8_192
+        )
 
-        guard let outputBuffer = AVAudioPCMBuffer(pcmFormat: targetFormat, frameCapacity: outputCapacity) else {
-            throw AudioError.bufferAllocationFailed
-        }
+        try convertFile(
+            sourceFile,
+            with: converter,
+            inputBuffer: inputBuffer,
+            outputBuffer: outputBuffer,
+            cancellationCheck: cancellationCheck
+        )
+        try cancellationCheck()
 
-        let chunkSize: AVAudioFrameCount = 8192
-        guard let inputBuffer = AVAudioPCMBuffer(pcmFormat: sourceFormat, frameCapacity: chunkSize) else {
-            throw AudioError.bufferAllocationFailed
-        }
+        return samples(from: outputBuffer)
+    }
 
+    private static func convertFile(
+        _ sourceFile: AVAudioFile,
+        with converter: AVAudioConverter,
+        inputBuffer: AVAudioPCMBuffer,
+        outputBuffer: AVAudioPCMBuffer,
+        cancellationCheck: @escaping @Sendable () throws -> Void
+    ) throws {
         var conversionError: NSError?
+        let state = AudioConversionState()
 
         let status = converter.convert(to: outputBuffer, error: &conversionError) { _, outStatus in
             do {
+                try cancellationCheck()
                 try sourceFile.read(into: inputBuffer)
                 outStatus.pointee = inputBuffer.frameLength > 0 ? .haveData : .endOfStream
                 return inputBuffer
+            } catch is CancellationError {
+                state.cancellationError = CancellationError()
+                outStatus.pointee = .endOfStream
+                return nil
             } catch {
                 outStatus.pointee = .endOfStream
                 return nil
             }
         }
 
+        if let cancellationError = state.cancellationError {
+            throw cancellationError
+        }
         if status == .error {
             throw conversionError ?? AudioError.conversionFailed
         }
-
-        guard let channelData = outputBuffer.floatChannelData?[0] else {
-            return []
-        }
-
-        return Array(UnsafeBufferPointer(start: channelData, count: Int(outputBuffer.frameLength)))
     }
 
     public static func write16kMonoWAV(
@@ -60,7 +84,10 @@ public enum AudioConverter {
         cancellationCheck: @escaping @Sendable () throws -> Void = {}
     ) throws {
         try cancellationCheck()
-        let samples = try toFloat16k(from: inputURL)
+        let samples = try toFloat16k(
+            from: inputURL,
+            cancellationCheck: cancellationCheck
+        )
         try cancellationCheck()
 
         guard let outputFormat = AVAudioFormat(
@@ -73,8 +100,11 @@ public enum AudioConverter {
         }
 
         let frameCount = AVAudioFrameCount(samples.count)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: frameCount),
-              let channelData = buffer.floatChannelData?[0]
+        guard let buffer = AVAudioPCMBuffer(
+            pcmFormat: outputFormat,
+            frameCapacity: frameCount
+        ),
+            let channelData = buffer.floatChannelData?[0]
         else {
             throw AudioError.bufferAllocationFailed
         }
@@ -90,5 +120,43 @@ public enum AudioConverter {
 
         let file = try AVAudioFile(forWriting: outputURL, settings: outputFormat.settings)
         try file.write(from: buffer)
+    }
+
+    private static func make16kMonoFloatFormat() throws -> AVAudioFormat {
+        guard let format = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: 16_000,
+            channels: 1,
+            interleaved: false
+        ) else {
+            throw AudioError.invalidFormat
+        }
+        return format
+    }
+
+    private static func makePCMBuffer(
+        format: AVAudioFormat,
+        frameCapacity: AVAudioFrameCount
+    ) throws -> AVAudioPCMBuffer {
+        guard let buffer = AVAudioPCMBuffer(
+            pcmFormat: format,
+            frameCapacity: frameCapacity
+        ) else {
+            throw AudioError.bufferAllocationFailed
+        }
+        return buffer
+    }
+
+    private static func samples(from outputBuffer: AVAudioPCMBuffer) -> [Float] {
+        guard let channelData = outputBuffer.floatChannelData?[0] else {
+            return []
+        }
+
+        return Array(
+            UnsafeBufferPointer(
+                start: channelData,
+                count: Int(outputBuffer.frameLength)
+            )
+        )
     }
 }
