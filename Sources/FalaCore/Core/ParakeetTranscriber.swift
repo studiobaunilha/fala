@@ -34,7 +34,7 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
         }
 
         let token = UUID()
-        let task = Task<Void, Error> { [weak self] in
+        let task = Task.detached { [weak self] in
             let downloaded = try await AsrModels.downloadAndLoad(version: .v3)
             let mgr = AsrManager()
             try await mgr.initialize(models: downloaded)
