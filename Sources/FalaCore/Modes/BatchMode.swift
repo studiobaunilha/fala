@@ -1,7 +1,7 @@
 import Foundation
 
 /// CLI batch transcription mode.
-/// Usage: fala transcribe <file> [--format txt|md] [--model <name>] [--profile]
+/// Usage: fala transcribe <file> [--format txt|md] [--model <name>] [--profile] [--prepare-only]
 public enum BatchMode {
     public static let supportedExtensions: Set<String> = ["m4a", "mp3", "wav", "mp4", "aac", "flac", "ogg"]
 
@@ -28,21 +28,18 @@ public enum BatchMode {
         }
 
         do {
-            let preparedAudio: PreparedBatchAudio
-            if let profiler {
-                preparedAudio = try await profiler.measure(.audioPreparation) {
-                    try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
-                }
-                profiler.recordAudioPreparationMode(preparedAudio.mode)
-            } else {
-                preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
-            }
-
+            let preparedAudio = try await prepareAudioInput(from: inputURL, profiler: profiler)
             let wavURL = preparedAudio.wavURL
             let needsCleanup = preparedAudio.requiresCleanup
 
             defer {
                 if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
+            }
+
+            if opts.prepareOnly {
+                print("Audio prepared.")
+                outcome = .succeeded
+                return
             }
 
             try await performTranscription(
@@ -61,6 +58,21 @@ public enum BatchMode {
             outcome = .failed
             throw error
         }
+    }
+
+    private static func prepareAudioInput(
+        from inputURL: URL,
+        profiler: CLIBatchExecutionProfiler?
+    ) async throws -> PreparedBatchAudio {
+        if let profiler {
+            let preparedAudio = try await profiler.measure(.audioPreparation) {
+                try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+            }
+            profiler.recordAudioPreparationMode(preparedAudio.mode)
+            return preparedAudio
+        }
+
+        return try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
     }
 
     private static func performTranscription(
@@ -118,15 +130,17 @@ public enum BatchMode {
         var model: String
         var template: DictationTemplate
         var profile: Bool
+        var prepareOnly: Bool
     }
 
-    /// Parses `--format`, `--model`, and `--mode` flags from CLI arguments.
+    /// Parses `--format`, `--model`, `--mode`, and diagnostics flags from CLI arguments.
     static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
         var opts = BatchOptions(
             format: config.outputFormat,
             model: config.activeWhisperModel,
             template: config.selectedDictationTemplate,
-            profile: false
+            profile: false,
+            prepareOnly: false
         )
         var idx = 1
         while idx < arguments.count {
@@ -145,6 +159,8 @@ public enum BatchMode {
                 }
             case "--profile":
                 opts.profile = true
+            case "--prepare-only":
+                opts.prepareOnly = true
             default:
                 break
             }

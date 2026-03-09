@@ -15,6 +15,7 @@ final class BatchModeTests: XCTestCase {
         XCTAssertEqual(options.model, config.activeWhisperModel)
         XCTAssertEqual(options.template, .translate)
         XCTAssertFalse(options.profile)
+        XCTAssertFalse(options.prepareOnly)
     }
 
     func testParseOptionsRecognizesProfileAndOverrides() {
@@ -24,7 +25,8 @@ final class BatchModeTests: XCTestCase {
                 "--format", "txt",
                 "--model", "large-v3-turbo",
                 "--mode", "Personalizado",
-                "--profile"
+                "--profile",
+                "--prepare-only"
             ],
             config: AppConfig()
         )
@@ -33,5 +35,6 @@ final class BatchModeTests: XCTestCase {
         XCTAssertEqual(options.model, "large-v3-turbo")
         XCTAssertEqual(options.template, .custom)
         XCTAssertTrue(options.profile)
+        XCTAssertTrue(options.prepareOnly)
     }
 }
