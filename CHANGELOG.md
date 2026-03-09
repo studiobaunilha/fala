@@ -2,6 +2,17 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.2.1] — 2026-03-09
+
+### Correções
+
+- **Ativação direta no Onboarding**: O fluxo de boas-vindas agora permite ativar chaves Pro ou iniciar o trial sem precisar abrir a janela de Ajustes.
+- **Keychain sem erro -50**: Corrigida uma falha de comunicação com o sistema de segurança do macOS que impedia o carregamento de licenças em certos ambientes.
+- **Feedback de validação no startup**: O app agora mostra um indicador visual de progresso enquanto tenta revalidar a licença automaticamente em segundo plano.
+- **Refatoração interna do Onboarding**: O código da interface de setup foi modularizado para maior estabilidade e conformidade com os padrões de qualidade do projeto.
+
+---
+
 ## [1.2] — 2026-03-09
 
 ### Melhorias
