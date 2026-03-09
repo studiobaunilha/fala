@@ -2,9 +2,7 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
-## [Em preparação]
-
-Tudo abaixo nesta seção já entrou no `main` depois da `1.1` e fica aguardando o próximo corte de release. O que ainda falta fazer continua detalhado no `PLANO.md`.
+## [1.2] — 2026-03-09
 
 ### Melhorias
 
@@ -21,12 +19,14 @@ Tudo abaixo nesta seção já entrou no `main` depois da `1.1` e fica aguardando
 
 ### Correções
 
+- **Licença preservada com Keychain bloqueado**: Erros de acesso ao Keychain no startup passaram a ser tratados como transientes, evitando a remoção acidental do token Pro da máquina.
+- **Onboarding com ativação manual**: O setup inicial agora permite abrir os Ajustes para colar chaves de ativação manualmente caso a validação automática não seja possível.
+- **Transcrição Parakeet sem travamento da UI**: A inicialização pesada do motor CoreML (prewarm) passou a rodar em thread isolada, garantindo que a interface não congele ao iniciar o ditado.
 - **Diarization removida do produto**: O app deixa de expor diarization em Ajustes, transcrição de arquivos, prompts e configuração persistida, eliminando estados residuais do recurso.
 - **Prompt global ocultado com Apple Intelligence**: O painel `IA & LLM` deixa de mostrar o prompt global quando o provedor padrão selecionado é Apple Intelligence, evitando uma configuração sem efeito.
 - **Layout dos Ajustes corrigido**: A janela de Ajustes volta a respeitar a área útil inteira, sem clipping no conteúdo da direita e sem o painel lateral extrapolar o contêiner.
 - **Chrome nativo dos Ajustes restaurado**: A janela de Ajustes volta a usar o comportamento nativo de sidebar full-height do macOS, com traffic lights e toggle da barra lateral alinhados ao padrão Apple.
 - **Licença revalidada automaticamente no launch**: Quando o app sobe bloqueado por licença ou trial, o startup passa a tentar a reconciliação online em background antes de depender de clique manual na janela de pendências.
-- **Restauração de licença mais resiliente após falha transitória do Keychain**: Uma leitura inicial negada do Keychain deixa de envenenar o cache local, permitindo recuperar o entitlement no mesmo processo sem obrigar nova ativação manual.
 - **CLI de batch destravado**: O entrypoint do executável deixa de bloquear trabalho async com semáforo e passa a executar o fluxo de transcrição de arquivos corretamente.
 - **Batch com estágios e cancelamento honestos**: A UI de transcrição de arquivos passa a distinguir preparo do motor, transcrição e cancelamento, e o pipeline interrompe mais cedo quando o usuário cancela.
 - **Preparo de áudio do batch deixa de bloquear a UI**: A conversão inicial passa a rodar fora do `MainActor`, o cancelamento interrompe o pipeline antes do warmup/transcribe e arquivos temporários parciais são limpos ao abortar.
