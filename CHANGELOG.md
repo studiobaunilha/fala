@@ -12,6 +12,7 @@ Todas as mudanças notáveis do Fala serão documentadas aqui.
 - **Editor único de prompts**: Prompts relevantes passam a usar a mesma interface de edição, e o prompt do Apple Intelligence deixa de ser somente leitura.
 - **Fila de vários arquivos**: A transcrição de arquivos ganha seleção múltipla, fila visível, progresso por item, retentativa e atalho para abrir saídas no Finder.
 - **Telemetria de batch**: Cada execução de transcrição de arquivos passa a registrar tempos de preparo de áudio, preparo do motor, transcrição, pós-processamento e total.
+- **Diagnóstico de batch mais preciso**: A telemetria de transcrição de arquivos passa a diferenciar fast path `WAV` vs conversão real e também marca se o modelo estava `ready`, `loading` ou `cold`.
 
 ### Correções
 

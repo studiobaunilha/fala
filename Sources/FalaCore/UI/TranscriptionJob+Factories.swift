@@ -18,6 +18,9 @@ extension TranscriptionJob {
             prompt: ""
         )
         return BatchWhisperTranscriber(
+            loadState: {
+                await transcriber.loadState()
+            },
             loadIfNeeded: { progress in
                 try await transcriber.loadIfNeeded(progress: progress)
             },
@@ -47,6 +50,9 @@ extension TranscriptionJob {
     static func makeParakeetBatchTranscriber() -> BatchPreloadableTranscriber {
         let transcriber = ParakeetTranscriber()
         return BatchPreloadableTranscriber(
+            loadState: {
+                await transcriber.loadState()
+            },
             loadIfNeeded: { progress in
                 try await transcriber.loadIfNeeded(progress: progress)
             },

@@ -15,6 +15,16 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
 
     public init() {}
 
+    public func loadState() async -> TranscriberLoadState {
+        if lock.withLock({ manager != nil }) {
+            return .ready
+        }
+        if lock.withLock({ loadingTask != nil }) {
+            return .loading
+        }
+        return .cold
+    }
+
     /// Loads the Parakeet V3 model if not already loaded.
     public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         if lock.withLock({ manager != nil }) { return }

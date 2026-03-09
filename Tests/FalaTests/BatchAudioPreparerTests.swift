@@ -58,6 +58,7 @@ final class BatchAudioPreparerTests: XCTestCase {
 
         XCTAssertEqual(prepared.wavURL.standardizedFileURL, wavURL.standardizedFileURL)
         XCTAssertFalse(prepared.requiresCleanup)
+        XCTAssertEqual(prepared.mode, .passthrough)
     }
 
     func testPrepareTranscriptionInputWritesNormalizedTemporaryWAVForNonWAVInput() throws {
@@ -77,6 +78,7 @@ final class BatchAudioPreparerTests: XCTestCase {
 
         XCTAssertNotEqual(prepared.wavURL.standardizedFileURL, sourceURL.standardizedFileURL)
         XCTAssertTrue(prepared.requiresCleanup)
+        XCTAssertEqual(prepared.mode, .converted)
         XCTAssertEqual(prepared.wavURL.pathExtension.lowercased(), "wav")
         XCTAssertTrue(FileManager.default.fileExists(atPath: prepared.wavURL.path))
 

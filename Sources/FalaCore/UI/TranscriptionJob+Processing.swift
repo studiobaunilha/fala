@@ -55,9 +55,8 @@ struct ProcessingContext {
 
 extension TranscriptionJob {
 
-    func prepareAudio(from inputURL: URL) async throws -> (URL, Bool) {
-        let preparedAudio = try await audioPreparationHandler(inputURL)
-        return (preparedAudio.wavURL, preparedAudio.requiresCleanup)
+    func prepareAudio(from inputURL: URL) async throws -> PreparedBatchAudio {
+        try await audioPreparationHandler(inputURL)
     }
 
     static func processWithGemini(text: String, prompt: String, apiKey: String, model: String) async throws -> String {

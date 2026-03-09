@@ -2,6 +2,7 @@ import Foundation
 
 struct BatchWhisperTranscriber: AudioTranscribing {
     let supportsTranslation: Bool
+    private let loadStateHandler: @Sendable () async -> TranscriberLoadState
     private let loadIfNeededHandler: @Sendable ((@Sendable (Double) -> Void)?) async throws -> Void
     private let setModelHandler: @Sendable (String) async -> Void
     private let setConfigHandler: @Sendable (String, Float, String) async -> Void
@@ -11,6 +12,7 @@ struct BatchWhisperTranscriber: AudioTranscribing {
 
     init(
         supportsTranslation: Bool = true,
+        loadState: @escaping @Sendable () async -> TranscriberLoadState = { .cold },
         loadIfNeeded: @escaping @Sendable ((@Sendable (Double) -> Void)?) async throws -> Void,
         setModel: @escaping @Sendable (String) async -> Void,
         setConfig: @escaping @Sendable (String, Float, String) async -> Void,
@@ -22,11 +24,16 @@ struct BatchWhisperTranscriber: AudioTranscribing {
         ) async throws -> String
     ) {
         self.supportsTranslation = supportsTranslation
+        self.loadStateHandler = loadState
         self.loadIfNeededHandler = loadIfNeeded
         self.setModelHandler = setModel
         self.setConfigHandler = setConfig
         self.transcribeSamplesHandler = transcribeSamples
         self.transcribeAudioPathHandler = transcribeAudioPath
+    }
+
+    func loadState() async -> TranscriberLoadState {
+        await loadStateHandler()
     }
 
     func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
@@ -56,6 +63,7 @@ struct BatchWhisperTranscriber: AudioTranscribing {
 
 struct BatchPreloadableTranscriber: AudioTranscribing {
     let supportsTranslation: Bool
+    private let loadStateHandler: @Sendable () async -> TranscriberLoadState
     private let loadIfNeededHandler: @Sendable ((@Sendable (Double) -> Void)?) async throws -> Void
     private let transcribeSamplesHandler: @Sendable ([Float], String) async throws -> String
     private let transcribeAudioPathHandler:
@@ -63,6 +71,7 @@ struct BatchPreloadableTranscriber: AudioTranscribing {
 
     init(
         supportsTranslation: Bool = false,
+        loadState: @escaping @Sendable () async -> TranscriberLoadState = { .cold },
         loadIfNeeded: @escaping @Sendable ((@Sendable (Double) -> Void)?) async throws -> Void,
         transcribeSamples: @escaping @Sendable ([Float], String) async throws -> String,
         transcribeAudioPath: @escaping @Sendable (
@@ -72,9 +81,14 @@ struct BatchPreloadableTranscriber: AudioTranscribing {
         ) async throws -> String
     ) {
         self.supportsTranslation = supportsTranslation
+        self.loadStateHandler = loadState
         self.loadIfNeededHandler = loadIfNeeded
         self.transcribeSamplesHandler = transcribeSamples
         self.transcribeAudioPathHandler = transcribeAudioPath
+    }
+
+    func loadState() async -> TranscriberLoadState {
+        await loadStateHandler()
     }
 
     func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {

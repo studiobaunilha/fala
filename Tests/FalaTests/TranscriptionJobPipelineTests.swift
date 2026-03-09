@@ -71,7 +71,10 @@ final class TranscriptionJobPipelineTests: TranscriptionJobTestCase {
         var config = AppConfig()
         config.transcriptionEngine = "parakeet"
         let transcriberSpy = DelayedBatchTranscriberSpy(loadDelay: .zero)
-        let audioPreparationSpy = DelayedBatchAudioPreparationSpy(delay: .seconds(5))
+        let audioPreparationSpy = DelayedBatchAudioPreparationSpy(
+            delay: .seconds(5),
+            mode: .converted
+        )
         let job = TranscriptionJob(
             appSettings: makeTestSettings(config: config),
             batchTranscriberPool: makeDelayedBatchPool(spy: transcriberSpy),
@@ -103,7 +106,9 @@ final class TranscriptionJobPipelineTests: TranscriptionJobTestCase {
         XCTAssertEqual(job.queue.map(\.status), [.cancelled])
         let transcribeCallCount = await transcriberSpy.transcribeAudioCallCount()
         XCTAssertEqual(transcribeCallCount, 0)
+        XCTAssertEqual(job.lastExecutionMetrics?.audioPreparationMode, .converted)
         XCTAssertNil(job.lastExecutionMetrics?.modelPreparation)
+        XCTAssertNil(job.lastExecutionMetrics?.modelLoadState)
         XCTAssertFalse(job.isCancelling)
     }
 
@@ -133,11 +138,72 @@ final class TranscriptionJobPipelineTests: TranscriptionJobTestCase {
         let metrics = try XCTUnwrap(job.lastExecutionMetrics)
         XCTAssertEqual(metrics.fileName, "metricas.wav")
         XCTAssertEqual(metrics.fileExtension, "wav")
+        XCTAssertEqual(metrics.audioPreparationMode, .passthrough)
+        XCTAssertEqual(metrics.modelLoadState, .loading)
         XCTAssertEqual(metrics.outcome, .succeeded)
         XCTAssertNil(metrics.postProcessing)
         XCTAssertGreaterThan(metrics.total, .zero)
         XCTAssertGreaterThan(try XCTUnwrap(metrics.audioPreparation), .zero)
         XCTAssertGreaterThan(try XCTUnwrap(metrics.modelPreparation), .zero)
         XCTAssertGreaterThan(try XCTUnwrap(metrics.transcription), .zero)
+    }
+
+    func testTranscribeCapturesConvertedAudioModeForNonWAVInput() async throws {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        let transcriberSpy = DelayedBatchTranscriberSpy(loadDelay: .zero, transcribeDelay: .zero)
+        let job = TranscriptionJob(
+            appSettings: makeTestSettings(config: config),
+            batchTranscriberPool: makeDelayedBatchPool(spy: transcriberSpy)
+        )
+        let inputDir = try makeTemporaryDirectory()
+        let outputDir = try makeTemporaryDirectory()
+        let inputURL = try makeSilentAudioFile(in: inputDir, named: "convertido", fileExtension: "m4a")
+        job.outputDirectory = outputDir
+
+        job.enqueueInputFiles([inputURL])
+        job.transcribe()
+
+        try await waitUntil {
+            job.queue.allSatisfy(\.status.isTerminal)
+        }
+
+        let metrics = try XCTUnwrap(job.lastExecutionMetrics)
+        XCTAssertEqual(metrics.fileName, "convertido.m4a")
+        XCTAssertEqual(metrics.fileExtension, "m4a")
+        XCTAssertEqual(metrics.audioPreparationMode, .converted)
+        XCTAssertEqual(metrics.modelLoadState, .ready)
+        XCTAssertEqual(metrics.outcome, .succeeded)
+        XCTAssertGreaterThan(try XCTUnwrap(metrics.audioPreparation), .zero)
+    }
+
+    func testTranscribeCapturesReadyModelStateWhenTranscriberIsAlreadyWarm() async throws {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        let transcriberSpy = DelayedBatchTranscriberSpy(
+            loadDelay: .zero,
+            transcribeDelay: .zero,
+            initialLoadState: .ready
+        )
+        let job = TranscriptionJob(
+            appSettings: makeTestSettings(config: config),
+            batchTranscriberPool: makeDelayedBatchPool(spy: transcriberSpy)
+        )
+        let inputDir = try makeTemporaryDirectory()
+        let outputDir = try makeTemporaryDirectory()
+        let inputURL = try makeSilentWAV(in: inputDir, named: "quente")
+        job.outputDirectory = outputDir
+
+        job.enqueueInputFiles([inputURL])
+        job.transcribe()
+
+        try await waitUntil {
+            job.queue.allSatisfy(\.status.isTerminal)
+        }
+
+        let metrics = try XCTUnwrap(job.lastExecutionMetrics)
+        XCTAssertEqual(metrics.audioPreparationMode, .passthrough)
+        XCTAssertEqual(metrics.modelLoadState, .ready)
+        XCTAssertEqual(metrics.outcome, .succeeded)
     }
 }

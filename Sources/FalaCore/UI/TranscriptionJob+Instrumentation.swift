@@ -17,6 +17,8 @@ struct BatchExecutionMetrics: Equatable, Sendable {
     let fileName: String
     let fileExtension: String
     let usedPostProcessing: Bool
+    let audioPreparationMode: BatchAudioPreparationMode?
+    let modelLoadState: TranscriberLoadState?
     let outcome: BatchExecutionOutcome
     let audioPreparation: Duration?
     let modelPreparation: Duration?
@@ -32,6 +34,8 @@ final class BatchExecutionProfiler {
     private let inputURL: URL
     private let usedPostProcessing: Bool
     private var stageDurations: [BatchExecutionStage: Duration] = [:]
+    private var audioPreparationMode: BatchAudioPreparationMode?
+    private var modelLoadState: TranscriberLoadState?
 
     init(inputURL: URL, usedPostProcessing: Bool) {
         self.totalStart = clock.now
@@ -54,11 +58,21 @@ final class BatchExecutionProfiler {
         }
     }
 
+    func recordAudioPreparationMode(_ mode: BatchAudioPreparationMode) {
+        audioPreparationMode = mode
+    }
+
+    func recordModelLoadState(_ state: TranscriberLoadState) {
+        modelLoadState = state
+    }
+
     func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
         BatchExecutionMetrics(
             fileName: inputURL.lastPathComponent,
             fileExtension: inputURL.pathExtension.lowercased(),
             usedPostProcessing: usedPostProcessing,
+            audioPreparationMode: audioPreparationMode,
+            modelLoadState: modelLoadState,
             outcome: outcome,
             audioPreparation: stageDurations[.audioPreparation],
             modelPreparation: stageDurations[.modelPreparation],
@@ -73,9 +87,12 @@ extension TranscriptionJob {
     func recordBatchMetrics(_ metrics: BatchExecutionMetrics) {
         lastExecutionMetrics = metrics
         NSLog(
-            "[Fala] Batch timing file=%@ ext=%@ outcome=%@ prepare=%@ model=%@ transcribe=%@ post=%@ total=%@",
+            "[Fala] Batch timing file=%@ ext=%@ audioMode=%@ modelState=%@ outcome=%@ "
+                + "prepare=%@ model=%@ transcribe=%@ post=%@ total=%@",
             metrics.fileName,
             metrics.fileExtension,
+            metrics.audioPreparationMode?.rawValue ?? "n/a",
+            metrics.modelLoadState?.rawValue ?? "n/a",
             metrics.outcome.rawValue,
             metrics.audioPreparation.debugDurationText,
             metrics.modelPreparation.debugDurationText,

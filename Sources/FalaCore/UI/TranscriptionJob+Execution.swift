@@ -23,10 +23,14 @@ extension TranscriptionJob {
             status: ext == "wav" ? .preparingModel : .converting,
             state: ext == "wav" ? .preparingModel : .converting
         )
+        profiler.recordAudioPreparationMode(ext == "wav" ? .passthrough : .converted)
 
-        let (wavURL, needsCleanup) = try await profiler.measure(.audioPreparation) {
+        let preparedAudio = try await profiler.measure(.audioPreparation) {
             try await prepareAudio(from: inputURL)
         }
+        profiler.recordAudioPreparationMode(preparedAudio.mode)
+        let wavURL = preparedAudio.wavURL
+        let needsCleanup = preparedAudio.requiresCleanup
         defer {
             if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
         }
@@ -136,6 +140,8 @@ private extension TranscriptionJob {
             modelName: effectiveModel,
             language: effectiveLanguage
         )
+        let loadState = await transcriber.loadState()
+        profiler.recordModelLoadState(loadState)
 
         setActiveExecutionState(
             itemID: itemID,

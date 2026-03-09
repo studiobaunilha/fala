@@ -10,10 +10,17 @@ public struct TranscriberProgress: Sendable {
     }
 }
 
+public enum TranscriberLoadState: String, Sendable {
+    case ready
+    case loading
+    case cold
+}
+
 /// Abstraction over the Whisper transcription engine.
 /// Enables testing without loading ML models.
 public protocol AudioTranscribing: Sendable {
     var supportsTranslation: Bool { get }
+    func loadState() async -> TranscriberLoadState
     func loadIfNeeded(progress: (@Sendable (Double) -> Void)?) async throws
     func transcribe(samples: [Float], task: String) async throws -> String
     func transcribe(
@@ -25,6 +32,8 @@ public protocol AudioTranscribing: Sendable {
 
 public extension AudioTranscribing {
     var supportsTranslation: Bool { true }
+
+    func loadState() async -> TranscriberLoadState { .cold }
 
     func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {}
 

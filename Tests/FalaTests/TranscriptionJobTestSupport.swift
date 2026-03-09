@@ -29,6 +29,7 @@ func makeTestBatchPool(whisperSpy: TranscriptionJobWhisperBatchSpy? = nil) -> Ba
     BatchTranscriberPool(
         whisperFactory: {
             BatchWhisperTranscriber(
+                loadState: { .cold },
                 loadIfNeeded: { _ in
                     if let whisperSpy {
                         try await whisperSpy.loadIfNeeded()
@@ -54,6 +55,7 @@ func makeTestBatchPool(whisperSpy: TranscriptionJobWhisperBatchSpy? = nil) -> Ba
         },
         parakeetFactory: {
             BatchPreloadableTranscriber(
+                loadState: { .cold },
                 loadIfNeeded: { _ in },
                 transcribeSamples: { _, _ in "" },
                 transcribeAudioPath: { _, _, _ in "" }
@@ -67,6 +69,7 @@ func makeTestBatchPool(queueSpy: BatchQueueTranscriberSpy) -> BatchTranscriberPo
     BatchTranscriberPool(
         whisperFactory: {
             BatchWhisperTranscriber(
+                loadState: { .cold },
                 loadIfNeeded: { _ in },
                 setModel: { _ in },
                 setConfig: { _, _, _ in },
@@ -81,6 +84,7 @@ func makeTestBatchPool(queueSpy: BatchQueueTranscriberSpy) -> BatchTranscriberPo
         },
         parakeetFactory: {
             BatchPreloadableTranscriber(
+                loadState: { .cold },
                 loadIfNeeded: { _ in },
                 transcribeSamples: { _, _ in "" },
                 transcribeAudioPath: { audioPath, _, progress in
@@ -99,6 +103,9 @@ func makeDelayedBatchPool(spy: DelayedBatchTranscriberSpy) -> BatchTranscriberPo
     BatchTranscriberPool(
         whisperFactory: {
             BatchWhisperTranscriber(
+                loadState: {
+                    await spy.loadState()
+                },
                 loadIfNeeded: { _ in
                     try await spy.loadIfNeeded()
                 },
@@ -115,6 +122,9 @@ func makeDelayedBatchPool(spy: DelayedBatchTranscriberSpy) -> BatchTranscriberPo
         },
         parakeetFactory: {
             BatchPreloadableTranscriber(
+                loadState: {
+                    await spy.loadState()
+                },
                 loadIfNeeded: { _ in
                     try await spy.loadIfNeeded()
                 },
@@ -175,7 +185,23 @@ func makeSilentAudioFile(
     buffer.frameLength = frameCount
 
     let url = directory.appendingPathComponent(name).appendingPathExtension(fileExtension)
-    let file = try AVAudioFile(forWriting: url, settings: format.settings)
+    let settings: [String: Any]
+    if fileExtension == "m4a" {
+        settings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderBitRateKey: 128_000
+        ]
+    } else {
+        settings = format.settings
+    }
+    let file = try AVAudioFile(
+        forWriting: url,
+        settings: settings,
+        commonFormat: .pcmFormatFloat32,
+        interleaved: false
+    )
     try file.write(from: buffer)
     return url
 }
@@ -247,18 +273,33 @@ actor DelayedBatchTranscriberSpy {
     private let loadDelay: Duration
     private let transcribeDelay: Duration
     private var loadStarted = false
+    private var loadStateValue: TranscriberLoadState
     private var transcribeAudioCallCountValue = 0
 
-    init(loadDelay: Duration, transcribeDelay: Duration = .zero) {
+    init(
+        loadDelay: Duration,
+        transcribeDelay: Duration = .zero,
+        initialLoadState: TranscriberLoadState = .cold
+    ) {
         self.loadDelay = loadDelay
         self.transcribeDelay = transcribeDelay
+        self.loadStateValue = initialLoadState
     }
 
     func loadIfNeeded() async throws {
+        if loadStateValue == .ready {
+            return
+        }
+        loadStateValue = .loading
         loadStarted = true
         if loadDelay > .zero {
             try await Task.sleep(for: loadDelay)
         }
+        loadStateValue = .ready
+    }
+
+    func loadState() -> TranscriberLoadState {
+        loadStateValue
     }
 
     func waitForLoadStart(timeout: Duration = .seconds(1)) async throws {
@@ -296,10 +337,12 @@ actor DelayedBatchTranscriberSpy {
 
 actor DelayedBatchAudioPreparationSpy {
     private let delay: Duration
+    private let mode: BatchAudioPreparationMode
     private var started = false
 
-    init(delay: Duration) {
+    init(delay: Duration, mode: BatchAudioPreparationMode = .passthrough) {
         self.delay = delay
+        self.mode = mode
     }
 
     func prepare(inputURL: URL) async throws -> PreparedBatchAudio {
@@ -307,7 +350,7 @@ actor DelayedBatchAudioPreparationSpy {
         if delay > .zero {
             try await Task.sleep(for: delay)
         }
-        return PreparedBatchAudio(wavURL: inputURL, requiresCleanup: false)
+        return PreparedBatchAudio(wavURL: inputURL, requiresCleanup: false, mode: mode)
     }
 
     func waitForStart(timeout: Duration = .seconds(1)) async throws {

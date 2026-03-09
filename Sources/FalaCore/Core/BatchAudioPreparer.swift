@@ -1,12 +1,23 @@
 import Foundation
 
+public enum BatchAudioPreparationMode: String, Equatable, Sendable {
+    case passthrough
+    case converted
+}
+
 public struct PreparedBatchAudio: Equatable, Sendable {
     public let wavURL: URL
     public let requiresCleanup: Bool
+    public let mode: BatchAudioPreparationMode
 
-    public init(wavURL: URL, requiresCleanup: Bool) {
+    public init(
+        wavURL: URL,
+        requiresCleanup: Bool,
+        mode: BatchAudioPreparationMode
+    ) {
         self.wavURL = wavURL
         self.requiresCleanup = requiresCleanup
+        self.mode = mode
     }
 }
 
@@ -17,7 +28,11 @@ public enum BatchAudioPreparer {
         cancellationCheck: @escaping @Sendable () throws -> Void = {}
     ) throws -> PreparedBatchAudio {
         if inputURL.pathExtension.lowercased() == "wav" {
-            return PreparedBatchAudio(wavURL: inputURL, requiresCleanup: false)
+            return PreparedBatchAudio(
+                wavURL: inputURL,
+                requiresCleanup: false,
+                mode: .passthrough
+            )
         }
 
         let wavURL = temporaryDirectory
@@ -38,6 +53,10 @@ public enum BatchAudioPreparer {
             try? FileManager.default.removeItem(at: wavURL)
             throw AudioError.conversionFailed
         }
-        return PreparedBatchAudio(wavURL: wavURL, requiresCleanup: true)
+        return PreparedBatchAudio(
+            wavURL: wavURL,
+            requiresCleanup: true,
+            mode: .converted
+        )
     }
 }

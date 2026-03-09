@@ -25,6 +25,16 @@ public actor Transcriber: AudioTranscribing {
         self.prompt = prompt
     }
 
+    public func loadState() async -> TranscriberLoadState {
+        if pipe != nil {
+            return .ready
+        }
+        if loadingTask != nil {
+            return .loading
+        }
+        return .cold
+    }
+
     /// Loads the model if not already loaded. Safe to call multiple times.
     public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         guard pipe == nil else { return }
