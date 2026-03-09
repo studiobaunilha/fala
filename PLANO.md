@@ -69,6 +69,12 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 - revisar se ainda existe algum trecho longo sem cancelamento bounded no caminho de batch
 - avaliar se faz sentido atacar cancelamento mais fino dentro da propria conversao de audio, sem trocar estabilidade por responsividade artificial
 
+**Retomar daqui**
+
+- rodar `fala transcribe <arquivo> --profile` com pelo menos um `WAV` e um `nao WAV` equivalentes
+- comparar o mesmo fluxo com modelo frio vs ja aquecido
+- usar esses dados para escolher o proximo corte tecnico antes de mexer de novo no pipeline
+
 **Definicao de pronto**
 
 - usar a instrumentacao nova para fechar diagnostico comparativo entre WAV e nao WAV

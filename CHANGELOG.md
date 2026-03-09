@@ -4,6 +4,8 @@ Todas as mudanças notáveis do Fala serão documentadas aqui.
 
 ## [Em preparação]
 
+Tudo abaixo nesta seção já entrou no `main` depois da `1.1` e fica aguardando o próximo corte de release. O que ainda falta fazer continua detalhado no `PLANO.md`.
+
 ### Melhorias
 
 - **Whisper com seleção simplificada**: O app converge para um único modelo Whisper ativo, com catálogo e ações mais diretas para transcrição.
