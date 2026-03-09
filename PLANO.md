@@ -59,21 +59,24 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 - cada execucao batch agora registra tempos de preparo de audio, preparo do motor, transcricao, pos-processamento e total
 - a telemetria de batch agora diferencia `WAV` em fast path vs conversao real e tambem marca se o modelo ja estava `ready`, `loading` ou `cold`
 - o CLI `fala transcribe` agora aceita `--profile` para emitir o mesmo breakdown de tempos fora da UI e facilitar comparacao reproduzivel entre `WAV` e `nao WAV`
+- o CLI de batch agora roda com entrypoint async sem bloquear em semaforo e tambem aceita `--prepare-only` para medir apenas a normalizacao de audio
+- regressao end-to-end adicionada para exercitar o executavel construido com `AAC/M4A` gerado pela propria stack da Apple e garantir que `--prepare-only` para antes do warmup
 - regressao adicionada para estado `preparingModel`, cancelamento durante preparo de audio, limpeza de temporario cancelado e captura de metricas
-- validacao ja rodada com `make check`, `make test-mlx`, build debug e build release
+- baseline frio medido no app empacotado para `WAV` ja normalizado: preparo ~`0.000s`, warmup do modelo ~`7.386s`, transcricao ~`0.620s`, total ~`8.024s`
+- validacao ja rodada com `make check`, build debug e build release
 
 **Ainda falta**
 
-- comparar arquivos WAV vs nao WAV com a nova instrumentacao para localizar o gargalo dominante no uso real
-- decidir se o proximo corte deve atacar preparo de audio, warmup/pool ou inicializacao do runtime
+- fechar uma amostra `nao WAV` representativa e estavel para comparacao real com o baseline `WAV`; o fixture sintetico `AAC/M4A` gerado por `ffmpeg` nao e uma boa referencia aqui, porque a propria stack nativa da Apple (`ExtAudioFile` e `afconvert`) o rejeita com `cfmt/fmt?`
+- decidir se o proximo corte principal deve atacar warmup/pool do motor no caminho `WAV` ou ampliar compatibilidade de ingestao para `M4A/AAC` externos que fujam do conjunto validado pela stack da Apple
 - revisar se ainda existe algum trecho longo sem cancelamento bounded no caminho de batch
 - avaliar se faz sentido atacar cancelamento mais fino dentro da propria conversao de audio, sem trocar estabilidade por responsividade artificial
 
 **Retomar daqui**
 
-- rodar `fala transcribe <arquivo> --profile` com pelo menos um `WAV` e um `nao WAV` equivalentes
-- comparar o mesmo fluxo com modelo frio vs ja aquecido
-- usar esses dados para escolher o proximo corte tecnico antes de mexer de novo no pipeline
+- usar `fala transcribe <arquivo> --profile --prepare-only` com um `M4A/AAC` real de referencia do mundo real, por exemplo uma gravacao externa ou Voice Memos, em vez de depender do fixture sintetico do `ffmpeg`
+- comparar esse `nao WAV` com o baseline atual do `WAV`; hoje o caminho frio de `WAV` mostra que o gargalo dominante ja medido e o warmup do modelo, nao o preparo de audio
+- depois disso, repetir o fluxo completo com modelo frio vs aquecido para decidir se o proximo corte mexe primeiro em warmup/pool ou em compatibilidade de ingestao externa
 
 **Definicao de pronto**
 

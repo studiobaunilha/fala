@@ -16,12 +16,15 @@ Tudo abaixo nesta seção já entrou no `main` depois da `1.1` e fica aguardando
 - **Telemetria de batch**: Cada execução de transcrição de arquivos passa a registrar tempos de preparo de áudio, preparo do motor, transcrição, pós-processamento e total.
 - **Diagnóstico de batch mais preciso**: A telemetria de transcrição de arquivos passa a diferenciar fast path `WAV` vs conversão real e também marca se o modelo estava `ready`, `loading` ou `cold`.
 - **CLI de batch com profiling**: O comando `fala transcribe` passa a aceitar `--profile` e imprime o breakdown de preparo de áudio, warmup do modelo e transcrição para comparação reproduzível fora da UI.
+- **CLI de batch com preparo isolado**: O comando `fala transcribe` passa a aceitar `--prepare-only`, permitindo medir só a normalização de áudio antes do warmup e da transcrição.
+- **Regressão E2E de AAC validada pela stack da Apple**: A cobertura de batch passa a gerar um `m4a` pela própria stack nativa da Apple para validar o executável construído com `--prepare-only` sem depender de fixtures sintéticos pouco representativos.
 
 ### Correções
 
 - **Diarization removida do produto**: O app deixa de expor diarization em Ajustes, transcrição de arquivos, prompts e configuração persistida, eliminando estados residuais do recurso.
 - **Prompt global ocultado com Apple Intelligence**: O painel `IA & LLM` deixa de mostrar o prompt global quando o provedor padrão selecionado é Apple Intelligence, evitando uma configuração sem efeito.
 - **Layout dos Ajustes corrigido**: A janela de Ajustes volta a respeitar a área útil inteira, sem clipping no conteúdo da direita e sem o painel lateral extrapolar o contêiner.
+- **CLI de batch destravado**: O entrypoint do executável deixa de bloquear trabalho async com semáforo e passa a executar o fluxo de transcrição de arquivos corretamente.
 - **Batch com estágios e cancelamento honestos**: A UI de transcrição de arquivos passa a distinguir preparo do motor, transcrição e cancelamento, e o pipeline interrompe mais cedo quando o usuário cancela.
 - **Preparo de áudio do batch deixa de bloquear a UI**: A conversão inicial passa a rodar fora do `MainActor`, o cancelamento interrompe o pipeline antes do warmup/transcribe e arquivos temporários parciais são limpos ao abortar.
 - **Batch sem dependência externa de `ffmpeg`**: A preparação de áudio para transcrição de arquivos passa a ser nativa, evitando depender de Homebrew em máquinas limpas.
