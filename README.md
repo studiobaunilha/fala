@@ -43,3 +43,13 @@ Ninguém gosta de ler transcrições cheias de "éhhh", "hmmm" e pontuação que
 - **Sistema Operacional:** macOS 14.0 (Sonoma) ou superior.
 - **Hardware:** Mac com Processador **Apple Silicon (M1, M1 Pro, M2, M3, M4, etc)**.
 - *Nota:* Baixar modelos pesados de LLM ou Whisper (Large-v3) pode requerer >= 16GB de Memória RAM Unificada para máxima fluidez, embora modelos menores (Medium, Parakeet) rodem perfeitamente em 8GB de RAM.
+
+## 4. CLI de Diagnóstico
+
+Para investigar latência na transcrição de arquivos sem depender da UI, o modo batch por linha de comando aceita `--profile`:
+
+```bash
+fala transcribe /caminho/para/audio.m4a --profile
+```
+
+O comando imprime uma linha com tempos de preparo de áudio, warmup do modelo, transcrição e total, além de indicar se o arquivo entrou em fast path `WAV` ou conversão real.

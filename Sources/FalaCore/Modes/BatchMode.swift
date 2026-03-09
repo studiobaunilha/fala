@@ -1,7 +1,7 @@
 import Foundation
 
 /// CLI batch transcription mode.
-/// Usage: fala transcribe <file> [--format txt|md] [--model <name>]
+/// Usage: fala transcribe <file> [--format txt|md] [--model <name>] [--profile]
 public enum BatchMode {
     public static let supportedExtensions: Set<String> = ["m4a", "mp3", "wav", "mp4", "aac", "flac", "ogg"]
 
@@ -18,46 +18,91 @@ public enum BatchMode {
 
         let config = AppConfig.load()
         let opts = parseOptions(arguments, config: config)
-
-        // Convert to 16 kHz WAV if not already WAV.
-        let preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
-        let wavURL = preparedAudio.wavURL
-        let needsCleanup = preparedAudio.requiresCleanup
+        let profiler = opts.profile ? CLIBatchExecutionProfiler(inputURL: inputURL) : nil
+        var outcome: BatchExecutionOutcome = .failed
 
         defer {
-            if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
+            if let profiler {
+                fputs("[Fala] Batch CLI timing \(profiler.snapshot(outcome: outcome).debugSummary)\n", stderr)
+            }
         }
 
-        try await performTranscription(
-            config: config,
-            wavURL: wavURL,
-            inputURL: inputURL,
-            modelName: opts.model,
-            outputFormat: opts.format
-        )
+        do {
+            let preparedAudio: PreparedBatchAudio
+            if let profiler {
+                preparedAudio = try await profiler.measure(.audioPreparation) {
+                    try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+                }
+                profiler.recordAudioPreparationMode(preparedAudio.mode)
+            } else {
+                preparedAudio = try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+            }
+
+            let wavURL = preparedAudio.wavURL
+            let needsCleanup = preparedAudio.requiresCleanup
+
+            defer {
+                if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
+            }
+
+            try await performTranscription(
+                config: config,
+                wavURL: wavURL,
+                inputURL: inputURL,
+                options: opts,
+                profiler: profiler
+            )
+
+            outcome = .succeeded
+        } catch is CancellationError {
+            outcome = .cancelled
+            throw CancellationError()
+        } catch {
+            outcome = .failed
+            throw error
+        }
     }
 
     private static func performTranscription(
         config: AppConfig,
         wavURL: URL,
         inputURL: URL,
-        modelName: String,
-        outputFormat: String
+        options: BatchOptions,
+        profiler: CLIBatchExecutionProfiler?
     ) async throws {
-        print("Model: \(modelName)")
+        print("Model: \(options.model)")
         print("Transcribing \(inputURL.lastPathComponent)…")
-        
+
         let outputURL = inputURL
             .deletingPathExtension()
-            .appendingPathExtension(outputFormat)
+            .appendingPathExtension(options.format)
 
-        let transcriber: any AudioTranscribing = config.transcriptionEngine == "parakeet"
-            ? ParakeetTranscriber()
-            : Transcriber(modelName: modelName)
-        
-        let text = try await transcriber.transcribe(audioPath: wavURL.path)
+        let transcriber: any AudioTranscribing = if config.transcriptionEngine == "parakeet" {
+            ParakeetTranscriber()
+        } else {
+            Transcriber(modelName: options.model)
+        }
 
-        let content = outputFormat == "md"
+        if let profiler {
+            let loadState = await transcriber.loadState()
+            profiler.recordModelLoadState(loadState)
+            try await profiler.measure(.modelPreparation) {
+                try await transcriber.loadIfNeeded(progress: nil)
+            }
+        } else {
+            try await transcriber.loadIfNeeded(progress: nil)
+        }
+
+        let text: String
+        if let profiler {
+            text = try await profiler.measure(.transcription) {
+                try await transcriber.transcribe(audioPath: wavURL.path)
+            }
+        } else {
+            text = try await transcriber.transcribe(audioPath: wavURL.path)
+        }
+
+        let content = options.format == "md"
             ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n\(text)\n"
             : text + "\n"
 
@@ -72,14 +117,16 @@ public enum BatchMode {
         var format: String
         var model: String
         var template: DictationTemplate
+        var profile: Bool
     }
 
     /// Parses `--format`, `--model`, and `--mode` flags from CLI arguments.
-    private static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
+    static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
         var opts = BatchOptions(
             format: config.outputFormat,
             model: config.activeWhisperModel,
-            template: config.selectedDictationTemplate
+            template: config.selectedDictationTemplate,
+            profile: false
         )
         var idx = 1
         while idx < arguments.count {
@@ -96,11 +143,66 @@ public enum BatchMode {
                    let parsed = DictationTemplate(rawValue: arguments[idx]) {
                     opts.template = parsed
                 }
+            case "--profile":
+                opts.profile = true
             default:
                 break
             }
             idx += 1
         }
         return opts
+    }
+}
+
+private final class CLIBatchExecutionProfiler {
+    private let clock = ContinuousClock()
+    private let totalStart: ContinuousClock.Instant
+    private let inputURL: URL
+    private var stageDurations: [BatchExecutionStage: Duration] = [:]
+    private var audioPreparationMode: BatchAudioPreparationMode?
+    private var modelLoadState: TranscriberLoadState?
+
+    init(inputURL: URL) {
+        self.totalStart = clock.now
+        self.inputURL = inputURL
+    }
+
+    func measure<T>(
+        _ stage: BatchExecutionStage,
+        operation: () async throws -> T
+    ) async rethrows -> T {
+        let stageStart = clock.now
+        do {
+            let value = try await operation()
+            stageDurations[stage] = clock.now - stageStart
+            return value
+        } catch {
+            stageDurations[stage] = clock.now - stageStart
+            throw error
+        }
+    }
+
+    func recordAudioPreparationMode(_ mode: BatchAudioPreparationMode) {
+        audioPreparationMode = mode
+    }
+
+    func recordModelLoadState(_ state: TranscriberLoadState) {
+        modelLoadState = state
+    }
+
+    func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
+        BatchExecutionMetrics(
+            fileName: inputURL.lastPathComponent,
+            fileExtension: inputURL.pathExtension.lowercased(),
+            usedPostProcessing: false,
+            audioPreparationMode: audioPreparationMode,
+            modelLoadState: modelLoadState,
+            outcome: outcome,
+            audioPreparation: stageDurations[.audioPreparation],
+            modelPreparation: stageDurations[.modelPreparation],
+            transcription: stageDurations[.transcription],
+            postProcessing: stageDurations[.postProcessing],
+            total: clock.now - totalStart
+        )
     }
 }

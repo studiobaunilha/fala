@@ -39,6 +39,7 @@ case "--help", "-h":
     TRANSCRIBE OPTIONS
       --format <txt|md>    Output format (default: from config, fallback: txt)
       --model  <name>      WhisperKit model (default: large-v3-turbo)
+      --profile           Print timing diagnostics for audio prep and model warmup
 
     SUPPORTED FORMATS
       .m4a  .mp3  .wav  .mp4  .aac  .flac  .ogg

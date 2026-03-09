@@ -58,6 +58,7 @@ Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cance
 - cancelamento durante preparo de audio agora aborta o pipeline antes do warmup/transcribe e limpa arquivo temporario parcial
 - cada execucao batch agora registra tempos de preparo de audio, preparo do motor, transcricao, pos-processamento e total
 - a telemetria de batch agora diferencia `WAV` em fast path vs conversao real e tambem marca se o modelo ja estava `ready`, `loading` ou `cold`
+- o CLI `fala transcribe` agora aceita `--profile` para emitir o mesmo breakdown de tempos fora da UI e facilitar comparacao reproduzivel entre `WAV` e `nao WAV`
 - regressao adicionada para estado `preparingModel`, cancelamento durante preparo de audio, limpeza de temporario cancelado e captura de metricas
 - validacao ja rodada com `make check`, `make test-mlx`, build debug e build release
 
