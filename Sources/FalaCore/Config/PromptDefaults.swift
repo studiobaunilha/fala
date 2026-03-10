@@ -29,6 +29,16 @@ public enum PromptDefaults {
 
     // MARK: - Conversational (askAI)
 
+    /// Whether the provider supports multi-turn conversation memory.
+    ///
+    /// Apple Intelligence (~3B on-device) is intentionally excluded:
+    /// its limited context window and poor handling of complex prompts
+    /// make conversation history more harmful than helpful — each call
+    /// is treated as a standalone question/answer exchange.
+    public static func supportsConversationMemory(_ provider: String) -> Bool {
+        provider != "apple"
+    }
+
     private static func conversationalPrompt(for provider: String) -> String {
         switch provider {
         case "apple", "mlx":

@@ -27,6 +27,7 @@ public final class DictationFeedbackModel: ObservableObject {
     @Published public var rmsLevel: Float = 0
     @Published public var rmsHistory: [Float] = Array(repeating: 0, count: 12)
     @Published public var isVisible: Bool = false
+    @Published public var conversationTurnCount: Int = 0
 
     private static let historySize = 12
     private static let updateCadence = Duration.milliseconds(33)
@@ -80,6 +81,7 @@ public final class DictationFeedbackModel: ObservableObject {
         displayedLevel = 0
         rmsHistory = Array(repeating: 0, count: Self.historySize)
         isVisible = false
+        conversationTurnCount = 0
     }
 
     private func renderFrame() {

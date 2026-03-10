@@ -105,6 +105,7 @@ public final class DictationMode {
             if let feedback {
                 feedback.model.reset()
                 feedback.model.template = config.selectedDictationTemplate
+                feedback.model.conversationTurnCount = conversationMemory.turnCount
                 recorder.setRMSHandler { [weak feedback] rms in
                     feedback?.model.ingestRMS(rms)
                 }
@@ -263,28 +264,31 @@ public final class DictationMode {
                 basePrompt: basePrompt, template: template,
                 modeConfig: modeConfig, config: config
             )
-            // Include conversation history for conversational templates
-            let history = template.isConversational
+            // Include conversation history for providers that support it.
+            // Apple Intelligence is excluded — its ~3B model handles
+            // multi-turn poorly; each call is a standalone exchange.
+            let useMemory = template.isConversational
+                && PromptDefaults.supportsConversationMemory(modeConfig.provider)
+            let history = useMemory
                 ? conversationMemory.messagesForAPI()
                 : []
             do {
-                let isConvo = template.isConversational
                 let result = try await profiler.measure(.llmProcessing) {
                     try await llmResponse(
                         text: text, prompt: prompt,
                         config: config, effective: modeConfig,
                         previousMessages: history,
-                        conversational: isConvo
+                        conversational: useMemory
                     )
                 }
                 finalText = stripLLMPreamble(result)
-                // Save to conversation memory for multi-turn
-                if template.isConversational {
+                if useMemory {
                     let ctxKey = "\(template.rawValue)::\(modeConfig.provider)"
                     conversationMemory.append(
                         userText: text, assistantResponse: finalText,
                         contextKey: ctxKey
                     )
+                    feedback?.model.conversationTurnCount = conversationMemory.turnCount
                 }
             } catch let error as LLMError {
                 let msg = error.localizedDescription

@@ -60,7 +60,13 @@ struct DictationFeedbackView: View {
                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.8)
 
             VStack(spacing: Spacing.lg) {
-                StageIndicatorRow(stage: model.stage, template: model.template)
+                HStack(spacing: Spacing.md) {
+                    StageIndicatorRow(stage: model.stage, template: model.template)
+                    if model.template.isConversational,
+                       model.conversationTurnCount > 0 {
+                        ConversationTurnBadge(count: model.conversationTurnCount)
+                    }
+                }
                 WaveformBars(
                     levels: model.rmsHistory,
                     isRecording: model.stage == .recording
@@ -221,6 +227,21 @@ private struct WaveformBars: View {
             }
         }
         .frame(height: DictationFeedbackLayout.waveformHeight)
+    }
+}
+
+// MARK: - Conversation Turn Badge
+
+private struct ConversationTurnBadge: View {
+    let count: Int
+
+    var body: some View {
+        Text("\(count)")
+            .font(.system(size: 10, weight: .semibold, design: .rounded))
+            .foregroundStyle(.white.opacity(0.85))
+            .frame(minWidth: 18, minHeight: 18)
+            .background(FalaColors.accent.opacity(0.55))
+            .clipShape(Capsule())
     }
 }
 
