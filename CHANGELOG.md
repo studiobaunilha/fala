@@ -2,6 +2,31 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.3] — 2026-03-10
+
+### Funcionalidades
+
+- **Perguntar à IA com contexto de seleção**: Ao ativar o modo "Perguntar à IA", o Fala captura automaticamente o texto selecionado no app em foco e o inclui como contexto na pergunta enviada à IA.
+- **Memória de conversação no askAI**: O modo "Perguntar à IA" agora mantém histórico de turnos, permitindo perguntas de acompanhamento como "e sobre X?". A memória reseta automaticamente após 5 minutos de inatividade ou ao trocar de template/provedor.
+- **Badge de turnos no painel flutuante**: O painel de feedback de ditado exibe um indicador com o número de turnos ativos na conversação.
+
+### Melhorias
+
+- **Prompts otimizados por provedor**: Cada provedor de IA (Gemini, OpenAI, Apple Intelligence, MLX) recebe um prompt padrão otimizado para suas características — prompts completos em português para provedores cloud, e prompts concisos em inglês para modelos locais de contexto curto.
+- **Eliminação do prompt global**: O campo "Prompt Global do Sistema" foi removido dos Ajustes. Cada modo agora gerencia seu prompt de forma independente, simplificando a configuração.
+- **Strip de tags de pensamento**: Respostas de modelos como Qwen3 e DeepSeek R1 são automaticamente limpas de tags `<think>...</think>` antes de serem inseridas.
+- **Telemetria de batch com tamanho e duração**: Os logs de transcrição de arquivos agora incluem o tamanho do arquivo de entrada e a duração do áudio, facilitando a análise de performance.
+- **Etapa de salvamento medida separadamente**: A telemetria de batch agora separa o tempo de escrita do arquivo de saída (`save=`) das demais etapas.
+- **Logs de batch sempre ativos**: A telemetria de transcrição de arquivos agora é sempre emitida, tanto na UI quanto no CLI, sem necessidade da flag `--profile`.
+- **Logs de batch via os.Logger**: A telemetria de batch migrou de `NSLog` para `os.Logger` com subsystem/category, garantindo persistência nos logs do sistema.
+
+### Correções
+
+- **Formulário de ativação ocultado quando Pro ativo**: A seção de ativação de licença não aparece mais nos Ajustes quando o Fala Pro já está ativado.
+- **Apple Intelligence excluído de multi-turn**: O Apple Intelligence (~3B on-device) agora trata cada chamada como independente, evitando degradação de qualidade com histórico de conversação.
+
+---
+
 ## [1.2.1] — 2026-03-09
 
 ### Correções
