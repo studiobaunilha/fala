@@ -69,9 +69,9 @@ public enum WindowSize {
     public static let transcribeMinHeight: CGFloat = 700
     public static let transcribeMaxHeight: CGFloat = 1000
 
-    public static let transcribeDefaultWidth: CGFloat = 900
+    public static let transcribeDefaultWidth: CGFloat = 1000
     public static let transcribeMinWidth: CGFloat = 800
-    public static let transcribeMaxWidth: CGFloat = 1000
+    public static let transcribeMaxWidth: CGFloat = 1600
 
     public static let onboardingDefaultHeight: CGFloat = 800
     public static let onboardingMinHeight: CGFloat = 700
