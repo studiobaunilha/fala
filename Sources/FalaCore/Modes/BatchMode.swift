@@ -18,13 +18,14 @@ public enum BatchMode {
 
         let config = AppConfig.load()
         let opts = parseOptions(arguments, config: config)
-        let profiler = opts.profile ? CLIBatchExecutionProfiler(inputURL: inputURL) : nil
+        let profiler = CLIBatchExecutionProfiler(inputURL: inputURL)
         var outcome: BatchExecutionOutcome = .failed
 
         defer {
-            if let profiler {
-                fputs("[Fala] Batch CLI timing \(profiler.snapshot(outcome: outcome).debugSummary)\n", stderr)
-            }
+            fputs(
+                "[Fala] Batch CLI timing \(profiler.snapshot(outcome: outcome).debugSummary)\n",
+                stderr
+            )
         }
 
         do {
@@ -62,17 +63,13 @@ public enum BatchMode {
 
     private static func prepareAudioInput(
         from inputURL: URL,
-        profiler: CLIBatchExecutionProfiler?
+        profiler: CLIBatchExecutionProfiler
     ) async throws -> PreparedBatchAudio {
-        if let profiler {
-            let preparedAudio = try await profiler.measure(.audioPreparation) {
-                try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
-            }
-            profiler.recordAudioPreparationMode(preparedAudio.mode)
-            return preparedAudio
+        let preparedAudio = try await profiler.measure(.audioPreparation) {
+            try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
         }
-
-        return try BatchAudioPreparer.prepareTranscriptionInput(from: inputURL)
+        profiler.recordAudioPreparationMode(preparedAudio.mode)
+        return preparedAudio
     }
 
     private static func performTranscription(
@@ -80,7 +77,7 @@ public enum BatchMode {
         wavURL: URL,
         inputURL: URL,
         options: BatchOptions,
-        profiler: CLIBatchExecutionProfiler?
+        profiler: CLIBatchExecutionProfiler
     ) async throws {
         print("Model: \(options.model)")
         print("Transcribing \(inputURL.lastPathComponent)…")
@@ -95,31 +92,26 @@ public enum BatchMode {
             Transcriber(modelName: options.model)
         }
 
-        if let profiler {
-            let loadState = await transcriber.loadState()
-            profiler.recordModelLoadState(loadState)
-            try await profiler.measure(.modelPreparation) {
-                try await transcriber.loadIfNeeded(progress: nil)
-            }
-        } else {
+        let loadState = await transcriber.loadState()
+        profiler.recordModelLoadState(loadState)
+        try await profiler.measure(.modelPreparation) {
             try await transcriber.loadIfNeeded(progress: nil)
         }
 
-        let text: String
-        if let profiler {
-            text = try await profiler.measure(.transcription) {
-                try await transcriber.transcribe(audioPath: wavURL.path)
-            }
-        } else {
-            text = try await transcriber.transcribe(audioPath: wavURL.path)
+        let text = try await profiler.measure(.transcription) {
+            try await transcriber.transcribe(audioPath: wavURL.path)
         }
 
         let content = options.format == "md"
             ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n\(text)\n"
             : text + "\n"
 
-        guard (try? content.write(to: outputURL, atomically: true, encoding: .utf8)) != nil else {
-            throw BatchError.outputWriteFailed
+        try await profiler.measure(.fileSaving) {
+            guard (try? content.write(
+                to: outputURL, atomically: true, encoding: .utf8
+            )) != nil else {
+                throw BatchError.outputWriteFailed
+            }
         }
 
         print("Done → \(outputURL.path)")
@@ -218,6 +210,7 @@ private final class CLIBatchExecutionProfiler {
             modelPreparation: stageDurations[.modelPreparation],
             transcription: stageDurations[.transcription],
             postProcessing: stageDurations[.postProcessing],
+            fileSaving: stageDurations[.fileSaving],
             total: clock.now - totalStart
         )
     }

@@ -15,13 +15,15 @@ final class BatchExecutionProfilingTests: XCTestCase {
             modelPreparation: .milliseconds(35),
             transcription: .seconds(2),
             postProcessing: nil,
+            fileSaving: .milliseconds(12),
             total: .milliseconds(2_455)
         )
 
         XCTAssertEqual(
             metrics.debugSummary,
-            "file=entrevista.m4a ext=m4a audioMode=converted modelState=ready outcome=succeeded "
-                + "prepare=0.420s model=0.035s transcribe=2.000s post=n/a total=2.455s"
+            "file=entrevista.m4a ext=m4a audioMode=converted modelState=ready "
+                + "outcome=succeeded prepare=0.420s model=0.035s transcribe=2.000s "
+                + "post=n/a save=0.012s total=2.455s"
         )
     }
 }

@@ -11,6 +11,7 @@ enum BatchExecutionStage: String, CaseIterable, Sendable {
     case modelPreparation = "model_preparation"
     case transcription = "transcription"
     case postProcessing = "post_processing"
+    case fileSaving = "file_saving"
 }
 
 struct BatchExecutionMetrics: Equatable, Sendable {
@@ -24,12 +25,13 @@ struct BatchExecutionMetrics: Equatable, Sendable {
     let modelPreparation: Duration?
     let transcription: Duration?
     let postProcessing: Duration?
+    let fileSaving: Duration?
     let total: Duration
 
     var debugSummary: String {
         String(
-            format: "file=%@ ext=%@ audioMode=%@ modelState=%@ outcome=%@ prepare=%@ "
-                + "model=%@ transcribe=%@ post=%@ total=%@",
+            format: "file=%@ ext=%@ audioMode=%@ modelState=%@ outcome=%@ "
+                + "prepare=%@ model=%@ transcribe=%@ post=%@ save=%@ total=%@",
             fileName,
             fileExtension,
             audioPreparationMode?.rawValue ?? "n/a",
@@ -39,6 +41,7 @@ struct BatchExecutionMetrics: Equatable, Sendable {
             modelPreparation.debugDurationText,
             transcription.debugDurationText,
             postProcessing.debugDurationText,
+            fileSaving.debugDurationText,
             total.debugDurationText
         )
     }

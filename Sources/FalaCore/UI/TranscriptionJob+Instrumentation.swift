@@ -51,6 +51,7 @@ final class BatchExecutionProfiler {
             modelPreparation: stageDurations[.modelPreparation],
             transcription: stageDurations[.transcription],
             postProcessing: stageDurations[.postProcessing],
+            fileSaving: stageDurations[.fileSaving],
             total: clock.now - totalStart
         )
     }

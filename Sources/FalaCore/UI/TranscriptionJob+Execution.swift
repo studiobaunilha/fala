@@ -198,7 +198,9 @@ private extension TranscriptionJob {
             }
         }
 
-        return await processingTask.value
+        return await profiler.measure(.fileSaving) {
+            await processingTask.value
+        }
     }
 
     func setActiveExecutionState(
