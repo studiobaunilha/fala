@@ -1,4 +1,9 @@
 import Foundation
+import os
+
+private let batchLogger = Logger(
+    subsystem: "dev.fala.app", category: "BatchProfiling"
+)
 
 @MainActor
 final class BatchExecutionProfiler {
@@ -60,6 +65,8 @@ final class BatchExecutionProfiler {
 extension TranscriptionJob {
     func recordBatchMetrics(_ metrics: BatchExecutionMetrics) {
         lastExecutionMetrics = metrics
-        NSLog("[Fala] Batch timing %@", metrics.debugSummary)
+        batchLogger.notice(
+            "[Fala] Batch timing \(metrics.debugSummary, privacy: .public)"
+        )
     }
 }
