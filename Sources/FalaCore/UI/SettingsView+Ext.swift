@@ -12,7 +12,9 @@ extension SettingsView {
             appLanguageSection
             updatesPreferencesSection
             licenseStatusSection
-            licenseActivationSection
+            if !licenseManager.isPro {
+                licenseActivationSection
+            }
             aboutApplicationSection
         }
         .formStyle(.grouped)
