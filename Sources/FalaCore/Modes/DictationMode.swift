@@ -28,9 +28,11 @@ public final class DictationMode {
     private let transcriberPrewarmer: TranscriberPrewarmer?
     private let llmProcessor: LLMProcessor?
     private let readiness: RuntimeReadinessEvaluator?
+    private let selectionCapture: SelectionCapture?
     public let conversationMemory = ConversationMemory()
 
     private var isRecording = false
+    private var pendingSelectionContext: String?
 
     /// Production initialiser — uses real concrete implementations.
     public convenience init(transcriber: Transcriber, statusBar: StatusBarController) {
@@ -38,7 +40,8 @@ public final class DictationMode {
             recorder: AudioEngine(),
             transcriber: transcriber,
             inserter: TextInserter(),
-            statusBar: statusBar
+            statusBar: statusBar,
+            selectionCapture: SelectionCapture()
         )
     }
 
@@ -54,7 +57,8 @@ public final class DictationMode {
         transcriberResolver: TranscriberResolver? = nil,
         transcriberPrewarmer: TranscriberPrewarmer? = nil,
         llmProcessor: LLMProcessor? = nil,
-        readiness: RuntimeReadinessEvaluator? = nil
+        readiness: RuntimeReadinessEvaluator? = nil,
+        selectionCapture: SelectionCapture? = nil
     ) {
         self.recorder = recorder
         self.inserter = inserter
@@ -67,6 +71,7 @@ public final class DictationMode {
         self.transcriberPrewarmer = transcriberPrewarmer
         self.llmProcessor = llmProcessor
         self.readiness = readiness
+        self.selectionCapture = selectionCapture
     }
 
     /// Binds global keyboard shortcut handlers. Call once at app startup.
@@ -101,6 +106,17 @@ public final class DictationMode {
         }
         do {
             let config = configProvider()
+
+            // Capture selected text before recording for conversational modes.
+            // Must happen before startRecording() so the simulated Cmd+C
+            // doesn't interfere with audio capture.
+            if config.selectedDictationTemplate.isConversational,
+               let capture = selectionCapture {
+                pendingSelectionContext = await capture.captureSelection()
+            } else {
+                pendingSelectionContext = nil
+            }
+
             // Wire RMS levels to the floating feedback panel
             if let feedback {
                 feedback.model.reset()
@@ -223,8 +239,11 @@ public final class DictationMode {
             if template.requiresLLM {
                 inserter.saveToClipboard(text)
             }
+            let selectionContext = pendingSelectionContext
+            pendingSelectionContext = nil
             let finalText = await profiledProcessText(
-                text, config: config, template: template, profiler: profiler
+                text, config: config, template: template,
+                selectionContext: selectionContext, profiler: profiler
             )
 
             feedback?.model.stage = .inserting
@@ -250,6 +269,7 @@ public final class DictationMode {
         _ text: String,
         config: AppConfig,
         template: DictationTemplate,
+        selectionContext: String? = nil,
         profiler: any DictationProfiling
     ) async -> String {
         var finalText = profiler.measure(.replacementRules) {
@@ -272,10 +292,14 @@ public final class DictationMode {
             let history = useMemory
                 ? conversationMemory.messagesForAPI()
                 : []
+            // Wrap user text with selection context when available.
+            let userText = Self.wrapWithSelectionContext(
+                text, selection: selectionContext
+            )
             do {
                 let result = try await profiler.measure(.llmProcessing) {
                     try await llmResponse(
-                        text: text, prompt: prompt,
+                        text: userText, prompt: prompt,
                         config: config, effective: modeConfig,
                         previousMessages: history,
                         conversational: useMemory
@@ -285,7 +309,7 @@ public final class DictationMode {
                 if useMemory {
                     let ctxKey = "\(template.rawValue)::\(modeConfig.provider)"
                     conversationMemory.append(
-                        userText: text, assistantResponse: finalText,
+                        userText: userText, assistantResponse: finalText,
                         contextKey: ctxKey
                     )
                     feedback?.model.conversationTurnCount = conversationMemory.turnCount
@@ -300,24 +324,6 @@ public final class DictationMode {
         }
 
         return finalText
-    }
-
-    private func buildLLMPrompt(
-        basePrompt: String,
-        template: DictationTemplate,
-        modeConfig: AppConfig.EffectiveConfig,
-        config: AppConfig
-    ) -> String {
-        if template.isConversational, modeConfig.provider == "apple" {
-            let preferredLanguage = config.transcriptionLanguage == "auto"
-                ? AppLocalization.resolveLanguageCode(config.appLanguage)
-                : config.transcriptionLanguage
-            let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
-            return basePrompt + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
-        }
-        // PromptDefaults already provides self-contained prompts per provider,
-        // so no wrapping or globalSystemPrompt concatenation is needed.
-        return basePrompt
     }
 
     private func llmResponse(
@@ -348,13 +354,17 @@ public final class DictationMode {
         let model = effective.model
         switch effective.provider {
         case "gemini":
-            guard !config.geminiKey.isEmpty else { throw LLMError.noAPIKey(provider: "Gemini") }
+            guard !config.geminiKey.isEmpty else {
+                throw LLMError.noAPIKey(provider: "Gemini")
+            }
             return try await TranscriptionJob.processWithGemini(
                 text: text, prompt: prompt, apiKey: config.geminiKey,
                 model: model, previousMessages: previousMessages
             )
         case "openai":
-            guard !config.openAIKey.isEmpty else { throw LLMError.noAPIKey(provider: "OpenAI") }
+            guard !config.openAIKey.isEmpty else {
+                throw LLMError.noAPIKey(provider: "OpenAI")
+            }
             return try await TranscriptionJob.processWithOpenAI(
                 text: text, prompt: prompt, apiKey: config.openAIKey,
                 model: model, previousMessages: previousMessages
