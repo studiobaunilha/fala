@@ -17,6 +17,8 @@ enum BatchExecutionStage: String, CaseIterable, Sendable {
 struct BatchExecutionMetrics: Equatable, Sendable {
     let fileName: String
     let fileExtension: String
+    let inputFileSize: Int64?
+    let audioDuration: Double?
     let usedPostProcessing: Bool
     let audioPreparationMode: BatchAudioPreparationMode?
     let modelLoadState: TranscriberLoadState?
@@ -30,10 +32,12 @@ struct BatchExecutionMetrics: Equatable, Sendable {
 
     var debugSummary: String {
         String(
-            format: "file=%@ ext=%@ audioMode=%@ modelState=%@ outcome=%@ "
-                + "prepare=%@ model=%@ transcribe=%@ post=%@ save=%@ total=%@",
+            format: "file=%@ ext=%@ size=%@ duration=%@ audioMode=%@ modelState=%@ "
+                + "outcome=%@ prepare=%@ model=%@ transcribe=%@ post=%@ save=%@ total=%@",
             fileName,
             fileExtension,
+            inputFileSize.fileSizeText,
+            audioDuration.audioDurationText,
             audioPreparationMode?.rawValue ?? "n/a",
             modelLoadState?.rawValue ?? "n/a",
             outcome.rawValue,
@@ -44,6 +48,29 @@ struct BatchExecutionMetrics: Equatable, Sendable {
             fileSaving.debugDurationText,
             total.debugDurationText
         )
+    }
+}
+
+private extension Optional where Wrapped == Int64 {
+    var fileSizeText: String {
+        guard let bytes = self else { return "n/a" }
+        if bytes < 1_024 { return "\(bytes)B" }
+        if bytes < 1_048_576 {
+            return String(format: "%.1fKB", Double(bytes) / 1_024)
+        }
+        return String(format: "%.1fMB", Double(bytes) / 1_048_576)
+    }
+}
+
+private extension Optional where Wrapped == Double {
+    var audioDurationText: String {
+        guard let secs = self else { return "n/a" }
+        let mins = Int(secs) / 60
+        let remainder = secs - Double(mins * 60)
+        if mins > 0 {
+            return String(format: "%dm%04.1fs", mins, remainder)
+        }
+        return String(format: "%.1fs", secs)
     }
 }
 

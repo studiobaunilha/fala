@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import os
 
@@ -45,9 +46,16 @@ final class BatchExecutionProfiler {
     }
 
     func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
-        BatchExecutionMetrics(
+        let fileSize = (try? FileManager.default.attributesOfItem(
+            atPath: inputURL.path
+        )[.size] as? Int64) ?? nil
+        let audioDuration = AudioDurationReader.duration(of: inputURL)
+
+        return BatchExecutionMetrics(
             fileName: inputURL.lastPathComponent,
             fileExtension: inputURL.pathExtension.lowercased(),
+            inputFileSize: fileSize,
+            audioDuration: audioDuration,
             usedPostProcessing: usedPostProcessing,
             audioPreparationMode: audioPreparationMode,
             modelLoadState: modelLoadState,
@@ -68,5 +76,13 @@ extension TranscriptionJob {
         batchLogger.notice(
             "[Fala] Batch timing \(metrics.debugSummary, privacy: .public)"
         )
+    }
+}
+
+enum AudioDurationReader {
+    static func duration(of url: URL) -> Double? {
+        let asset = AVURLAsset(url: url)
+        let seconds = CMTimeGetSeconds(asset.duration)
+        return seconds.isFinite ? seconds : nil
     }
 }

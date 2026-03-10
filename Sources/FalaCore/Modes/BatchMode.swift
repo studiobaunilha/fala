@@ -199,9 +199,16 @@ private final class CLIBatchExecutionProfiler {
     }
 
     func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
-        BatchExecutionMetrics(
+        let fileSize = (try? FileManager.default.attributesOfItem(
+            atPath: inputURL.path
+        )[.size] as? Int64) ?? nil
+        let audioDuration = AudioDurationReader.duration(of: inputURL)
+
+        return BatchExecutionMetrics(
             fileName: inputURL.lastPathComponent,
             fileExtension: inputURL.pathExtension.lowercased(),
+            inputFileSize: fileSize,
+            audioDuration: audioDuration,
             usedPostProcessing: false,
             audioPreparationMode: audioPreparationMode,
             modelLoadState: modelLoadState,
