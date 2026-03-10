@@ -66,9 +66,12 @@ public struct TranscriptionEngineOptionCard: View {
                 }
             }
 
-            Button(actionTitle, action: action)
-                .frame(minWidth: LayoutMetric.mlxCatalogActionMinWidth)
-                .disabled(isSelected)
+            HStack {
+                Spacer()
+                Button(actionTitle, action: action)
+                    .frame(minWidth: LayoutMetric.mlxCatalogActionMinWidth)
+                    .disabled(isSelected)
+            }
         }
         .padding(Spacing.xl)
         .background(FalaColors.surfacePrimary)
@@ -139,9 +142,15 @@ public struct WhisperModelSelectionSummaryView: View {
             .foregroundStyle(.secondary)
 
             if let progress {
-                CatalogProgressStatusView(progress: progress)
+                HStack {
+                    Spacer()
+                    CatalogProgressStatusView(progress: progress)
+                }
             } else if let primaryActionTitle, let primaryAction {
-                CatalogPrimaryActionButton(title: primaryActionTitle, action: primaryAction)
+                HStack {
+                    Spacer()
+                    CatalogPrimaryActionButton(title: primaryActionTitle, action: primaryAction)
+                }
             }
         }
         .padding(Spacing.xl)

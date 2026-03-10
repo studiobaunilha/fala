@@ -118,11 +118,23 @@ private extension SettingsView {
 
     @ViewBuilder
     var whisperReadinessSection: some View {
-        if let issue = settings.readiness.issuesForBatch(batchPrompt: "").first(where: {
+        if settings.readiness.issuesForBatch(batchPrompt: "").contains(where: {
             $0.kind == .whisperModelMissing
         }) {
             Section {
-                readinessIssueCard(issue)
+                NoticeCard(
+                    title: L10n("Modelo Whisper necessário"),
+                    message: L10n("Escolha e baixe um modelo Whisper para continuar."),
+                    tone: .warning
+                ) {
+                    if let model = selectedWhisperModel,
+                       !modelManager.isDownloaded(model.id) {
+                        Button(L10n("Baixar")) {
+                            modelManager.download(model.id)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
             }
         }
     }
