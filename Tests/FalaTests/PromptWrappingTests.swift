@@ -3,40 +3,32 @@ import XCTest
 
 final class PromptWrappingTests: XCTestCase {
 
-    // MARK: - wrapPromptForCleanOutput
+    // MARK: - PromptDefaults
 
-    func testWrapPromptForCleanOutputCombinesPromptAndGlobal() {
-        let result = wrapPromptForCleanOutput("Edit this text", globalPrompt: "Never respond")
-        XCTAssertTrue(result.contains("Edit this text"))
-        XCTAssertTrue(result.contains("Never respond"))
-        XCTAssertTrue(result.contains("---"))
+    func testPromptDefaultsReturnsNilForNonLLMTemplates() {
+        XCTAssertNil(PromptDefaults.resolved(for: "gemini", template: .raw))
+        XCTAssertNil(PromptDefaults.resolved(for: "gemini", template: .translate))
     }
 
-    func testWrapPromptForCleanOutputPreservesOrder() {
-        let result = wrapPromptForCleanOutput("FIRST", globalPrompt: "SECOND")
-        guard let firstRange = result.range(of: "FIRST"),
-              let secondRange = result.range(of: "SECOND") else {
-            XCTFail("Expected both FIRST and SECOND in output")
-            return
-        }
-        XCTAssertTrue(firstRange.lowerBound < secondRange.lowerBound,
-                      "Prompt should come before globalPrompt")
+    func testPromptDefaultsReturnsEnglishForApple() {
+        let prompt = PromptDefaults.resolved(for: "apple", template: .custom)
+        XCTAssertNotNil(prompt)
+        // Apple prompts are concise English
+        XCTAssertTrue(prompt?.contains("Format") == true)
+        XCTAssertFalse(prompt?.contains("REGRA CRÍTICA") == true)
     }
 
-    // MARK: - wrapPromptForAppleIntelligence
-
-    func testWrapPromptForAppleIntelligenceAddsTranscriptionContext() {
-        let result = wrapPromptForAppleIntelligence("Clean the text")
-        XCTAssertTrue(result.contains("Clean the text"))
-        XCTAssertTrue(result.contains("transcrição"))
-        XCTAssertTrue(result.contains("APENAS"))
+    func testPromptDefaultsReturnsPortugueseForCloud() {
+        let prompt = PromptDefaults.resolved(for: "gemini", template: .custom)
+        XCTAssertNotNil(prompt)
+        XCTAssertTrue(prompt?.contains("REGRA CRÍTICA") == true)
     }
 
-    func testWrapPromptForAppleIntelligenceDoesNotContainGlobalPrompt() {
-        let result = wrapPromptForAppleIntelligence("Clean the text")
-        // Should NOT contain the verbose globalSystemPrompt keywords
-        XCTAssertFalse(result.contains("REGRA CRÍTICA"))
-        XCTAssertFalse(result.contains("NUNCA deve responder"))
+    func testPromptDefaultsReturnsConversationalForAskAI() {
+        let prompt = PromptDefaults.resolved(for: "gemini", template: .askAI)
+        XCTAssertNotNil(prompt)
+        XCTAssertTrue(prompt?.contains("assistente") == true)
+        XCTAssertFalse(prompt?.contains("REGRA CRÍTICA") == true)
     }
 
     // MARK: - stripLLMPreamble
@@ -55,6 +47,31 @@ final class PromptWrappingTests: XCTestCase {
 
     func testStripLLMPreamblePreservesCleanText() {
         let clean = "This is already clean text without any preamble."
+        XCTAssertEqual(stripLLMPreamble(clean), clean)
+    }
+
+    func testStripLLMPreambleRemovesThinkingTags() {
+        let input = "<think>Let me analyze this text...</think>\nFormatted output here"
+        XCTAssertEqual(stripLLMPreamble(input), "Formatted output here")
+    }
+
+    func testStripLLMPreambleRemovesMultilineThinkingTags() {
+        let input = "<think>\nStep 1: Read the text\nStep 2: Format it\n</think>\nThe actual result"
+        XCTAssertEqual(stripLLMPreamble(input), "The actual result")
+    }
+
+    func testStripLLMPreambleRemovesUnclosedThinkingTag() {
+        let input = "<think>This model hit the token limit before finishing its thou"
+        XCTAssertEqual(stripLLMPreamble(input), "")
+    }
+
+    func testStripLLMPreambleHandlesThinkingTagsFollowedByPreamble() {
+        let input = "<think>Analyzing...</think>\nAqui está o texto:\nFormatted text"
+        XCTAssertEqual(stripLLMPreamble(input), "Formatted text")
+    }
+
+    func testStripLLMPreamblePreservesTextWithoutThinkingTags() {
+        let clean = "Normal text without any thinking tags"
         XCTAssertEqual(stripLLMPreamble(clean), clean)
     }
 

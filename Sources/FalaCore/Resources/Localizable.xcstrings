@@ -1265,6 +1265,22 @@
         }
       }
     },
+    "Instruções enviadas ao LLM para processar a transcrição neste modo. Cada provedor pode ter seu próprio prompt otimizado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instructions sent to the LLM to process the transcription in this mode. Each provider can have its own optimized prompt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrucciones enviadas al LLM para procesar la transcripción en este modo. Cada proveedor puede tener su propio prompt optimizado."
+          }
+        }
+      }
+    },
     "Italiano": {
       "localizations": {
         "en": {
@@ -2141,6 +2157,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prompt del Sistema"
+          }
+        }
+      }
+    },
+    "Prompt do Sistema — %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Prompt — %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prompt del Sistema — %@"
           }
         }
       }

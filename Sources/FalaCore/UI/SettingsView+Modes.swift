@@ -33,6 +33,11 @@ struct ModeDetailView: View {
         return resolution.entry?.displayName ?? L10n("Modelo incompatível")
     }
 
+    /// The provider actually used for prompt resolution (resolves "global").
+    private var effectiveProvider: String {
+        (provider == "global") ? settings.llmProvider : provider
+    }
+
     private var isPromptModified: Bool {
         prompt != restoreBaselinePrompt
     }
@@ -120,7 +125,11 @@ struct ModeDetailView: View {
                     Text(name).tag(key)
                 }
             }
-            .onChange(of: provider) { debouncedSave() }
+            .onChange(of: provider) {
+                // Reload prompt for new provider before saving
+                prompt = resolvedPromptForCurrentProvider()
+                debouncedSave()
+            }
 
             if provider == "global" {
                 LabeledContent(L10n("Provedor atual")) {
@@ -191,9 +200,15 @@ struct ModeDetailView: View {
             )
             .onChange(of: prompt) { debouncedSave() }
         } header: {
-            Text(L10n("Prompt do Sistema"))
+            Text(
+                String(
+                    format: L10n("Prompt do Sistema — %@"),
+                    localizedProviderName(for: effectiveProvider)
+                )
+            )
         } footer: {
-            Text(L10n("Instruções enviadas ao LLM para processar a transcrição neste modo."))
+            // swiftlint:disable:next line_length
+            Text(L10n("Instruções enviadas ao LLM para processar a transcrição neste modo. Cada provedor pode ter seu próprio prompt otimizado."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -246,34 +261,49 @@ struct ModeDetailView: View {
 
     /// Whether the effective provider (after resolving "global") is Apple Intelligence.
     private var isEffectiveProviderAppleIntelligence: Bool {
-        let effectiveProvider = (provider == "global") ? settings.llmProvider : provider
-        return effectiveProvider == "apple"
+        effectiveProvider == "apple"
     }
 
-    private var persistedPromptFallback: String {
-        if template == .custom {
-            return settings.customModePrompt
-        }
-        return template.defaultSystemPrompt ?? ""
-    }
-
+    /// The default prompt for the current effective provider + template.
     private var restoreBaselinePrompt: String {
         if template == .custom {
             return AppConfig.localizedDefault(for: .customModePrompt)
         }
+        return PromptDefaults.resolved(for: effectiveProvider, template: template)
+            ?? template.defaultSystemPrompt
+            ?? ""
+    }
+
+    /// Resolves what prompt to display for the current provider.
+    private func resolvedPromptForCurrentProvider() -> String {
+        let config = settings.modeConfigs[template.rawValue]
+        let ep = effectiveProvider
+
+        // 1. Per-provider override
+        if let providerPrompt = config?.providerPrompts?[ep], !providerPrompt.isEmpty {
+            return providerPrompt
+        }
+        // 2. General prompt override
+        if let modePrompt = config?.prompt {
+            return modePrompt
+        }
+        // 3. Custom mode fallback
+        if template == .custom {
+            return settings.customModePrompt
+        }
+        // 4. PromptDefaults for this provider
+        if let defaultPrompt = PromptDefaults.resolved(for: ep, template: template) {
+            return defaultPrompt
+        }
+        // 5. Template fallback
         return template.defaultSystemPrompt ?? ""
     }
 
     private func loadConfig() {
-        if let config = settings.modeConfigs[template.rawValue] {
-            self.provider = config.provider ?? "global"
-            self.model = config.model ?? ""
-            self.prompt = config.prompt ?? persistedPromptFallback
-        } else {
-            self.provider = "global"
-            self.model = ""
-            self.prompt = persistedPromptFallback
-        }
+        let config = settings.modeConfigs[template.rawValue]
+        self.provider = config?.provider ?? "global"
+        self.model = config?.model ?? ""
+        self.prompt = resolvedPromptForCurrentProvider()
     }
 
     private func debouncedSave() {
@@ -291,14 +321,34 @@ struct ModeDetailView: View {
         config.provider = (provider == "global") ? nil : provider
         config.model = model.isEmpty ? nil : model
 
-        // For .custom mode, save the prompt to customModePrompt directly
+        let ep = effectiveProvider
+        let isDefault = (prompt == restoreBaselinePrompt)
+
+        // For .custom mode, save to customModePrompt
         if template == .custom {
             settings.customModePrompt = prompt
             config.prompt = nil
-        } else if prompt == template.defaultSystemPrompt {
+            // Clear any per-provider override if user restored default
+            if isDefault {
+                config.providerPrompts?.removeValue(forKey: ep)
+                if config.providerPrompts?.isEmpty == true {
+                    config.providerPrompts = nil
+                }
+            }
+        } else if isDefault {
+            // Matches the default — clear overrides
             config.prompt = nil
+            config.providerPrompts?.removeValue(forKey: ep)
+            if config.providerPrompts?.isEmpty == true {
+                config.providerPrompts = nil
+            }
         } else {
-            config.prompt = prompt
+            // Save as per-provider override
+            var prompts = config.providerPrompts ?? [:]
+            prompts[ep] = prompt
+            config.providerPrompts = prompts
+            // Clear generic prompt to avoid confusion
+            config.prompt = nil
         }
 
         settings.modeConfigs[template.rawValue] = config
@@ -306,9 +356,7 @@ struct ModeDetailView: View {
     }
 
     private func restoreDefault() {
-        prompt = template == .custom
-            ? AppConfig.localizedDefault(for: .customModePrompt)
-            : (template.defaultSystemPrompt ?? "")
+        prompt = restoreBaselinePrompt
         persistConfig()
     }
 

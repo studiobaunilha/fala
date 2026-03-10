@@ -259,19 +259,58 @@ public actor MLXModelCache {
 
     private var cache: [String: ModelContext] = [:]
 
+    // Cached conversational session keyed by "repoID::promptHash".
+    // Reused across consecutive askAI calls for multi-turn support.
+    private var conversationalSession: (key: String, session: ChatSession)?
+
     /// Runs inference on a cached (or freshly loaded) model entirely within
     /// the actor, avoiding `ModelContext` crossing isolation boundaries.
     public func generate(
-        repoID: String, systemPrompt: String, userText: String
+        repoID: String, systemPrompt: String, userText: String,
+        conversational: Bool = false
     ) async throws -> String {
         try MLXRuntimeSupport.ensureRuntimeAvailable()
         let context = try await getOrLoad(repoID)
-        // ChatSession is not Sendable; nonisolated(unsafe) is safe here
-        // because we create and consume it within this single call.
+        let effectivePrompt = Self.isQwen3(repoID)
+            ? "/no_think\n\(systemPrompt)"
+            : systemPrompt
+
+        if conversational {
+            nonisolated(unsafe) let session = getOrCreateConversationalSession(
+                repoID: repoID, prompt: effectivePrompt, context: context
+            )
+            return try await session.respond(to: userText)
+        }
+        // Non-conversational: one-shot session each call.
         nonisolated(unsafe) let session = ChatSession(
-            context, instructions: systemPrompt
+            context, instructions: effectivePrompt
         )
         return try await session.respond(to: userText)
+    }
+
+    /// Clears the cached conversational session (e.g. on template change).
+    public func resetConversationalSession() {
+        conversationalSession = nil
+    }
+
+    private func getOrCreateConversationalSession(
+        repoID: String, prompt: String, context: ModelContext
+    ) -> ChatSession {
+        let key = "\(repoID)::\(prompt.hashValue)"
+        if let cached = conversationalSession, cached.key == key {
+            return cached.session
+        }
+        // nonisolated(unsafe) is safe: session lives within this actor.
+        nonisolated(unsafe) let session = ChatSession(
+            context, instructions: prompt
+        )
+        conversationalSession = (key: key, session: session)
+        return session
+    }
+
+    /// Detects Qwen3 models by repo ID (e.g. "mlx-community/Qwen3-4B-4bit").
+    static func isQwen3(_ repoID: String) -> Bool {
+        repoID.lowercased().contains("qwen3")
     }
 
     public func warmup(repoID: String) async throws {
@@ -296,5 +335,9 @@ public actor MLXModelCache {
     /// Removes a model from the in-memory cache.
     public func evict(_ repoID: String) {
         cache.removeValue(forKey: repoID)
+        // Clear conversational session if it references the evicted model
+        if let key = conversationalSession?.key, key.hasPrefix("\(repoID)::") {
+            conversationalSession = nil
+        }
     }
 }

@@ -173,24 +173,15 @@ private extension TranscriptionJob {
         config: AppConfig,
         provider: String
     ) -> String {
-        if template.isConversational {
-            if provider == "apple" {
-                let preferredLanguage = config.transcriptionLanguage == "auto"
-                    ? AppLocalization.resolveLanguageCode(config.appLanguage)
-                    : config.transcriptionLanguage
-                let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
-                return enriched + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
-            }
-            return enriched
+        if template.isConversational, provider == "apple" {
+            let preferredLanguage = config.transcriptionLanguage == "auto"
+                ? AppLocalization.resolveLanguageCode(config.appLanguage)
+                : config.transcriptionLanguage
+            let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
+            return enriched + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
         }
-
-        if provider == "apple" {
-            return wrapPromptForAppleIntelligence(enriched)
-        }
-
-        return wrapPromptForCleanOutput(
-            enriched,
-            globalPrompt: config.globalSystemPrompt
-        )
+        // PromptDefaults provides self-contained prompts per provider —
+        // no wrapping or globalSystemPrompt concatenation needed.
+        return enriched
     }
 }

@@ -4,7 +4,7 @@ import Combine
 
 private struct DictationTranscriberServices {
     let resolve: (AppConfig) -> any AudioTranscribing
-    let prewarm: (AppConfig) async -> Void
+    let prewarm: @Sendable (AppConfig) async -> Void
 }
 
 @MainActor

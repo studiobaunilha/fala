@@ -129,27 +129,13 @@ public struct AppConfig: Codable, Sendable, Equatable {
     
     public func getEffectiveConfig(for template: DictationTemplate) -> EffectiveConfig {
         let modeConfig = modeConfigs[template.rawValue]
-        
+
         let provider = modeConfig?.provider ?? llmProvider
-        
-        // 1. Custom prompt from mode config
-        // 2. For .custom: use customModePrompt from config
-        // 3. Default prompt from template definition
-        // 4. Fallback to empty string (prevents forcing LLM on raw/translate)
-        let prompt: String
-        if let modePrompt = modeConfig?.prompt {
-            prompt = modePrompt
-        } else if template == .custom {
-            prompt = customModePrompt
-        } else {
-            prompt = template.defaultSystemPrompt ?? ""
-        }
-        
+
         let model: String
         if let modeModel = modeConfig?.model, !modeModel.isEmpty {
             model = modeModel
         } else {
-            // Fallback to global model based on provider
             switch provider {
             case "gemini": model = geminiModel
             case "openai": model = openAIModel
@@ -157,7 +143,27 @@ public struct AppConfig: Codable, Sendable, Equatable {
             default:       model = ""
             }
         }
-        
+
+        // Prompt resolution hierarchy:
+        // 1. Per-provider override from providerPrompts
+        // 2. General prompt from mode config
+        // 3. For .custom: customModePrompt field
+        // 4. PromptDefaults optimized for provider + template
+        // 5. template.defaultSystemPrompt (legacy fallback)
+        // 6. Empty string (prevents LLM on raw/translate)
+        let prompt: String
+        if let providerPrompt = modeConfig?.providerPrompts?[provider], !providerPrompt.isEmpty {
+            prompt = providerPrompt
+        } else if let modePrompt = modeConfig?.prompt {
+            prompt = modePrompt
+        } else if template == .custom {
+            prompt = customModePrompt
+        } else if let defaultPrompt = PromptDefaults.resolved(for: provider, template: template, model: model) {
+            prompt = defaultPrompt
+        } else {
+            prompt = template.defaultSystemPrompt ?? ""
+        }
+
         return EffectiveConfig(provider: provider, model: model, prompt: prompt)
     }
 
@@ -243,6 +249,7 @@ extension AppConfig {
             appLanguage: resolvedAppLanguage
         )
         modeConfigs = Self.normalizeModeConfigs(modeConfigs)
+        migrateGlobalSystemPromptIfNeeded()
     }
 
     static func localizedDefault(
@@ -288,6 +295,22 @@ extension AppConfig {
         return storedValue
     }
 
+    /// Migrates a customized globalSystemPrompt into per-provider prompts, then resets to default.
+    private mutating func migrateGlobalSystemPromptIfNeeded() {
+        guard !Self.isKnownLocalizedDefault(globalSystemPrompt, preset: .globalSystemPrompt) else { return }
+        for template in DictationTemplate.allCases where template.requiresLLM {
+            var config = modeConfigs[template.rawValue] ?? ModeConfig()
+            guard config.providerPrompts == nil else { continue }
+            let base = config.prompt ?? (template == .custom ? customModePrompt : nil)
+                ?? template.defaultSystemPrompt ?? ""
+            guard !base.isEmpty else { continue }
+            let migrated = "\(base)\n\n---\n\(globalSystemPrompt)"
+            config.providerPrompts = ["gemini": migrated, "openai": migrated]
+            modeConfigs[template.rawValue] = config
+        }
+        globalSystemPrompt = Self.defaultGlobalSystemPrompt
+    }
+
     private static func normalizeModeConfigs(_ configs: [String: ModeConfig]) -> [String: ModeConfig] {
         var normalized = configs
 
@@ -323,14 +346,21 @@ extension AppConfig {
 }
 
 public struct ModeConfig: Codable, Sendable, Equatable {
-    public var provider: String? // "openai", "gemini", "apple", or nil (use global)
-    public var model: String?    // Specific model or nil (use global)
-    public var prompt: String?   // Custom system prompt or nil (use default)
+    public var provider: String?              // "openai", "gemini", "apple", or nil (use global)
+    public var model: String?                 // Specific model or nil (use global)
+    public var prompt: String?                // Custom system prompt or nil (use default)
+    public var providerPrompts: [String: String]?  // Per-provider prompt overrides
 
-    public init(provider: String? = nil, model: String? = nil, prompt: String? = nil) {
+    public init(
+        provider: String? = nil,
+        model: String? = nil,
+        prompt: String? = nil,
+        providerPrompts: [String: String]? = nil
+    ) {
         self.provider = provider
         self.model = model
         self.prompt = prompt
+        self.providerPrompts = providerPrompts
     }
 }
 

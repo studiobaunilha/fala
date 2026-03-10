@@ -9,7 +9,6 @@ final class PromptEditorUISourceTests: XCTestCase {
 
         let files = [
             "Sources/FalaCore/UI/SettingsView+Modes.swift",
-            "Sources/FalaCore/UI/SettingsView+LLM.swift",
             "Sources/FalaCore/UI/TranscribeView+Ext.swift"
         ].map { repoRoot.appendingPathComponent($0) }
 

@@ -38,7 +38,7 @@ final class SettingsCleanupSourceTests: XCTestCase {
         }
     }
 
-    func testAppleProviderHidesGlobalPromptSection() throws {
+    func testGlobalPromptSectionIsRemoved() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -49,13 +49,10 @@ final class SettingsCleanupSourceTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(llmSource.contains("if settings.llmProvider != \"apple\""))
-        XCTAssertFalse(
-            llmSource.contains(
-                "No Apple Intelligence, prefira editar o prompt dentro de cada modo. "
-                    + "Este prompt global continua sendo usado quando você escolher MLX, Gemini ou OpenAI."
-            )
-        )
+        // The global prompt section has been replaced by per-provider PromptDefaults.
+        // SettingsView+LLM no longer shows a globalSystemPrompt editor.
+        XCTAssertFalse(llmSource.contains("globalPromptSection"))
+        XCTAssertFalse(llmSource.contains("globalSystemPrompt"))
     }
 
     func testSettingsWindowRestoresNativeSidebarChrome() throws {

@@ -40,13 +40,16 @@ test-mlx: ## Roda smoke test do MLX via xcodebuild
 hooks: ## Instala git hooks (auto — no-op se já estiverem instalados)
 	@[ -f "$(HOOK)" ] || bash scripts/install-hooks.sh
 
-dev: check ## check → build debug → relança o app
+dev: check ## check → build debug → relança o app (PROFILE=0 para desabilitar timing logs)
 	@printf "$(GREY)▶ xcodebuild (Debug)$(RESET)\n"
+	@defaults write dev.fala.app ProfilingEnabled -bool $(if $(filter 0,$(PROFILE)),false,true)
 	@$(APPBUILD) debug --open
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
+	@if [ "$(PROFILE)" != "0" ]; then printf "$(GREY)  Profiling habilitado (use PROFILE=0 para desabilitar)$(RESET)\n"; fi
 
 install: check ## check → build release → instala
 	@printf "$(GREY)▶ xcodebuild (Release)$(RESET)\n"
+	@defaults delete dev.fala.app ProfilingEnabled 2>/dev/null || true
 	@$(APPBUILD) release --open
 	@printf "$(GREEN)✓ Release instalado e rodando$(RESET)\n"
 

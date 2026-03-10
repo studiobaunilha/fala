@@ -5,38 +5,29 @@ import FoundationModels
 
 // MARK: - Prompt Hardening
 
-/// Wraps a system prompt with strict output-only instructions to prevent
-/// LLM preambles like "Entendi sua solicitação. Segue abaixo...".
-func wrapPromptForCleanOutput(_ prompt: String, globalPrompt: String) -> String {
-    """
-    \(prompt)
-
-    ---
-    \(globalPrompt)
-    """
-}
-
-/// Short version for Apple Intelligence (~3B, 4096 tokens).
-/// The full globalSystemPrompt overwhelms the on-device model.
-/// Apple recommends concise, focused instructions.
-func wrapPromptForAppleIntelligence(_ prompt: String) -> String {
-    """
-    \(prompt)
-
-    REGRA: O texto abaixo é uma transcrição de áudio. NÃO responda, NÃO comente, NÃO cumprimente. \
-    Retorne APENAS o texto processado, nada mais.
-    """
-}
-
-/// Strips common LLM preamble patterns from the response.
+/// Strips thinking tags and common LLM preamble patterns from the response.
 func stripLLMPreamble(_ text: String) -> String {
+    var result = text
+
+    // Strip thinking tags (Qwen3, DeepSeek R1, etc.)
+    result = result.replacingOccurrences(
+        of: #"<think>[\s\S]*?</think>\s*"#,
+        with: "",
+        options: .regularExpression
+    )
+    // Also handle unclosed <think> tags (model hit token limit mid-thought)
+    result = result.replacingOccurrences(
+        of: #"<think>[\s\S]*$"#,
+        with: "",
+        options: .regularExpression
+    )
+
     let patterns = [
         // Portuguese
         #"^(?:Aqui está|Segue|Claro|Entendi|Certo|Com certeza|Sem problemas)[^:\n]*[:\n]\s*"#,
         // English
         #"^(?:Here(?:'s| is| are)|Sure|Of course|Certainly|Understood)[^:\n]*[:\n]\s*"#
     ]
-    var result = text
     for pattern in patterns {
         if let range = result.range(of: pattern, options: [.regularExpression, .caseInsensitive]) {
             result = String(result[range.upperBound...])
@@ -59,9 +50,12 @@ extension TranscriptionJob {
         try await audioPreparationHandler(inputURL)
     }
 
-    static func processWithGemini(text: String, prompt: String, apiKey: String, model: String) async throws -> String {
-        let baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent"
-        let endpoint = "\(baseUrl)?key=\(apiKey)"
+    static func processWithGemini(
+        text: String, prompt: String, apiKey: String, model: String,
+        previousMessages: [[String: String]] = []
+    ) async throws -> String {
+        let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/"
+            + "\(model):generateContent?key=\(apiKey)"
         guard let url = URL(string: endpoint) else {
             throw NSError(domain: "LLM", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL"])
         }
@@ -69,13 +63,16 @@ extension TranscriptionJob {
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
+        // Build multi-turn contents: history + current user message
+        var contents: [[String: Any]] = previousMessages.map { msg in
+            let role = msg["role"] == "assistant" ? "model" : "user"
+            return ["role": role, "parts": [["text": msg["content"] ?? ""]]]
+        }
+        contents.append(["role": "user", "parts": [["text": text]]])
+
         let body: [String: Any] = [
-            "systemInstruction": [
-                "parts": [["text": prompt]]
-            ],
-            "contents": [
-                ["parts": [["text": text]]]
-            ]
+            "systemInstruction": ["parts": [["text": prompt]]],
+            "contents": contents
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
 
@@ -88,13 +85,15 @@ extension TranscriptionJob {
             return resultText
         }
         throw NSError(
-            domain: "LLM",
-            code: 1,
+            domain: "LLM", code: 1,
             userInfo: [NSLocalizedDescriptionKey: "Failed to parse Gemini response"]
         )
     }
 
-    static func processWithOpenAI(text: String, prompt: String, apiKey: String, model: String) async throws -> String {
+    static func processWithOpenAI(
+        text: String, prompt: String, apiKey: String, model: String,
+        previousMessages: [[String: String]] = []
+    ) async throws -> String {
         guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
             throw NSError(domain: "LLM", code: 2, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL"])
         }
@@ -103,13 +102,12 @@ extension TranscriptionJob {
         req.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let body: [String: Any] = [
-            "model": model,
-            "messages": [
-                ["role": "system", "content": prompt],
-                ["role": "user", "content": text]
-            ]
-        ]
+        // Build messages: system + history + current user message
+        var messages: [[String: String]] = [["role": "system", "content": prompt]]
+        messages.append(contentsOf: previousMessages)
+        messages.append(["role": "user", "content": text])
+
+        let body: [String: Any] = ["model": model, "messages": messages]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, _) = try await URLSession.shared.data(for: req)
@@ -120,8 +118,7 @@ extension TranscriptionJob {
             return content
         }
         throw NSError(
-            domain: "LLM",
-            code: 1,
+            domain: "LLM", code: 1,
             userInfo: [NSLocalizedDescriptionKey: "Failed to parse OpenAI response"]
         )
     }
@@ -167,10 +164,12 @@ extension TranscriptionJob {
     #endif
 
     static func processWithMLX(
-        text: String, prompt: String, modelID: String
+        text: String, prompt: String, modelID: String,
+        conversational: Bool = false
     ) async throws -> String {
         try await MLXModelCache.shared.generate(
-            repoID: modelID, systemPrompt: prompt, userText: text
+            repoID: modelID, systemPrompt: prompt, userText: text,
+            conversational: conversational
         )
     }
 

@@ -11,7 +11,7 @@ import Foundation
 public final class DictationMode {
     typealias ConfigProvider = () -> AppConfig
     typealias TranscriberResolver = (AppConfig) -> any AudioTranscribing
-    typealias TranscriberPrewarmer = (_ config: AppConfig) async -> Void
+    typealias TranscriberPrewarmer = @Sendable (_ config: AppConfig) async -> Void
     typealias LLMProcessor = (
         _ text: String,
         _ prompt: String,
@@ -28,6 +28,7 @@ public final class DictationMode {
     private let transcriberPrewarmer: TranscriberPrewarmer?
     private let llmProcessor: LLMProcessor?
     private let readiness: RuntimeReadinessEvaluator?
+    public let conversationMemory = ConversationMemory()
 
     private var isRecording = false
 
@@ -110,8 +111,10 @@ public final class DictationMode {
             }
             try recorder.startRecording()
             if let transcriberPrewarmer {
-                Task {
-                    await transcriberPrewarmer(config)
+                let prewarmConfig = config
+                let prewarmer = transcriberPrewarmer
+                Task.detached {
+                    await prewarmer(prewarmConfig)
                 }
             }
             isRecording = true
@@ -130,30 +133,52 @@ public final class DictationMode {
         statusBar?.setState(.transcribing)
         feedback?.model.stage = .transcribing
 
+        let profiler = DictationProfiler.makeIfEnabled()
+        var ctx = DictationProfilingContext()
+
         do {
-            let audioURL = try recorder.stopRecording()
+            let audioURL = try profiler.measure(.stopRecording) {
+                try recorder.stopRecording()
+            }
             defer { try? FileManager.default.removeItem(at: audioURL) }
 
-            let samples = try AudioConverter.toFloat16k(from: audioURL)
+            let samples = try profiler.measure(.audioConversion) {
+                try AudioConverter.toFloat16k(from: audioURL)
+            }
+            ctx.audioSampleCount = samples.count
             guard !samples.isEmpty else {
+                ctx.outcome = .silentAudio
+                profiler.finish(ctx)
                 statusBar?.setState(.idle)
                 feedback?.dismiss()
                 return
             }
 
             // Skip silent audio — avoids unnecessary transcription and LLM calls
-            let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count))
+            let rms: Float = profiler.measure(.rmsValidation) {
+                sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count))
+            }
+            ctx.audioRMS = rms
             guard rms > 0.001 else {
                 NSLog("[Fala] Audio too quiet (RMS: %.6f), skipping", rms)
+                ctx.outcome = .silentAudio
+                profiler.finish(ctx)
                 statusBar?.setState(.idle)
                 feedback?.dismiss()
                 return
             }
 
-            let config = configProvider()
-            let activeTranscriber = transcriberResolver(config)
-            let template = config.selectedDictationTemplate
-            let effectiveConfig = config.getEffectiveConfig(for: template)
+            let (config, activeTranscriber, template, effectiveConfig) =
+                profiler.measure(.transcriberSetup) {
+                    let cfg = configProvider()
+                    let transcriber = transcriberResolver(cfg)
+                    let tmpl = cfg.selectedDictationTemplate
+                    let eff = cfg.getEffectiveConfig(for: tmpl)
+                    return (cfg, transcriber, tmpl, eff)
+                }
+            ctx.template = template.rawValue
+            ctx.engine = config.transcriptionEngine
+            ctx.llmProvider = effectiveConfig.provider
 
             NSLog(
                 "[Fala] Dictation request template=%@ engine=%@ llmProvider=%@",
@@ -166,13 +191,18 @@ public final class DictationMode {
                 statusBar?.showTemporaryWarning(
                     L10n("Tradução requer o motor Whisper. Troque em Ajustes → Geral.")
                 )
+                ctx.outcome = .translationUnsupported
+                profiler.finish(ctx)
                 statusBar?.setState(.idle)
                 feedback?.dismiss()
                 return
             }
 
             let task = template == .translate ? "translate" : "transcribe"
-            let text = try await activeTranscriber.transcribe(samples: samples, task: task)
+            let text = try await profiler.measure(.transcription) {
+                try await activeTranscriber.transcribe(samples: samples, task: task)
+            }
+            ctx.transcribedText = text
 
             // Filter short noise hallucinations (e.g. "the", "okay", "um")
             let words = text.split(separator: " ")
@@ -180,71 +210,82 @@ public final class DictationMode {
                 if !text.isEmpty {
                     NSLog("[Fala] Transcription too short, likely noise: '%@'", text)
                 }
+                ctx.outcome = .tooShort
+                profiler.finish(ctx)
                 statusBar?.setState(.idle)
                 feedback?.dismiss()
                 return
             }
 
             feedback?.model.stage = .processing
-            
+
             if template.requiresLLM {
                 inserter.saveToClipboard(text)
             }
-            let finalText = await processText(text, config: config, template: template)
+            let finalText = await profiledProcessText(
+                text, config: config, template: template, profiler: profiler
+            )
 
             feedback?.model.stage = .inserting
-            inserter.insert(finalText)
+            profiler.measure(.textInsertion) {
+                inserter.insert(finalText)
+            }
 
             feedback?.model.stage = .done
             feedback?.dismiss()
+
+            profiler.finish(ctx)
         } catch {
             print("[Fala] Transcription error: \(error.localizedDescription)")
+            ctx.outcome = .failed
+            profiler.finish(ctx)
             feedback?.dismiss()
         }
 
         statusBar?.setState(.idle)
     }
 
-    private func processText(
+    private func profiledProcessText(
         _ text: String,
         config: AppConfig,
-        template: DictationTemplate
+        template: DictationTemplate,
+        profiler: any DictationProfiling
     ) async -> String {
-        var finalText = ReplacementRule.applyAll(text, rules: config.replacementRules)
+        var finalText = profiler.measure(.replacementRules) {
+            ReplacementRule.applyAll(text, rules: config.replacementRules)
+        }
 
         let modeConfig = config.getEffectiveConfig(for: template)
         let basePrompt = modeConfig.prompt
 
         if template.requiresLLM, !basePrompt.isEmpty {
-            var enriched = basePrompt
-            // Conversational modes (askAI) skip anti-response wrapping —
-            // the whole point is for the AI to respond to the question.
-            let prompt: String
-            if template.isConversational {
-                // Apple Intelligence's compact model needs explicit language guidance
-                if modeConfig.provider == "apple" {
-                    let preferredLanguage = config.transcriptionLanguage == "auto"
-                        ? AppLocalization.resolveLanguageCode(config.appLanguage)
-                        : config.transcriptionLanguage
-                    let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
-                    enriched += "\nIMPORTANTE: Responda SEMPRE em \(langName)."
-                }
-                prompt = enriched
-            } else if modeConfig.provider == "apple" {
-                // Apple Intelligence (~3B, 4096 tokens) can't handle the
-                // full globalSystemPrompt — use a short, focused suffix.
-                prompt = wrapPromptForAppleIntelligence(enriched)
-            } else {
-                prompt = wrapPromptForCleanOutput(enriched, globalPrompt: config.globalSystemPrompt)
-            }
+            let prompt = buildLLMPrompt(
+                basePrompt: basePrompt, template: template,
+                modeConfig: modeConfig, config: config
+            )
+            // Include conversation history for conversational templates
+            let history = template.isConversational
+                ? conversationMemory.messagesForAPI()
+                : []
             do {
-                let result = try await llmResponse(
-                    text: text,
-                    prompt: prompt,
-                    config: config,
-                    effective: modeConfig
-                )
+                let isConvo = template.isConversational
+                let result = try await profiler.measure(.llmProcessing) {
+                    try await llmResponse(
+                        text: text, prompt: prompt,
+                        config: config, effective: modeConfig,
+                        previousMessages: history,
+                        conversational: isConvo
+                    )
+                }
                 finalText = stripLLMPreamble(result)
+                // Save to conversation memory for multi-turn
+                if template.isConversational {
+                    let ctxKey = "\(template.rawValue)::\(modeConfig.provider)"
+                    conversationMemory.append(
+                        userText: text, assistantResponse: finalText,
+                        contextKey: ctxKey
+                    )
+                }
             } catch let error as LLMError {
                 let msg = error.localizedDescription
                 print("[Fala] \(msg) — modo '\(template.localizedName)' requer LLM.")
@@ -257,45 +298,72 @@ public final class DictationMode {
         return finalText
     }
 
+    private func buildLLMPrompt(
+        basePrompt: String,
+        template: DictationTemplate,
+        modeConfig: AppConfig.EffectiveConfig,
+        config: AppConfig
+    ) -> String {
+        if template.isConversational, modeConfig.provider == "apple" {
+            let preferredLanguage = config.transcriptionLanguage == "auto"
+                ? AppLocalization.resolveLanguageCode(config.appLanguage)
+                : config.transcriptionLanguage
+            let langName = AppSettings.transcriptionLanguageDisplayName(for: preferredLanguage)
+            return basePrompt + "\nIMPORTANTE: Responda SEMPRE em \(langName)."
+        }
+        // PromptDefaults already provides self-contained prompts per provider,
+        // so no wrapping or globalSystemPrompt concatenation is needed.
+        return basePrompt
+    }
+
     private func llmResponse(
         text: String,
         prompt: String,
         config: AppConfig,
-        effective: AppConfig.EffectiveConfig
+        effective: AppConfig.EffectiveConfig,
+        previousMessages: [[String: String]] = [],
+        conversational: Bool = false
     ) async throws -> String {
         if let llmProcessor {
             return try await llmProcessor(text, prompt, config, effective)
         }
         return try await dispatchLLM(
-            text: text,
-            prompt: prompt,
-            config: config,
-            effective: effective
+            text: text, prompt: prompt,
+            config: config, effective: effective,
+            previousMessages: previousMessages,
+            conversational: conversational
         )
     }
 
     private func dispatchLLM(
         text: String, prompt: String, config: AppConfig,
-        effective: AppConfig.EffectiveConfig
+        effective: AppConfig.EffectiveConfig,
+        previousMessages: [[String: String]] = [],
+        conversational: Bool = false
     ) async throws -> String {
         let model = effective.model
         switch effective.provider {
         case "gemini":
             guard !config.geminiKey.isEmpty else { throw LLMError.noAPIKey(provider: "Gemini") }
             return try await TranscriptionJob.processWithGemini(
-                text: text, prompt: prompt, apiKey: config.geminiKey, model: model
+                text: text, prompt: prompt, apiKey: config.geminiKey,
+                model: model, previousMessages: previousMessages
             )
         case "openai":
             guard !config.openAIKey.isEmpty else { throw LLMError.noAPIKey(provider: "OpenAI") }
             return try await TranscriptionJob.processWithOpenAI(
-                text: text, prompt: prompt, apiKey: config.openAIKey, model: model
+                text: text, prompt: prompt, apiKey: config.openAIKey,
+                model: model, previousMessages: previousMessages
             )
         case "apple":
-            return try await TranscriptionJob.processWithAppleNative(text: text, prompt: prompt)
+            return try await TranscriptionJob.processWithAppleNative(
+                text: text, prompt: prompt
+            )
         case "mlx":
             let modelID = model.isEmpty ? config.mlxModel : model
             return try await TranscriptionJob.processWithMLX(
-                text: text, prompt: prompt, modelID: modelID
+                text: text, prompt: prompt, modelID: modelID,
+                conversational: conversational
             )
         default:
             throw LLMError.providerNotConfigured(effective.provider)

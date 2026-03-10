@@ -19,10 +19,6 @@ extension SettingsView {
                     .foregroundStyle(.secondary)
             }
 
-            if settings.llmProvider != "apple" {
-                globalPromptSection
-            }
-
             if settings.llmProvider == "apple" {
                 appleIntelligenceSection
             } else if settings.llmProvider == "mlx" {
@@ -48,30 +44,6 @@ extension SettingsView {
             if let result = testKeyResult {
                 Text(result)
             }
-        }
-    }
-
-    private var globalPromptSection: some View {
-        Section {
-            PromptEditorPanel(
-                text: $settings.globalSystemPrompt,
-                isModified: settings.globalSystemPrompt != AppConfig.defaultGlobalSystemPrompt,
-                restoreActionTitle: L10n("Restaurar Padrão"),
-                onRestore: {
-                    settings.globalSystemPrompt = AppConfig.defaultGlobalSystemPrompt
-                }
-            )
-        } header: {
-            Text(L10n("Prompt de Sistema Global (Pós-processamento)"))
-        } footer: {
-            Text(
-                L10n(
-                    // swiftlint:disable:next line_length
-                    "Anexado no final de todas as instruções. Serve para forçar a IA a agir estritamente como formatadora, sem preâmbulos."
-                )
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
     }
 
