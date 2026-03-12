@@ -11,11 +11,13 @@ extension TranscriptionJob {
     }
 
     static func makeWhisperBatchTranscriber(config: AppConfig) -> BatchWhisperTranscriber {
+        let disableNeuralEngine = HardwareInfo.isKnownToFreezeWhisperANE && !config.forceWhisperNeuralEngine
         let transcriber = Transcriber(
             modelName: config.activeWhisperModel,
             language: config.transcriptionLanguage,
             temperature: config.batchTemperature,
-            prompt: ""
+            prompt: "",
+            disableNeuralEngine: disableNeuralEngine
         )
         return BatchWhisperTranscriber(
             loadState: {

@@ -33,11 +33,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let config = AppConfig.load()
         AppLocalization.apply(languageCode: config.appLanguage)
+        let disableNeuralEngine = HardwareInfo.isKnownToFreezeWhisperANE && !config.forceWhisperNeuralEngine
         let whisperTranscriber = Transcriber(
             modelName: config.activeWhisperModel,
             language: config.transcriptionLanguage,
             temperature: config.dictationTemperature,
-            prompt: ""
+            prompt: "",
+            disableNeuralEngine: disableNeuralEngine
         )
         let parakeetTranscriber = ParakeetTranscriber()
         let modelManager = ModelManager()

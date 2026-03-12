@@ -141,6 +141,22 @@ private extension SettingsView {
 
     var whisperTemperatureTuningSection: some View {
         Section {
+            if settings.isCompatibilityModeActive {
+                NoticeCard(
+                    title: L10n("Modo de Compatibilidade Ativo"),
+                    message: L10n(
+                        // swiftlint:disable:next line_length
+                        "O uso de Inteligência Artificial plena (Neural Engine) foi desativado automaticamente porque este modelo de Mac possui travamentos conhecidos no CoreML durante o processamento de áudio. O Whisper está utilizando sua CPU e Placa de Vídeo."
+                    ),
+                    tone: .warning
+                )
+            }
+            
+            Toggle(L10n("Forçar uso da Neural Engine (Experimental)"), isOn: $settings.forceWhisperNeuralEngine)
+                .onChange(of: settings.forceWhisperNeuralEngine) { _ in
+                    settings.save()
+                }
+
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text("\(L10n("Temperatura Ditado")) (\(settings.dictationTemperature, specifier: "%.1f"))")
                 Slider(value: $settings.dictationTemperature, in: 0.0...1.0, step: 0.1)
