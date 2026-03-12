@@ -209,6 +209,54 @@
         }
       }
     },
+    "O texto longo requer Whisper Medium. Trocar de motor?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long text requires Whisper Medium. Switch engines?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El texto largo requiere Whisper Medium. ¿Cambiar motor?"
+          }
+        }
+      }
+    },
+    "O uso de Inteligência Artificial plena (Neural Engine) foi desativado automaticamente porque este modelo de Mac possui travamentos conhecidos no CoreML durante o processamento de áudio. O Whisper está utilizando sua CPU e Placa de Vídeo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full AI Processing (Neural Engine) has been automatically disabled because this Mac model has known CoreML crashes during audio processing. Whisper is using your CPU and Graphics Card."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El procesamiento avanzado de IA (Neural Engine) ha sido desactivado automáticamente porque este modelo de Mac tiene bloqueos conocidos de CoreML durante el procesamiento de audio. Whisper está utilizando su CPU y tarjeta de video."
+          }
+        }
+      }
+    },
+    "O(A) Apple Intelligence só formata o texto quando é ele quem o gera, ou seja, na opção \"Descrever...\" do Modo Personalizado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence only formats text when it generates it, i.e., in the \"Describe...\" option of Custom Mode."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Intelligence solo formatea el texto cuando lo genera, es decir, en la opción \"Describir...\" del Modo Personalizado."
+          }
+        }
+      }
+    },
     "A tradução para inglês é um recurso exclusivo do Whisper. O motor atual (Parakeet) não suporta tradução. Deseja trocar para o Whisper?": {
       "localizations": {
         "en": {
@@ -1437,22 +1485,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pega el código de activación recibido después de la compra para desbloquear Fala Pro en esta Mac."
-          }
-        }
-      }
-    },
-    "Cole seu código de ativação": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste your activation code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pega tu código de activación"
           }
         }
       }
@@ -2833,6 +2865,38 @@
         }
       }
     },
+    "Modelo ideal para seu Mac": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal model for your Mac"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo ideal para tu Mac"
+          }
+        }
+      }
+    },
+    "Modo de Compatibilidade Ativo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibility Mode Active"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de Compatibilidad Activo"
+          }
+        }
+      }
+    },
     "Fila interrompida": {
       "localizations": {
         "en": {
@@ -2845,6 +2909,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cola interrumpida"
+          }
+        }
+      }
+    },
+    "Força Whisper Neural Engine (Experimental)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force Whisper Neural Engine (Experimental)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forzar motor neural de Whisper (Experimental)"
+          }
+        }
+      }
+    },
+    "Forçar uso da CPU": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force CPU use"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forzar uso de la CPU"
+          }
+        }
+      }
+    },
+    "Forçar uso da Neural Engine (Experimental)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force Neural Engine use (Experimental)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forzar el uso del Neural Engine (Experimental)"
           }
         }
       }
@@ -7677,6 +7789,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "한국어"
+          }
+        }
+      }
+    },
+    "Cole seu código de ativação": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste your activation code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega tu código de activación"
           }
         }
       }
