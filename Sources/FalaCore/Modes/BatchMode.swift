@@ -21,13 +21,6 @@ public enum BatchMode {
         let profiler = CLIBatchExecutionProfiler(inputURL: inputURL)
         var outcome: BatchExecutionOutcome = .failed
 
-        defer {
-            fputs(
-                "[Fala] Batch CLI timing \(profiler.snapshot(outcome: outcome).debugSummary)\n",
-                stderr
-            )
-        }
-
         do {
             let preparedAudio = try await prepareAudioInput(from: inputURL, profiler: profiler)
             let wavURL = preparedAudio.wavURL
@@ -40,23 +33,26 @@ public enum BatchMode {
             if opts.prepareOnly {
                 print("Audio prepared.")
                 outcome = .succeeded
-                return
+            } else {
+                try await performTranscription(
+                    config: config,
+                    wavURL: wavURL,
+                    inputURL: inputURL,
+                    options: opts,
+                    profiler: profiler
+                )
+
+                outcome = .succeeded
             }
 
-            try await performTranscription(
-                config: config,
-                wavURL: wavURL,
-                inputURL: inputURL,
-                options: opts,
-                profiler: profiler
-            )
-
-            outcome = .succeeded
+            await emitTimingLog(profiler: profiler, outcome: outcome)
         } catch is CancellationError {
             outcome = .cancelled
+            await emitTimingLog(profiler: profiler, outcome: outcome)
             throw CancellationError()
         } catch {
             outcome = .failed
+            await emitTimingLog(profiler: profiler, outcome: outcome)
             throw error
         }
     }
@@ -160,6 +156,14 @@ public enum BatchMode {
         }
         return opts
     }
+
+    private static func emitTimingLog(
+        profiler: CLIBatchExecutionProfiler,
+        outcome: BatchExecutionOutcome
+    ) async {
+        let metrics = await profiler.snapshot(outcome: outcome)
+        fputs("[Fala] Batch CLI timing \(metrics.debugSummary)\n", stderr)
+    }
 }
 
 private final class CLIBatchExecutionProfiler {
@@ -198,11 +202,11 @@ private final class CLIBatchExecutionProfiler {
         modelLoadState = state
     }
 
-    func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
+    func snapshot(outcome: BatchExecutionOutcome) async -> BatchExecutionMetrics {
         let fileSize = (try? FileManager.default.attributesOfItem(
             atPath: inputURL.path
         )[.size] as? Int64) ?? nil
-        let audioDuration = AudioDurationReader.duration(of: inputURL)
+        let audioDuration = await AudioDurationReader.duration(of: inputURL)
 
         return BatchExecutionMetrics(
             fileName: inputURL.lastPathComponent,

@@ -29,12 +29,12 @@ check: hooks lint test ## Preflight completo: hooks + lint + testes (roda antes 
 lint: ## Roda SwiftLint (--strict)
 	@DEVELOPER_DIR=$(XCODE) swiftlint --strict
 
-test: ## Roda os testes unitários
+test: ## Roda os testes unitários (smoke MLX fica em make test-mlx)
 	@printf "$(GREY)▶ swift test$(RESET)\n"
 	@$(SWIFT) test
 
-test-mlx: ## Roda smoke test do MLX via xcodebuild
-	@printf "$(GREY)▶ xcodebuild test (MLX smoke)$(RESET)\n"
+test-mlx: ## Roda smoke test do MLX no app empacotado
+	@printf "$(GREY)▶ app bundle MLX smoke$(RESET)\n"
 	@DEVELOPER_DIR=$(XCODE) bash scripts/test-mlx.sh
 
 hooks: ## Instala git hooks (auto — no-op se já estiverem instalados)

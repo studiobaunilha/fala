@@ -1,48 +1,39 @@
 import AVFoundation
 import XCTest
 
+private enum AudioFixtureError: Error {
+    case exportSessionUnavailable
+    case exportIncomplete(AVAssetExportSession.Status)
+}
+
 func makeSilentAudioFile(
     sampleRate: Double,
     durationSeconds: Double,
     channels: AVAudioChannelCount = 1,
     fileExtension: String
 ) throws -> URL {
-    let format = try XCTUnwrap(
-        AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: sampleRate,
-            channels: channels,
-            interleaved: false
-        )
-    )
-    let frameCount = AVAudioFrameCount(sampleRate * durationSeconds)
-    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
-    buffer.frameLength = frameCount
-
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("test-\(UUID().uuidString)")
-        .appendingPathExtension(fileExtension)
-
-    let settings: [String: Any]
     if fileExtension == "m4a" {
-        settings = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: sampleRate,
-            AVNumberOfChannelsKey: channels,
-            AVEncoderBitRateKey: 128_000
-        ]
-    } else {
-        settings = format.settings
+        let sourceURL = try makeSilentPCMFile(
+            sampleRate: sampleRate,
+            durationSeconds: durationSeconds,
+            channels: channels,
+            fileExtension: "wav",
+            interleaved: true
+        )
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("test-\(UUID().uuidString)")
+            .appendingPathExtension("m4a")
+        defer { try? FileManager.default.removeItem(at: sourceURL) }
+        try exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
+        return outputURL
     }
 
-    let file = try AVAudioFile(
-        forWriting: url,
-        settings: settings,
-        commonFormat: .pcmFormatFloat32,
-        interleaved: false
+    return try makeSilentPCMFile(
+        sampleRate: sampleRate,
+        durationSeconds: durationSeconds,
+        channels: channels,
+        fileExtension: fileExtension
     )
-    try file.write(from: buffer)
-    return url
 }
 
 func makeSilentWAV(sampleRate: Double, durationSeconds: Double) throws -> URL {
@@ -59,34 +50,84 @@ func makeExportedAACM4A(
     channels: AVAudioChannelCount = 2,
     testCase: XCTestCase
 ) throws -> URL {
-    let sourceURL = try makeSilentAudioFile(
+    _ = testCase
+    let sourceURL = try makeSilentPCMFile(
         sampleRate: sampleRate,
         durationSeconds: durationSeconds,
         channels: channels,
-        fileExtension: "wav"
+        fileExtension: "wav",
+        interleaved: true
     )
     let outputURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("test-exported-\(UUID().uuidString)")
         .appendingPathExtension("m4a")
 
+    defer { try? FileManager.default.removeItem(at: sourceURL) }
+    try exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
+    return outputURL
+}
+
+func exportAudioAssetToM4A(sourceURL: URL, outputURL: URL) throws {
     let asset = AVURLAsset(url: sourceURL)
-    let session = try XCTUnwrap(
-        AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A)
-    )
+    guard let session = AVAssetExportSession(
+        asset: asset,
+        presetName: AVAssetExportPresetAppleM4A
+    ) else {
+        throw AudioFixtureError.exportSessionUnavailable
+    }
+
     session.outputURL = outputURL
     session.outputFileType = .m4a
 
-    let completed = testCase.expectation(description: "AAC export")
+    let semaphore = DispatchSemaphore(value: 0)
     session.exportAsynchronously {
-        completed.fulfill()
+        semaphore.signal()
     }
-    testCase.wait(for: [completed], timeout: 10)
-
-    defer { try? FileManager.default.removeItem(at: sourceURL) }
+    semaphore.wait()
 
     if let error = session.error {
         throw error
     }
-    XCTAssertEqual(session.status, .completed)
-    return outputURL
+
+    guard session.status == .completed else {
+        throw AudioFixtureError.exportIncomplete(session.status)
+    }
+}
+
+private func makeSilentPCMFile(
+    sampleRate: Double,
+    durationSeconds: Double,
+    channels: AVAudioChannelCount,
+    fileExtension: String,
+    interleaved: Bool = false
+) throws -> URL {
+    let format = try XCTUnwrap(
+        AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: sampleRate,
+            channels: channels,
+            interleaved: interleaved
+        )
+    )
+    let frameCount = AVAudioFrameCount(sampleRate * durationSeconds)
+    let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+    buffer.frameLength = frameCount
+
+    let url = FileManager.default.temporaryDirectory
+        .appendingPathComponent("test-\(UUID().uuidString)")
+        .appendingPathExtension(fileExtension)
+
+    let file: AVAudioFile
+    if interleaved {
+        file = try AVAudioFile(
+            forWriting: url,
+            settings: format.settings,
+            commonFormat: .pcmFormatFloat32,
+            interleaved: true
+        )
+    } else {
+        file = try AVAudioFile(forWriting: url, settings: format.settings)
+    }
+    try file.write(from: buffer)
+    return url
 }

@@ -45,11 +45,11 @@ final class BatchExecutionProfiler {
         modelLoadState = state
     }
 
-    func snapshot(outcome: BatchExecutionOutcome) -> BatchExecutionMetrics {
+    func snapshot(outcome: BatchExecutionOutcome) async -> BatchExecutionMetrics {
         let fileSize = (try? FileManager.default.attributesOfItem(
             atPath: inputURL.path
         )[.size] as? Int64) ?? nil
-        let audioDuration = AudioDurationReader.duration(of: inputURL)
+        let audioDuration = await AudioDurationReader.duration(of: inputURL)
 
         return BatchExecutionMetrics(
             fileName: inputURL.lastPathComponent,
@@ -73,6 +73,7 @@ final class BatchExecutionProfiler {
 extension TranscriptionJob {
     func recordBatchMetrics(_ metrics: BatchExecutionMetrics) {
         lastExecutionMetrics = metrics
+        MetricsHistoryStore.shared.record(metrics)
         batchLogger.notice(
             "[Fala] Batch timing \(metrics.debugSummary, privacy: .public)"
         )
@@ -80,9 +81,12 @@ extension TranscriptionJob {
 }
 
 enum AudioDurationReader {
-    static func duration(of url: URL) -> Double? {
+    static func duration(of url: URL) async -> Double? {
         let asset = AVURLAsset(url: url)
-        let seconds = CMTimeGetSeconds(asset.duration)
+        guard let duration = try? await asset.load(.duration) else {
+            return nil
+        }
+        let seconds = CMTimeGetSeconds(duration)
         return seconds.isFinite ? seconds : nil
     }
 }

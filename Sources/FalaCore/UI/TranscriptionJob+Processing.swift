@@ -173,9 +173,9 @@ extension TranscriptionJob {
         )
     }
 
-    nonisolated func initializeOutputFile(url: URL, format: String, inputURL: URL) throws {
+    nonisolated func initializeOutputFile(url: URL, format: String) throws {
         let content = format == "md"
-            ? "# \(inputURL.deletingPathExtension().lastPathComponent)\n\n"
+            ? "# \(url.deletingPathExtension().lastPathComponent)\n\n"
             : ""
         try content.write(to: url, atomically: true, encoding: .utf8)
     }

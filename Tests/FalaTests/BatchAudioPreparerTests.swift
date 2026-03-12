@@ -8,6 +8,15 @@ final class BatchAudioPreparerTests: XCTestCase {
         durationSeconds: Double,
         fileExtension: String
     ) throws -> URL {
+        if fileExtension == "m4a" {
+            return try makeExportedAACM4A(
+                sampleRate: sampleRate,
+                durationSeconds: durationSeconds,
+                channels: 1,
+                testCase: self
+            )
+        }
+
         let pcmFormat = try XCTUnwrap(
             AVAudioFormat(
                 commonFormat: .pcmFormatFloat32,
@@ -24,24 +33,7 @@ final class BatchAudioPreparerTests: XCTestCase {
             .appendingPathComponent("batch-audio-\(UUID().uuidString)")
             .appendingPathExtension(fileExtension)
 
-        let settings: [String: Any]
-        if fileExtension == "m4a" {
-            settings = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: sampleRate,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderBitRateKey: 128_000
-            ]
-        } else {
-            settings = pcmFormat.settings
-        }
-
-        let file = try AVAudioFile(
-            forWriting: url,
-            settings: settings,
-            commonFormat: .pcmFormatFloat32,
-            interleaved: false
-        )
+        let file = try AVAudioFile(forWriting: url, settings: pcmFormat.settings)
         try file.write(from: buffer)
         return url
     }

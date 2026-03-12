@@ -63,13 +63,37 @@ build_with_xcode() {
     log_file="$(mktemp -t fala-xcodebuild.XXXXXX.log)"
     trap 'rm -f "$log_file"' RETURN
 
+    filter_xcodebuild_noise() {
+        python3 -c '
+import re
+import sys
+
+skip_destination_block = False
+
+for raw_line in sys.stdin:
+    line = raw_line.rstrip("\r\n")
+    normalized = line.strip()
+    if "IDERunDestination: Supported platforms for the buildables in the current scheme is empty." in normalized:
+        continue
+    if normalized == "--- xcodebuild: WARNING: Using the first of multiple matching destinations:":
+        skip_destination_block = True
+        continue
+    if skip_destination_block:
+        if normalized.startswith("{ platform:"):
+            continue
+        skip_destination_block = False
+    print(line)
+'
+    }
+
     if ! /usr/bin/env -u SDKROOT DEVELOPER_DIR="$DEVELOPER_DIR_VALUE" \
         xcodebuild \
             -scheme Fala \
             -configuration "$CONFIGURATION" \
             -destination "platform=macOS" \
             -derivedDataPath "$DERIVED_DATA" \
-            build 2>&1 | tee "$log_file"; then
+            build >"$log_file" 2>&1; then
+        filter_xcodebuild_noise < "$log_file" >&2
         if grep -q "missing Metal Toolchain" "$log_file"; then
             cat >&2 <<EOF
 error: Metal Toolchain ausente. Instale com:
@@ -78,6 +102,8 @@ EOF
         fi
         exit 1
     fi
+
+    filter_xcodebuild_noise < "$log_file"
 }
 
 verify_localization_bundle() {

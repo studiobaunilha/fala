@@ -172,6 +172,31 @@ func makeSilentAudioFile(
     fileExtension: String,
     sampleRate: Double = 44_100
 ) throws -> URL {
+    if fileExtension == "m4a" {
+        let format = try XCTUnwrap(
+            AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: sampleRate,
+                channels: 1,
+                interleaved: true
+            )
+        )
+        let frameCount = AVAudioFrameCount(sampleRate * 0.1)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+        buffer.frameLength = frameCount
+
+        let url = directory.appendingPathComponent(name).appendingPathExtension("m4a")
+        let settings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderBitRateKey: 128_000
+        ]
+        let file = try AVAudioFile(forWriting: url, settings: settings)
+        try file.write(from: buffer)
+        return url
+    }
+
     let format = try XCTUnwrap(
         AVAudioFormat(
             commonFormat: .pcmFormatFloat32,
@@ -185,23 +210,7 @@ func makeSilentAudioFile(
     buffer.frameLength = frameCount
 
     let url = directory.appendingPathComponent(name).appendingPathExtension(fileExtension)
-    let settings: [String: Any]
-    if fileExtension == "m4a" {
-        settings = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: sampleRate,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderBitRateKey: 128_000
-        ]
-    } else {
-        settings = format.settings
-    }
-    let file = try AVAudioFile(
-        forWriting: url,
-        settings: settings,
-        commonFormat: .pcmFormatFloat32,
-        interleaved: false
-    )
+    let file = try AVAudioFile(forWriting: url, settings: format.settings)
     try file.write(from: buffer)
     return url
 }

@@ -13,29 +13,26 @@ extension TranscriptionJob {
             usedPostProcessing: !batchPostPrompt.isEmpty
         )
         var outcome: BatchExecutionOutcome = .failed
-        defer {
-            recordBatchMetrics(profiler.snapshot(outcome: outcome))
-        }
-
-        try Task.checkCancellation()
-        setActiveExecutionState(
-            itemID: itemID,
-            status: ext == "wav" ? .preparingModel : .converting,
-            state: ext == "wav" ? .preparingModel : .converting
-        )
-        profiler.recordAudioPreparationMode(ext == "wav" ? .passthrough : .converted)
-
-        let preparedAudio = try await profiler.measure(.audioPreparation) {
-            try await prepareAudio(from: inputURL)
-        }
-        profiler.recordAudioPreparationMode(preparedAudio.mode)
-        let wavURL = preparedAudio.wavURL
-        let needsCleanup = preparedAudio.requiresCleanup
-        defer {
-            if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
-        }
 
         do {
+            try Task.checkCancellation()
+            setActiveExecutionState(
+                itemID: itemID,
+                status: ext == "wav" ? .preparingModel : .converting,
+                state: ext == "wav" ? .preparingModel : .converting
+            )
+            profiler.recordAudioPreparationMode(ext == "wav" ? .passthrough : .converted)
+
+            let preparedAudio = try await profiler.measure(.audioPreparation) {
+                try await prepareAudio(from: inputURL)
+            }
+            profiler.recordAudioPreparationMode(preparedAudio.mode)
+            let wavURL = preparedAudio.wavURL
+            let needsCleanup = preparedAudio.requiresCleanup
+            defer {
+                if needsCleanup { try? FileManager.default.removeItem(at: wavURL) }
+            }
+
             let warning = try await executeTranscription(
                 wavURL: wavURL,
                 inputURL: inputURL,
@@ -44,12 +41,15 @@ extension TranscriptionJob {
                 profiler: profiler
             )
             outcome = .succeeded
+            recordBatchMetrics(await profiler.snapshot(outcome: outcome))
             return warning
         } catch is CancellationError {
             outcome = .cancelled
+            recordBatchMetrics(await profiler.snapshot(outcome: outcome))
             throw CancellationError()
         } catch {
             outcome = .failed
+            recordBatchMetrics(await profiler.snapshot(outcome: outcome))
             throw error
         }
     }
@@ -69,7 +69,7 @@ extension TranscriptionJob {
             profiler: profiler
         )
 
-        try initializeOutputFile(url: outputURL, format: format, inputURL: inputURL)
+        try initializeOutputFile(url: outputURL, format: format)
         let context = ProcessingContext(
             config: config,
             template: batchPostPrompt.isEmpty ? .raw : .custom,

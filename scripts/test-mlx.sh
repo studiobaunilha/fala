@@ -3,12 +3,16 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
-DERIVED_DATA="$REPO_DIR/.xcodebuild-tests"
+TMP_DIR="$(mktemp -d -t fala-mlx-smoke.XXXXXX)"
+APP_DIR="$TMP_DIR/Fala.app"
 
-exec /usr/bin/env -u SDKROOT DEVELOPER_DIR="$DEVELOPER_DIR_VALUE" \
-    xcodebuild \
-        -scheme Fala \
-        -destination "platform=macOS" \
-        -derivedDataPath "$DERIVED_DATA" \
-        test \
-        -only-testing:FalaTests/MLXSmokeTests
+cleanup() {
+    rm -rf "$TMP_DIR"
+}
+
+trap cleanup EXIT
+
+DEVELOPER_DIR="$DEVELOPER_DIR_VALUE" \
+    bash "$REPO_DIR/scripts/build-app.sh" release --app-dir "$APP_DIR"
+
+exec "$APP_DIR/Contents/MacOS/Fala" mlx-smoke

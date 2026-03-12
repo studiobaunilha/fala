@@ -21,7 +21,7 @@ final class IncrementalSavingTests: XCTestCase {
         let inputURL = tempDir.appendingPathComponent("input.wav")
         
         // Setup initial file
-        try job.initializeOutputFile(url: outputURL, format: "txt", inputURL: inputURL)
+        try job.initializeOutputFile(url: outputURL, format: "txt")
         
         let testConfig = AppConfig() // default config, no LLM processing
         let context = ProcessingContext(
