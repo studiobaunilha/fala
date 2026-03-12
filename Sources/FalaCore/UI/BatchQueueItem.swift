@@ -39,15 +39,28 @@ public struct BatchQueueItem: Identifiable, Equatable, Sendable {
 
     public let id: UUID
     public let inputURL: URL
+    public var customName: String?
+    var metrics: BatchExecutionMetrics?
     public var status: Status
+
+    public var displayName: String {
+        let trimmedCustomName = customName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !trimmedCustomName.isEmpty {
+            return trimmedCustomName
+        }
+        return inputURL.deletingPathExtension().lastPathComponent
+    }
 
     public init(
         id: UUID = UUID(),
         inputURL: URL,
+        customName: String? = nil,
         status: Status = .pending
     ) {
         self.id = id
         self.inputURL = inputURL
+        self.customName = customName
+        self.metrics = nil
         self.status = status
     }
 }

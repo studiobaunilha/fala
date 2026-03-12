@@ -24,6 +24,9 @@ struct SettingsView: View {
         "gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"
     ]
 
+    // Support state
+    @State var supportBugDescription: String = ""
+
     var body: some View {
         NavigationSplitView {
             List(selection: $navigationState.selection) {
@@ -64,6 +67,10 @@ struct SettingsView: View {
                         fileTranscriptionView
                     case .llm:
                         llmView
+                    case .support:
+                        supportView
+                    case .about:
+                        aboutPanelView
                     }
                 case .template(let template):
                     ModeDetailView(template: template, settings: settings)

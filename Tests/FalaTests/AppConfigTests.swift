@@ -115,6 +115,27 @@ final class AppConfigTests: XCTestCase {
         XCTAssertNil(config.modeConfigs["Perguntar à IA"]?.prompt)
     }
 
+    func testModeConfigsDropLegacyProviderAndModelOverrides() throws {
+        let payload = Data("""
+        {
+          "llmProvider": "apple",
+          "mlxModel": "mlx-community/Qwen3-4B-4bit",
+          "modeConfigs": {
+            "Perguntar à IA": {
+              "provider": "openai",
+              "model": "gpt-4o"
+            }
+          }
+        }
+        """.utf8)
+
+        let config = try JSONDecoder().decode(AppConfig.self, from: payload)
+
+        XCTAssertNil(config.modeConfigs["Perguntar à IA"]?.provider)
+        XCTAssertNil(config.modeConfigs["Perguntar à IA"]?.model)
+        XCTAssertEqual(config.getEffectiveConfig(for: .askAI).provider, "apple")
+    }
+
     // MARK: – Round-trip JSON encode/decode
 
     func testRoundTripCoding() throws {

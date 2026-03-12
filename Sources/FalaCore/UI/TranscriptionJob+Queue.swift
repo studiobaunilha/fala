@@ -156,6 +156,11 @@ extension TranscriptionJob {
         syncPrimaryInputURL()
     }
 
+    func updateQueueItemMetrics(_ itemID: BatchQueueItem.ID, metrics: BatchExecutionMetrics?) {
+        guard let index = queue.firstIndex(where: { $0.id == itemID }) else { return }
+        queue[index].metrics = metrics
+    }
+
     func markQueueItemsCancelled(_ itemIDs: [BatchQueueItem.ID]) {
         for itemID in itemIDs {
             guard let index = queue.firstIndex(where: { $0.id == itemID }) else { continue }
@@ -166,12 +171,13 @@ extension TranscriptionJob {
     }
 
     func makeOutputURL(
-        for inputURL: URL,
+        for item: BatchQueueItem,
         format: String,
         reservedOutputURLs: Set<URL>
     ) -> URL {
-        let baseDirectory = outputDirectory ?? inputURL.deletingLastPathComponent()
-        let stem = inputURL.deletingPathExtension().lastPathComponent
+        let baseDirectory = outputDirectory ?? item.inputURL.deletingLastPathComponent()
+        let fallbackStem = item.inputURL.deletingPathExtension().lastPathComponent
+        let stem = sanitizedOutputStem(item.displayName, fallback: fallbackStem)
         var suffix = 1
         var candidate = baseDirectory
             .appendingPathComponent(stem)
@@ -185,6 +191,19 @@ extension TranscriptionJob {
         }
 
         return candidate
+    }
+
+    func sanitizedOutputStem(_ value: String, fallback: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return fallback }
+
+        let invalidCharacters = CharacterSet(charactersIn: "/:\\?%*|\"<>")
+        let sanitized = trimmed
+            .components(separatedBy: invalidCharacters)
+            .joined(separator: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return sanitized.isEmpty ? fallback : sanitized
     }
 
     func runQueueTask(itemIDs: [BatchQueueItem.ID]) async {
@@ -235,7 +254,7 @@ extension TranscriptionJob {
 
         let inputURL = queueItem.inputURL
         let outputURL = makeOutputURL(
-            for: inputURL,
+            for: queueItem,
             format: outputFormat,
             reservedOutputURLs: reservedOutputURLs
         )
@@ -257,6 +276,7 @@ extension TranscriptionJob {
     ) {
         processingWarning = warning
         updateQueueItemStatus(itemID, status: .done(outputURL, warning: warning))
+        updateQueueItemMetrics(itemID, metrics: lastExecutionMetrics)
         summary.lastCompletedOutputPath = outputURL.path
     }
 

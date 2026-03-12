@@ -28,5 +28,19 @@ final class BatchExecutionProfilingTests: XCTestCase {
                 + "prepare=0.420s model=0.035s transcribe=2.000s "
                 + "post=n/a save=0.012s total=2.455s"
         )
+        XCTAssertEqual(metrics.humanReadableTotal, "2.5s")
+        XCTAssertEqual(
+            metrics.stageBreakdown.map(\.label),
+            ["Preparar audio", "Preparar modelo", "Transcrever", "Salvar arquivo"]
+        )
+        XCTAssertEqual(
+            metrics.stageBreakdownTooltip,
+            [
+                "Preparar audio: 420ms",
+                "Preparar modelo: 35ms",
+                "Transcrever: 2.0s",
+                "Salvar arquivo: 12ms"
+            ].joined(separator: "\n")
+        )
     }
 }

@@ -7,15 +7,8 @@ extension SettingsView {
     
     var generalView: some View {
         Form {
-            applicationIdentitySection
             systemShortcutSection
             appLanguageSection
-            updatesPreferencesSection
-            licenseStatusSection
-            if !licenseManager.isPro {
-                licenseActivationSection
-            }
-            aboutApplicationSection
         }
         .formStyle(.grouped)
         .navigationTitle(L10n("Ajustes Gerais"))

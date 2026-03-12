@@ -14,14 +14,13 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public var outputFormat: String   = "txt"
     public var appLanguage: String = "auto"
     public var transcriptionLanguage: String = "auto"
-    
     public var dictationTemperature: Float = 0.0
     public var batchTemperature: Float = 0.0
-    
+
     public var defaultExportPath: String = FileManager.default.urls(
         for: .downloadsDirectory, in: .userDomainMask
     ).first?.path ?? ""
-    
+
     public var selectedDictationTemplate: DictationTemplate = .custom
     public var llmProvider: String = "apple"
     public var llmPrompt: String = AppConfig.localizedDefault(for: .llmPrompt)
@@ -40,7 +39,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
 
     public static let defaultWhisperModelID = "large-v3-turbo"
     public static let defaultMLXModelRepoID = "mlx-community/Qwen3-4B-4bit"
-
     public var globalSystemPrompt: String = AppConfig.defaultGlobalSystemPrompt
 
     public var replacements: [String: String] = [:]
@@ -315,16 +313,29 @@ extension AppConfig {
         var normalized = configs
 
         for (key, config) in configs {
-            guard let template = DictationTemplate(rawValue: key),
-                  let prompt = config.prompt,
-                  isKnownDefaultPrompt(prompt, for: template)
-            else {
-                continue
+            var updated = config
+            var didChange = false
+
+            if updated.provider != nil {
+                updated.provider = nil
+                didChange = true
             }
 
-            var updated = config
-            updated.prompt = nil
-            normalized[key] = updated
+            if updated.model != nil {
+                updated.model = nil
+                didChange = true
+            }
+
+            if let template = DictationTemplate(rawValue: key),
+               let prompt = config.prompt,
+               isKnownDefaultPrompt(prompt, for: template) {
+                updated.prompt = nil
+                didChange = true
+            }
+
+            if didChange {
+                normalized[key] = updated
+            }
         }
 
         return normalized

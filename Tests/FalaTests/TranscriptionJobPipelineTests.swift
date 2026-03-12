@@ -146,6 +146,7 @@ final class TranscriptionJobPipelineTests: TranscriptionJobTestCase {
         XCTAssertGreaterThan(try XCTUnwrap(metrics.audioPreparation), .zero)
         XCTAssertGreaterThan(try XCTUnwrap(metrics.modelPreparation), .zero)
         XCTAssertGreaterThan(try XCTUnwrap(metrics.transcription), .zero)
+        XCTAssertEqual(job.queue.first?.metrics, metrics)
     }
 
     func testTranscribeCapturesConvertedAudioModeForNonWAVInput() async throws {

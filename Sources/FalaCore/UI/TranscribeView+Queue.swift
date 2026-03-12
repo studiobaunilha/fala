@@ -3,9 +3,9 @@ import SwiftUI
 extension TranscribeView {
     var batchQueueSection: some View {
         Section {
-            ForEach(job.queue) { item in
+            ForEach($job.queue) { $item in
                 BatchQueueRowView(
-                    item: item,
+                    item: $item,
                     isWorking: isWorking,
                     onReveal: { job.revealOutput(for: item.id) },
                     onRemove: {
@@ -51,6 +51,15 @@ extension TranscribeView {
                     Text(activeQueueProgressLine)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                if job.hasMultipleQueuedFiles, let queueProgress {
+                    ProgressView(
+                        value: Double(queueProgress.completed),
+                        total: Double(queueProgress.total)
+                    )
+                } else {
+                    ProgressView()
                 }
 
                 if let progressText, !progressText.isEmpty {
@@ -155,7 +164,7 @@ extension TranscribeView {
 }
 
 private struct BatchQueueRowView: View {
-    let item: BatchQueueItem
+    @Binding var item: BatchQueueItem
     let isWorking: Bool
     let onReveal: () -> Void
     let onRemove: () -> Void
@@ -184,14 +193,16 @@ private struct BatchQueueRowView: View {
 
     private var detailsView: some View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
-            Text(item.inputURL.lastPathComponent)
-                .font(.headline)
-                .lineLimit(1)
-                .truncationMode(.middle)
+            titleView
+            statusView
 
-            Text(statusTitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if item.displayName != defaultDisplayName {
+                Text(item.inputURL.lastPathComponent)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
 
             if case .transcribing(let progressText) = item.status, !progressText.isEmpty {
                 Text(progressText)
@@ -204,6 +215,13 @@ private struct BatchQueueRowView: View {
                 Text(outputURL.lastPathComponent)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+
+                if let metrics = item.metrics {
+                    Text(metrics.humanReadableTotal)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .help(metrics.stageBreakdownTooltip)
+                }
 
                 if let warning {
                     Text(warning.title)
@@ -231,6 +249,47 @@ private struct BatchQueueRowView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    @ViewBuilder
+    private var titleView: some View {
+        if !isWorking && !item.status.isTerminal {
+            TextField("", text: customNameBinding, prompt: Text(defaultDisplayName))
+                .textFieldStyle(.roundedBorder)
+        } else {
+            Text(item.displayName)
+                .font(.headline)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+    }
+
+    @ViewBuilder
+    private var statusView: some View {
+        if let metrics = item.metrics, case .done = item.status {
+            Text("\(statusTitle) · \(metrics.humanReadableTotal)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .help(metrics.stageBreakdownTooltip)
+        } else {
+            Text(statusTitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var defaultDisplayName: String {
+        item.inputURL.deletingPathExtension().lastPathComponent
+    }
+
+    private var customNameBinding: Binding<String> {
+        Binding(
+            get: { item.customName ?? defaultDisplayName },
+            set: { newValue in
+                let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                item.customName = trimmed.isEmpty || trimmed == defaultDisplayName ? nil : trimmed
+            }
+        )
     }
 
     private var statusTitle: String {

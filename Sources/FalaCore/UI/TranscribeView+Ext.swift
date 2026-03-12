@@ -3,6 +3,11 @@ import SwiftUI
 // MARK: – View Components (Extension)
 
 extension TranscribeView {
+    struct QueueProgressSnapshot {
+        let completed: Int
+        let total: Int
+    }
+
     private var batchReadinessIssue: ReadinessIssue? {
         job.appSettings.readiness.primaryIssueForBatch(batchPrompt: job.batchPostPrompt)
     }
@@ -19,6 +24,12 @@ extension TranscribeView {
             for: job.appSettings.transcriptionLanguage
         )
         return "\(L10n("Usar padrão dos Ajustes")) (\(langName))"
+    }
+
+    var queueProgress: QueueProgressSnapshot? {
+        guard !job.queue.isEmpty else { return nil }
+        let completed = job.queue.filter { $0.status.isTerminal }.count
+        return QueueProgressSnapshot(completed: completed, total: job.queue.count)
     }
     
     var emptyStateView: some View {
@@ -226,6 +237,12 @@ extension TranscribeView {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
+                    if let metrics = job.lastExecutionMetrics {
+                        Text(metrics.humanReadableTotal)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .help(metrics.stageBreakdownTooltip)
+                    }
                     HStack {
                         Button(L10n("Mostrar no Finder")) { job.revealInFinder() }
                         Button(L10n("Nova Transcrição")) {

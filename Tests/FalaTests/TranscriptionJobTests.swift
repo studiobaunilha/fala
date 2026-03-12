@@ -165,4 +165,29 @@ final class TranscriptionJobTests: TranscriptionJobTestCase {
         XCTAssertEqual(try String(contentsOf: firstOutput, encoding: .utf8), "REUNIAO\n")
         XCTAssertEqual(try String(contentsOf: secondOutput, encoding: .utf8), "REUNIAO\n")
     }
+
+    func testTranscribeUsesCustomQueueItemNameForOutput() async throws {
+        let transcriberSpy = BatchQueueTranscriberSpy()
+        let job = TranscriptionJob(
+            appSettings: makeTestSettings(),
+            batchTranscriberPool: makeTestBatchPool(queueSpy: transcriberSpy)
+        )
+        let inputDir = try makeTemporaryDirectory()
+        let outputDir = try makeTemporaryDirectory()
+        let inputURL = try makeSilentWAV(in: inputDir, named: "gravacao-original")
+        job.outputDirectory = outputDir
+
+        job.enqueueInputFiles([inputURL])
+        job.queue[0].customName = "Ata revisada"
+        job.transcribe()
+
+        try await waitUntil {
+            job.queue.allSatisfy(\.status.isTerminal)
+        }
+
+        let customOutput = outputDir.appendingPathComponent("Ata revisada.txt")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: customOutput.path))
+        XCTAssertEqual(try String(contentsOf: customOutput, encoding: .utf8), "GRAVACAO-ORIGINAL\n")
+        XCTAssertEqual(job.queue.first?.status, .done(customOutput, warning: nil))
+    }
 }

@@ -6,36 +6,43 @@ struct ModeDetailView: View {
     @ObservedObject var settings: AppSettings
 
     // Local state for editing
-    @State private var provider: String = "global"
-    @State private var model: String = ""
     @State private var prompt: String = ""
     @State private var showRestoreConfirmation = false
     @State private var saveTask: Task<Void, Never>?
 
-    private var availableProviders: [(String, String)] {
-        var list: [(String, String)] = [("global", L10n("Usar Padrão Global"))]
-        list += [("apple", localizedProviderName(for: "apple")), ("mlx", localizedProviderName(for: "mlx"))]
-        if !settings.geminiKey.isEmpty { list.append(("gemini", localizedProviderName(for: "gemini"))) }
-        if !settings.openAIKey.isEmpty { list.append(("openai", localizedProviderName(for: "openai"))) }
-        return list
-    }
-
-    private var effectiveProviderName: String {
-        let key = provider == "global" ? settings.llmProvider : provider
-        return localizedProviderName(for: key)
-    }
-
-    private var mlxModelLabel: String {
-        if model.isEmpty {
-            return L10n("Padrão global")
-        }
-        let resolution = settings.mlxCatalogService.resolveSelection(repoID: model)
-        return resolution.entry?.displayName ?? L10n("Modelo incompatível")
-    }
-
-    /// The provider actually used for prompt resolution (resolves "global").
     private var effectiveProvider: String {
-        (provider == "global") ? settings.llmProvider : provider
+        settings.llmProvider
+    }
+
+    private var effectiveModel: String {
+        switch effectiveProvider {
+        case "gemini":
+            return settings.geminiModel
+        case "openai":
+            return settings.openAIModel
+        case "mlx":
+            return settings.mlxModel
+        case "apple":
+            return "apple"
+        default:
+            return ""
+        }
+    }
+
+    private var globalModelLabel: String {
+        switch effectiveProvider {
+        case "gemini":
+            return settings.geminiModel
+        case "openai":
+            return settings.openAIModel
+        case "mlx":
+            let resolution = settings.mlxCatalogService.resolveSelection(repoID: settings.mlxModel)
+            return resolution.entry?.displayName ?? L10n("Modelo incompatível")
+        case "apple":
+            return L10n("Apple Intelligence")
+        default:
+            return effectiveProvider
+        }
     }
 
     private var isPromptModified: Bool {
@@ -120,57 +127,23 @@ struct ModeDetailView: View {
 
     private var providerSection: some View {
         Section {
-            Picker(L10n("Provedor LLM"), selection: $provider) {
-                ForEach(availableProviders, id: \.0) { key, name in
-                    Text(name).tag(key)
-                }
-            }
-            .onChange(of: provider) {
-                // Reload prompt for new provider before saving
-                prompt = resolvedPromptForCurrentProvider()
-                debouncedSave()
+            LabeledContent(L10n("Provedor LLM")) {
+                Text(localizedProviderName(for: effectiveProvider))
+                    .foregroundStyle(.secondary)
             }
 
-            if provider == "global" {
-                LabeledContent(L10n("Provedor atual")) {
-                    Text(effectiveProviderName)
-                        .foregroundStyle(.secondary)
-                }
+            LabeledContent(L10n("Modelo")) {
+                Text(globalModelLabel)
+                    .foregroundStyle(.secondary)
             }
 
-            if provider != "global" && provider != "apple" {
-                if provider == "mlx" {
-                    LabeledContent(L10n("Modelo")) {
-                        Menu {
-                            Button(L10n("Padrão global")) {
-                                model = ""
-                            }
-
-                            ForEach(settings.mlxCatalogService.sections(selectedRepoID: settings.mlxModel)) { section in
-                                Section(section.title) {
-                                    ForEach(section.entries) { entry in
-                                        Button(entry.displayName) {
-                                            model = entry.repoID
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            Text(mlxModelLabel)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                    .onChange(of: model) { debouncedSave() }
-                } else {
-                    TextField(L10n("Modelo"), text: $model,
-                              prompt: Text(L10n("Padrão do provedor")))
-                        .onChange(of: model) { debouncedSave() }
-                }
+            Button(L10n("Abrir Ajustes")) {
+                settings.openSettings(.panel(.llm))
             }
         } header: {
             Text(L10n("Provedor de IA"))
         } footer: {
-            Text(L10n("Selecione \"Usar Padrão Global\" para herdar o provedor configurado no painel IA & LLM."))
+            Text(L10n("O provedor e o modelo deste modo seguem a configuração global de IA & LLM."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -269,7 +242,7 @@ struct ModeDetailView: View {
         if template == .custom {
             return AppConfig.localizedDefault(for: .customModePrompt)
         }
-        return PromptDefaults.resolved(for: effectiveProvider, template: template)
+        return PromptDefaults.resolved(for: effectiveProvider, template: template, model: effectiveModel)
             ?? template.defaultSystemPrompt
             ?? ""
     }
@@ -292,7 +265,7 @@ struct ModeDetailView: View {
             return settings.customModePrompt
         }
         // 4. PromptDefaults for this provider
-        if let defaultPrompt = PromptDefaults.resolved(for: ep, template: template) {
+        if let defaultPrompt = PromptDefaults.resolved(for: ep, template: template, model: effectiveModel) {
             return defaultPrompt
         }
         // 5. Template fallback
@@ -300,10 +273,15 @@ struct ModeDetailView: View {
     }
 
     private func loadConfig() {
-        let config = settings.modeConfigs[template.rawValue]
-        self.provider = config?.provider ?? "global"
-        self.model = config?.model ?? ""
-        self.prompt = resolvedPromptForCurrentProvider()
+        if var config = settings.modeConfigs[template.rawValue],
+           config.provider != nil || config.model != nil {
+            config.provider = nil
+            config.model = nil
+            settings.modeConfigs[template.rawValue] = config
+            settings.save()
+        }
+
+        prompt = resolvedPromptForCurrentProvider()
     }
 
     private func debouncedSave() {
@@ -318,8 +296,8 @@ struct ModeDetailView: View {
     private func persistConfig() {
         var config = settings.modeConfigs[template.rawValue] ?? ModeConfig()
 
-        config.provider = (provider == "global") ? nil : provider
-        config.model = model.isEmpty ? nil : model
+        config.provider = nil
+        config.model = nil
 
         let ep = effectiveProvider
         let isDefault = (prompt == restoreBaselinePrompt)

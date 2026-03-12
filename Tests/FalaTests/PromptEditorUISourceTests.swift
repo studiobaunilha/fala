@@ -42,4 +42,21 @@ final class PromptEditorUISourceTests: XCTestCase {
         XCTAssertFalse(readinessSource.contains("Modo incompatível com Apple Intelligence"))
         XCTAssertFalse(settingsSource.contains("Modo personalizado requer provedor diferente do Apple Intelligence"))
     }
+
+    func testModeDetailsUseGlobalLLMSelection() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let modesURL = repoRoot.appendingPathComponent("Sources/FalaCore/UI/SettingsView+Modes.swift")
+        let modesSource = try String(contentsOf: modesURL, encoding: .utf8)
+
+        XCTAssertFalse(modesSource.contains("@State private var provider"))
+        XCTAssertFalse(modesSource.contains("@State private var model"))
+        XCTAssertFalse(modesSource.contains("Picker(L10n(\"Provedor LLM\"), selection: $provider)"))
+        XCTAssertTrue(modesSource.contains("settings.openSettings(.panel(.llm))"))
+        XCTAssertTrue(modesSource.contains("config.provider = nil"))
+        XCTAssertTrue(modesSource.contains("config.model = nil"))
+    }
 }

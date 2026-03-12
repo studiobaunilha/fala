@@ -30,6 +30,29 @@ struct BatchExecutionMetrics: Equatable, Sendable {
     let fileSaving: Duration?
     let total: Duration
 
+    var humanReadableTotal: String {
+        total.humanReadableText
+    }
+
+    var stageBreakdown: [(label: String, value: String)] {
+        [
+            ("Preparar audio", audioPreparation),
+            ("Preparar modelo", modelPreparation),
+            ("Transcrever", transcription),
+            ("Pos-processar", postProcessing),
+            ("Salvar arquivo", fileSaving)
+        ].compactMap { label, duration in
+            guard let duration else { return nil }
+            return (label, duration.humanReadableText)
+        }
+    }
+
+    var stageBreakdownTooltip: String {
+        stageBreakdown
+            .map { "\($0.label): \($0.value)" }
+            .joined(separator: "\n")
+    }
+
     var debugSummary: String {
         String(
             format: "file=%@ ext=%@ size=%@ duration=%@ audioMode=%@ modelState=%@ "
@@ -88,5 +111,23 @@ private extension Duration {
         let seconds = Double(components.seconds)
         let attoseconds = Double(components.attoseconds) / 1_000_000_000_000_000_000
         return String(format: "%.3fs", seconds + attoseconds)
+    }
+
+    var humanReadableText: String {
+        let seconds = Double(components.seconds)
+        let attoseconds = Double(components.attoseconds) / 1_000_000_000_000_000_000
+        let totalSeconds = max(0, seconds + attoseconds)
+
+        if totalSeconds < 1 {
+            return "\(Int((totalSeconds * 1_000).rounded()))ms"
+        }
+
+        if totalSeconds < 60 {
+            return String(format: "%.1fs", totalSeconds)
+        }
+
+        let minutes = Int(totalSeconds / 60)
+        let remainder = totalSeconds - Double(minutes * 60)
+        return String(format: "%dm %04.1fs", minutes, remainder)
     }
 }

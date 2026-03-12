@@ -24,5 +24,8 @@ final class TranscribeQueueUISourceTests: XCTestCase {
         XCTAssertTrue(viewSource.contains("job.enqueueInputFiles(items)"))
         XCTAssertTrue(combinedTranscribeSource.contains("L10n(\"Fila de Arquivos\")"))
         XCTAssertTrue(combinedTranscribeSource.contains("L10n(\"Adicionar Arquivos…\")"))
+        XCTAssertTrue(queueSource.contains("ForEach($job.queue)"))
+        XCTAssertTrue(queueSource.contains("ProgressView("))
+        XCTAssertTrue(queueSource.contains("customNameBinding"))
     }
 }
