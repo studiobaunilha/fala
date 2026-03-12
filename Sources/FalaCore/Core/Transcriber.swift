@@ -17,12 +17,20 @@ public actor Transcriber: AudioTranscribing {
     public var language: String
     public var temperature: Float
     public var prompt: String
+    public let disableNeuralEngine: Bool
 
-    public init(modelName: String, language: String = "auto", temperature: Float = 0.0, prompt: String = "") {
+    public init(
+        modelName: String,
+        language: String = "auto",
+        temperature: Float = 0.0,
+        prompt: String = "",
+        disableNeuralEngine: Bool = false
+    ) {
         self.modelName = modelName
         self.language = language
         self.temperature = temperature
         self.prompt = prompt
+        self.disableNeuralEngine = disableNeuralEngine
     }
 
     public func loadState() async -> TranscriberLoadState {
@@ -58,7 +66,20 @@ public actor Transcriber: AudioTranscribing {
                     progress(progressUpdate.fractionCompleted)
                 }
             }
-            return try await WhisperKit(model: variant)
+
+            var config = WhisperKitConfig()
+            config.verbose = true
+            config.logLevel = .debug
+            config.model = variant
+            
+            if disableNeuralEngine {
+                var computeOptions = ModelComputeOptions()
+                computeOptions.audioEncoderCompute = .cpuAndGPU
+                computeOptions.textDecoderCompute = .cpuAndGPU
+                config.computeOptions = computeOptions
+            }
+
+            return try await WhisperKit(config)
         }
 
         loadingTask = task
