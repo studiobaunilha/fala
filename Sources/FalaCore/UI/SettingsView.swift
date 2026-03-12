@@ -63,8 +63,6 @@ struct SettingsView: View {
                         generalView
                     case .models:
                         modelsView
-                    case .advanced:
-                        fileTranscriptionView
                     case .llm:
                         llmView
                     case .support:

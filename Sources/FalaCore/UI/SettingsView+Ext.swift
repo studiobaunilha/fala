@@ -9,13 +9,6 @@ extension SettingsView {
         Form {
             systemShortcutSection
             appLanguageSection
-        }
-        .formStyle(.grouped)
-        .navigationTitle(L10n("Ajustes Gerais"))
-    }
-
-    var fileTranscriptionView: some View {
-        Form {
             fileExportSection
             replacementRulesSection
         }
