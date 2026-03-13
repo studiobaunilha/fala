@@ -34,7 +34,7 @@ extension TranscriptionJob {
             }
 
             let warning = try await executeTranscription(
-                wavURL: wavURL,
+                preparedAudio: preparedAudio,
                 inputURL: inputURL,
                 outputURL: outputURL,
                 itemID: itemID,
@@ -55,7 +55,7 @@ extension TranscriptionJob {
     }
 
     func executeTranscription(
-        wavURL: URL,
+        preparedAudio: PreparedBatchAudio,
         inputURL: URL,
         outputURL: URL,
         itemID: BatchQueueItem.ID,
@@ -93,7 +93,7 @@ extension TranscriptionJob {
         )
         try await streamTranscription(
             transcriber: transcriber,
-            wavPath: wavURL.path,
+            preparedAudio: preparedAudio,
             profiler: profiler,
             continuation: continuation,
             processingTask: processingTask
@@ -157,7 +157,7 @@ private extension TranscriptionJob {
 
     func streamTranscription(
         transcriber: any AudioTranscribing,
-        wavPath: String,
+        preparedAudio: PreparedBatchAudio,
         profiler: BatchExecutionProfiler,
         continuation: AsyncStream<TranscriberProgress>.Continuation,
         processingTask: Task<BatchProcessingResult, Never>
@@ -165,9 +165,17 @@ private extension TranscriptionJob {
         do {
             try await withTaskCancellationHandler {
                 _ = try await profiler.measure(.transcription) {
-                    try await transcriber.transcribe(audioPath: wavPath) { progressUpdate in
+                    if let samples = preparedAudio.samples {
+                        // High-speed memory bypass (Zero-Disk)
+                        let resultText = try await transcriber.transcribe(samples: samples)
                         guard !Task.isCancelled else { return }
-                        continuation.yield(progressUpdate)
+                        continuation.yield(TranscriberProgress(text: resultText, windowId: 0))
+                    } else {
+                        // Passthrough disk fallback for raw `.wav`s
+                        try await transcriber.transcribe(audioPath: preparedAudio.wavURL.path) { progressUpdate in
+                            guard !Task.isCancelled else { return }
+                            continuation.yield(progressUpdate)
+                        }
                     }
                 }
                 continuation.finish()

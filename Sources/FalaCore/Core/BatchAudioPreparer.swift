@@ -5,19 +5,22 @@ public enum BatchAudioPreparationMode: String, Equatable, Sendable {
     case converted
 }
 
-public struct PreparedBatchAudio: Equatable, Sendable {
+public struct PreparedBatchAudio: @unchecked Sendable {
     public let wavURL: URL
     public let requiresCleanup: Bool
     public let mode: BatchAudioPreparationMode
+    public let samples: [Float]?
 
     public init(
         wavURL: URL,
         requiresCleanup: Bool,
-        mode: BatchAudioPreparationMode
+        mode: BatchAudioPreparationMode,
+        samples: [Float]? = nil
     ) {
         self.wavURL = wavURL
         self.requiresCleanup = requiresCleanup
         self.mode = mode
+        self.samples = samples
     }
 }
 
@@ -35,28 +38,24 @@ public enum BatchAudioPreparer {
             )
         }
 
-        let wavURL = temporaryDirectory
-            .appendingPathComponent("fala-batch-\(UUID().uuidString)")
-            .appendingPathExtension("wav")
-
+        let samples: [Float]
         do {
             try cancellationCheck()
-            try AudioConverter.write16kMonoWAV(
+            samples = try AudioConverter.toFloat16k(
                 from: inputURL,
-                to: wavURL,
                 cancellationCheck: cancellationCheck
             )
         } catch is CancellationError {
-            try? FileManager.default.removeItem(at: wavURL)
             throw CancellationError()
         } catch {
-            try? FileManager.default.removeItem(at: wavURL)
             throw AudioError.conversionFailed
         }
+        
         return PreparedBatchAudio(
-            wavURL: wavURL,
-            requiresCleanup: true,
-            mode: .converted
+            wavURL: inputURL, // Doesn't matter, transcriber will prefer `samples` array
+            requiresCleanup: false,
+            mode: .converted,
+            samples: samples
         )
     }
 }

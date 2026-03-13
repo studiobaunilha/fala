@@ -53,7 +53,7 @@ final class BatchAudioPreparerTests: XCTestCase {
         XCTAssertEqual(prepared.mode, .passthrough)
     }
 
-    func testPrepareTranscriptionInputWritesNormalizedTemporaryWAVForNonWAVInput() throws {
+    func testPrepareTranscriptionInputReturnsSamplesForNonWAVInput() throws {
         let sourceURL = try makeSilentAudioFile(
             sampleRate: 44_100,
             durationSeconds: 0.25,
@@ -68,44 +68,31 @@ final class BatchAudioPreparerTests: XCTestCase {
             }
         }
 
-        XCTAssertNotEqual(prepared.wavURL.standardizedFileURL, sourceURL.standardizedFileURL)
-        XCTAssertTrue(prepared.requiresCleanup)
+        XCTAssertEqual(prepared.wavURL.standardizedFileURL, sourceURL.standardizedFileURL)
+        XCTAssertFalse(prepared.requiresCleanup)
         XCTAssertEqual(prepared.mode, .converted)
-        XCTAssertEqual(prepared.wavURL.pathExtension.lowercased(), "wav")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: prepared.wavURL.path))
-
-        let file = try AVAudioFile(forReading: prepared.wavURL)
-        XCTAssertEqual(file.processingFormat.sampleRate, 16_000, accuracy: 0.1)
-        XCTAssertEqual(file.processingFormat.channelCount, 1)
+        let extractedSamples = try XCTUnwrap(prepared.samples)
+        XCTAssertFalse(extractedSamples.isEmpty)
     }
 
-    func testPrepareTranscriptionInputCleansPartialFileWhenConversionIsCancelled() throws {
+    func testPrepareTranscriptionInputCancellation() throws {
         let sourceURL = try makeSilentAudioFile(
             sampleRate: 44_100,
             durationSeconds: 1.0,
             fileExtension: "m4a"
         )
-        let tempDirectory = try makeTemporaryDirectory()
         defer {
             try? FileManager.default.removeItem(at: sourceURL)
-            try? FileManager.default.removeItem(at: tempDirectory)
         }
 
         XCTAssertThrowsError(
             try BatchAudioPreparer.prepareTranscriptionInput(
-                from: sourceURL,
-                temporaryDirectory: tempDirectory
+                from: sourceURL
             ) {
                 throw CancellationError()
             }
         ) { error in
             XCTAssertTrue(error is CancellationError)
         }
-
-        let createdFiles = try FileManager.default.contentsOfDirectory(
-            at: tempDirectory,
-            includingPropertiesForKeys: nil
-        )
-        XCTAssertTrue(createdFiles.isEmpty)
     }
 }
