@@ -295,7 +295,7 @@ private struct BatchQueueRowView: View {
             }
         } else {
             if let startedAt = item.startedAt, !item.status.isTerminal {
-                TimelineView(.periodic(from: startedAt, by: 1.0)) { context -> Text in
+                TimelineView(.periodic(from: startedAt, by: 0.1)) { context -> Text in
                     let elapsed = context.date.timeIntervalSince(startedAt)
                     let formatted = BatchExecutionMetrics.formatDuration(elapsed)
                     Text("\(item.statusTitle) · \(formatted)")
