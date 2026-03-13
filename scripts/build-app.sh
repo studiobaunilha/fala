@@ -176,12 +176,13 @@ stage_bundle() {
     # Step 1: Sign inner components FIRST from the inside-out (-depth)
     # We do NOT use --deep or --entitlements here, as injecting our global app entitlements
     # into Sparkle XPC services corrupts their signature and breaks macOS TCC Accessibility.
-    find "$APP" -depth \( -type d \( -name "*.framework" -o -name "*.bundle" -o -name "*.xpc" \) -o -type f -name "*.dylib" \) -print0 | while IFS= read -r -d '' component; do
-        codesign --force --options runtime --sign "$CODESIGN_IDENTITY" "$component"
+    find "$APP" -depth \( -type d \( -name "*.framework" -o -name "*.bundle" -o -name "*.xpc" -o -name "*.app" \) -o -type f \( -name "*.dylib" -o -name "Autoupdate" \) \) -print0 | while IFS= read -r -d '' component; do
+        if [[ "$component" == "$APP" ]]; then continue; fi # Skip root app, we sign it shallowly later
+        codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" "$component"
     done
     
     # Step 2: Sign the outer application bundle SHALLOWLY with our global entitlements
-    codesign --force --options runtime --entitlements "$entitlements_path" --sign "$CODESIGN_IDENTITY" "$APP"
+    codesign --force --options runtime --timestamp --entitlements "$entitlements_path" --sign "$CODESIGN_IDENTITY" "$APP"
 }
 
 build_with_xcode
