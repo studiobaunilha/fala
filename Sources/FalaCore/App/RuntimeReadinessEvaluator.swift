@@ -125,7 +125,7 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
     }
 
     public func quickMenuModes() -> [DictationTemplate] {
-        DictationTemplate.allCases.filter(isModeVisibleInQuickMenu)
+        settings.visibleDictationTemplates.filter(isModeVisibleInQuickMenu)
     }
 
     public func isModeVisibleInQuickMenu(_ template: DictationTemplate) -> Bool {

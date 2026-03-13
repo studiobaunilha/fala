@@ -38,7 +38,7 @@ struct SettingsView: View {
                 }
                 
                 Section(L10n("Modos")) {
-                    ForEach(DictationTemplate.allCases, id: \.self) { template in
+                    ForEach(settings.visibleDictationTemplates, id: \.self) { template in
                         HStack {
                             Label(template.localizedName, systemImage: template.icon)
                             if template == .translate && settings.transcriptionEngine != "whisper" {
