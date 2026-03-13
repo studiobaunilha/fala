@@ -84,6 +84,10 @@ let package = Package(
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
                     "-Xlinker", "Sources/Fala/Resources/Info.plist",
+                    "-Xlinker", "-sectcreate",
+                    "-Xlinker", "__TEXT",
+                    "-Xlinker", "__entitlements",
+                    "-Xlinker", "scripts/Fala.entitlements",
                 ])
             ]
         ),
