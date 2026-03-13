@@ -31,6 +31,7 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
     private let engine = AVAudioEngine()
     private let writer = AudioWriter()
     private let lock   = NSLock()
+    private let handlerLock = NSLock()
     private var tmpURL: URL?
     private var running = false
     private var onRMS: (@Sendable (Float) -> Void)?
@@ -38,7 +39,7 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
     public init() {}
 
     public func setRMSHandler(_ handler: (@Sendable (Float) -> Void)?) {
-        lock.withLock { onRMS = handler }
+        handlerLock.withLock { onRMS = handler }
     }
 
     public func startRecording() throws {
@@ -63,7 +64,7 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
                 var sum: Float = 0
                 for idx in 0..<count { sum += data[idx] * data[idx] }
                 let rms = sqrt(sum / Float(count))
-                if let handler = self?.lock.withLock({ self?.onRMS }) {
+                if let handler = self?.handlerLock.withLock({ self?.onRMS }) {
                     handler(rms)
                 }
             }
