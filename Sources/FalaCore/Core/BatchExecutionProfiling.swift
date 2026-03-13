@@ -74,7 +74,7 @@ struct BatchExecutionMetrics: Equatable, Sendable {
     }
 }
 
-private extension Optional where Wrapped == Int64 {
+extension Optional where Wrapped == Int64 {
     var fileSizeText: String {
         guard let bytes = self else { return "n/a" }
         if bytes < 1_024 { return "\(bytes)B" }
@@ -85,13 +85,13 @@ private extension Optional where Wrapped == Int64 {
     }
 }
 
-private extension Optional where Wrapped == Double {
+extension Optional where Wrapped == Double {
     var audioDurationText: String {
         guard let secs = self else { return "n/a" }
         let mins = Int(secs) / 60
         let remainder = secs - Double(mins * 60)
         if mins > 0 {
-            return String(format: "%dm%04.1fs", mins, remainder)
+            return String(format: "%dm %02.0fs", mins, remainder)
         }
         return String(format: "%.1fs", secs)
     }

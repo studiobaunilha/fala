@@ -1,6 +1,102 @@
 {
   "sourceLanguage": "pt-BR",
   "strings": {
+    "Detalhes da Transcrição": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Details"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalles de la Transcripción"
+          }
+        }
+      }
+    },
+    "Duração": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duración"
+          }
+        }
+      }
+    },
+    "Tamanho": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Size"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamaño"
+          }
+        }
+      }
+    },
+    "Tempo Total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo Total"
+          }
+        }
+      }
+    },
+    "Tempo de Execução": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Execution Time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de Ejecución"
+          }
+        }
+      }
+    },
+    "Transcreveu %@ de áudio em %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribed %@ of audio in %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se transcribió %@ de audio en %@"
+          }
+        }
+      }
+    },
     "100% offline e gratuito. Roda no Neural Engine do dispositivo. Ideal para tarefas simples como limpar e formatar transcrições.": {
       "localizations": {
         "en": {

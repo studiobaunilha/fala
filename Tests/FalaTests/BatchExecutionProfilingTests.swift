@@ -23,7 +23,7 @@ final class BatchExecutionProfilingTests: XCTestCase {
 
         XCTAssertEqual(
             metrics.debugSummary,
-            "file=entrevista.m4a ext=m4a size=2.5MB duration=2m05.3s "
+            "file=entrevista.m4a ext=m4a size=2.5MB duration=2m 05s "
                 + "audioMode=converted modelState=ready outcome=succeeded "
                 + "prepare=0.420s model=0.035s transcribe=2.000s "
                 + "post=n/a save=0.012s total=2.455s"

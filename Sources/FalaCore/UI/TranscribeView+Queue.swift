@@ -168,6 +168,7 @@ private struct BatchQueueRowView: View {
     let isWorking: Bool
     let onReveal: () -> Void
     let onRemove: () -> Void
+    @State private var showingDetails = false
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
@@ -267,10 +268,33 @@ private struct BatchQueueRowView: View {
     @ViewBuilder
     private var statusView: some View {
         if let metrics = item.metrics, case .done = item.status {
-            Text("\(statusTitle) · \(metrics.humanReadableTotal)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .help(metrics.stageBreakdownTooltip)
+            HStack(spacing: Spacing.xs) {
+                if metrics.audioDuration != nil {
+                    let text = String(
+                        format: L10n("Transcreveu %@ de áudio em %@"),
+                        metrics.audioDuration.audioDurationText,
+                        metrics.humanReadableTotal
+                    )
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("\(statusTitle) · \(metrics.humanReadableTotal)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Button {
+                    showingDetails.toggle()
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+                .popover(isPresented: $showingDetails, arrowEdge: .bottom) {
+                    BatchItemDetailsPopover(item: item, metrics: metrics)
+                }
+            }
         } else {
             Text(statusTitle)
                 .font(.caption)
