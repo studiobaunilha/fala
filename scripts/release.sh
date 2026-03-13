@@ -127,6 +127,20 @@ DMG_PATH="$TMP_DIR/$DMG_NAME"
 hdiutil create -volname "$APP_NAME" -srcfolder "$APP_DIR" -ov -format UDZO "$DMG_PATH" 2>&1 | tail -1
 ok "DMG: $DMG_NAME"
 
+# ── 4.5. Notarize App ──────────────────────────────────────────────────────────
+# Notarization requires an app-specific password stored in the keychain (e.g., as 'fala-notary').
+if ! $DRY_RUN; then
+    info "Notarizando $APP_NAME..."
+    xcrun notarytool submit "$DMG_PATH" --keychain-profile "fala-notary" --wait
+    ok "Ticket de notarização aprovado"
+
+    info "Grampeando (stapling) o ticket ao DMG…"
+    xcrun stapler staple "$DMG_PATH"
+    ok "Ticket grampeado ao DMG"
+else
+    info "[dry-run] Ignorando notarização via notarytool."
+fi
+
 # ── 5. Sign with Sparkle EdDSA ─────────────────────────────────────────────────
 info "Assinando com EdDSA…"
 SIGNATURE=$("$SPARKLE_BIN/sign_update" "$DMG_PATH" 2>&1)
