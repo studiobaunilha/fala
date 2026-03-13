@@ -9,8 +9,6 @@ public struct StatusBanner: View {
     
     public var body: some View {
         HStack(spacing: Spacing.lg) {
-            ProgressView()
-                .controlSize(.small)
             Text(message)
                 .font(Typography.body)
                 .foregroundColor(FalaColors.textPrimary)

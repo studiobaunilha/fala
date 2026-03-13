@@ -152,7 +152,15 @@ extension TranscriptionJob {
 
     func updateQueueItemStatus(_ itemID: BatchQueueItem.ID, status: BatchQueueItem.Status) {
         guard let index = queue.firstIndex(where: { $0.id == itemID }) else { return }
+        
+        let oldStatus = queue[index].status
         queue[index].status = status
+        
+        // Start the stopwatch when transitioning out of pending
+        if oldStatus == .pending && !status.isTerminal {
+            queue[index].startedAt = Date()
+        }
+        
         syncPrimaryInputURL()
     }
 

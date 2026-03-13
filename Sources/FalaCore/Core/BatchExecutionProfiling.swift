@@ -72,6 +72,19 @@ struct BatchExecutionMetrics: Equatable, Sendable {
             total.debugDurationText
         )
     }
+
+    static func formatDuration(_ timeInterval: TimeInterval) -> String {
+        let totalSeconds = max(0, timeInterval)
+        if totalSeconds < 1 {
+            return "\(Int((totalSeconds * 1_000).rounded()))ms"
+        }
+        if totalSeconds < 60 {
+            return String(format: "%.1fs", totalSeconds)
+        }
+        let minutes = Int(totalSeconds / 60)
+        let remainder = totalSeconds - Double(minutes * 60)
+        return String(format: "%dm %04.1fs", minutes, remainder)
+    }
 }
 
 extension Optional where Wrapped == Int64 {

@@ -58,8 +58,6 @@ extension TranscribeView {
                         value: Double(queueProgress.completed),
                         total: Double(queueProgress.total)
                     )
-                } else {
-                    ProgressView()
                 }
 
                 if let progressText, !progressText.isEmpty {
@@ -181,14 +179,14 @@ private struct BatchQueueRowView: View {
     }
 
     private var iconView: some View {
-        Image(systemName: statusIcon)
+        Image(systemName: item.statusIcon)
             .font(.system(size: LayoutMetric.transcribeDocumentGlyphSize))
-            .foregroundStyle(statusTint)
+            .foregroundStyle(item.statusTint)
             .frame(
                 width: LayoutMetric.transcribeDocumentIconSize,
                 height: LayoutMetric.transcribeDocumentIconSize
             )
-            .background(statusTint.opacity(0.12))
+            .background(item.statusTint.opacity(0.12))
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
     }
 
@@ -279,7 +277,7 @@ private struct BatchQueueRowView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("\(statusTitle) · \(metrics.humanReadableTotal)")
+                    Text("\(item.statusTitle) · \(metrics.humanReadableTotal)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -296,9 +294,21 @@ private struct BatchQueueRowView: View {
                 }
             }
         } else {
-            Text(statusTitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if let startedAt = item.startedAt, !item.status.isTerminal {
+                TimelineView(.periodic(from: startedAt, by: 1.0)) { context -> Text in
+                    let elapsed = context.date.timeIntervalSince(startedAt)
+                    let formatted = BatchExecutionMetrics.formatDuration(elapsed)
+                    Text("\(item.statusTitle) · \(formatted)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        // Uses tabular numbers so the timer string doesn't jitter the UI layout
+                        .monospacedDigit()
+                }
+            } else {
+                Text(item.statusTitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -311,65 +321,9 @@ private struct BatchQueueRowView: View {
             get: { item.customName ?? defaultDisplayName },
             set: { newValue in
                 let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                item.customName = trimmed.isEmpty || trimmed == defaultDisplayName ? nil : trimmed
+                $item.wrappedValue.customName = trimmed.isEmpty || trimmed == defaultDisplayName ? nil : trimmed
             }
         )
     }
 
-    private var statusTitle: String {
-        switch item.status {
-        case .pending:
-            return L10n("Aguardando na fila")
-        case .converting:
-            return L10n("Preparando arquivo de áudio…")
-        case .preparingModel:
-            return L10n("Preparando motor de transcrição…")
-        case .transcribing:
-            return L10n("Transcrevendo…")
-        case .processingLLM:
-            return L10n("Aprimorando com IA (LLM)…")
-        case .done:
-            return L10n("Transcrição Concluída")
-        case .error(let message):
-            return message
-        case .cancelled:
-            return L10n("Cancelado pelo usuário")
-        }
-    }
-
-    private var statusIcon: String {
-        switch item.status {
-        case .pending:
-            return "list.bullet.clipboard"
-        case .converting:
-            return "waveform"
-        case .preparingModel:
-            return "cpu"
-        case .transcribing:
-            return "waveform.and.magnifyingglass"
-        case .processingLLM:
-            return "wand.and.stars"
-        case .done:
-            return "checkmark.circle.fill"
-        case .error:
-            return "exclamationmark.triangle.fill"
-        case .cancelled:
-            return "xmark.circle.fill"
-        }
-    }
-
-    private var statusTint: Color {
-        switch item.status {
-        case .pending:
-            return .accentColor
-        case .converting, .preparingModel, .transcribing, .processingLLM:
-            return FalaColors.info
-        case .done:
-            return FalaColors.success
-        case .error:
-            return FalaColors.error
-        case .cancelled:
-            return .secondary
-        }
-    }
 }
