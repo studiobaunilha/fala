@@ -171,14 +171,17 @@ stage_bundle() {
 
     install_name_tool -add_rpath @executable_path/../Frameworks "$BUNDLE_BINARY" 2>/dev/null || true
 
-    # Ensure all binaries are signed with hardened runtime
-    find "$APP" \( -name "*.framework" -o -name "*.bundle" -o -name "*.xpc" \) -print0 | while IFS= read -r -d '' component; do
+    local entitlements_path="$REPO_DIR/scripts/Fala.entitlements"
+
+    # Step 1: Sign inner components FIRST from the inside-out (-depth)
+    # We do NOT use --deep or --entitlements here, as injecting our global app entitlements
+    # into Sparkle XPC services corrupts their signature and breaks macOS TCC Accessibility.
+    find "$APP" -depth \( -type d \( -name "*.framework" -o -name "*.bundle" -o -name "*.xpc" \) -o -type f -name "*.dylib" \) -print0 | while IFS= read -r -d '' component; do
         codesign --force --options runtime --sign "$CODESIGN_IDENTITY" "$component"
     done
     
-    # Re-sign the main app with entitlements and hardened runtime
-    local entitlements_path="$REPO_DIR/scripts/Fala.entitlements"
-    codesign --force --options runtime --entitlements "$entitlements_path" --deep --sign "$CODESIGN_IDENTITY" "$APP"
+    # Step 2: Sign the outer application bundle SHALLOWLY with our global entitlements
+    codesign --force --options runtime --entitlements "$entitlements_path" --sign "$CODESIGN_IDENTITY" "$APP"
 }
 
 build_with_xcode
