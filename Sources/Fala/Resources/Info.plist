@@ -9,9 +9,9 @@
 	<key>CFBundleName</key>
 	<string>Fala</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.8.3</string>
+	<string>1.9</string>
 	<key>CFBundleVersion</key>
-	<string>18</string>
+	<string>19</string>
 	<key>FalaEntitlementPublicKeyBase64</key>
 	<string>46CXk+MvS0o6jbJy4HQnP7PYMWvUJR+S1IEw8sqh7fE=</string>
 	<key>FalaLicensingBaseURL</key>
