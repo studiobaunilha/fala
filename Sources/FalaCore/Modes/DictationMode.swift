@@ -74,17 +74,36 @@ public final class DictationMode {
         self.selectionCapture = selectionCapture
     }
 
+    final class WeakBox: @unchecked Sendable {
+        weak var value: DictationMode?
+        init(_ value: DictationMode?) {
+            self.value = value
+        }
+    }
+
+    nonisolated private static func makeKeyDownAction(box: WeakBox) -> () -> Void {
+        return {
+            Task { @MainActor in
+                guard let mode = box.value, !mode.isRecording else { return }
+                await mode.startRecording()
+            }
+        }
+    }
+
+    nonisolated private static func makeKeyUpAction(box: WeakBox) -> () -> Void {
+        return {
+            Task { @MainActor in
+                guard let mode = box.value, mode.isRecording else { return }
+                await mode.stopAndTranscribe()
+            }
+        }
+    }
+
     /// Binds global keyboard shortcut handlers. Call once at app startup.
     public func setup() {
-        KeyboardShortcuts.onKeyDown(for: .startDictation) { [weak self] in
-            guard let self, !self.isRecording else { return }
-            Task { @MainActor in await self.startRecording() }
-        }
-
-        KeyboardShortcuts.onKeyUp(for: .startDictation) { [weak self] in
-            guard let self, self.isRecording else { return }
-            Task { @MainActor in await self.stopAndTranscribe() }
-        }
+        let box = WeakBox(self)
+        KeyboardShortcuts.onKeyDown(for: .startDictation, action: Self.makeKeyDownAction(box: box))
+        KeyboardShortcuts.onKeyUp(for: .startDictation, action: Self.makeKeyUpAction(box: box))
     }
 
     // MARK: – Internal (accessible from tests via @testable import)
@@ -354,31 +373,21 @@ public final class DictationMode {
         let model = effective.model
         switch effective.provider {
         case "gemini":
-            guard !config.geminiKey.isEmpty else {
-                throw LLMError.noAPIKey(provider: "Gemini")
-            }
+            guard !config.geminiKey.isEmpty else { throw LLMError.noAPIKey(provider: "Gemini") }
             return try await TranscriptionJob.processWithGemini(
                 text: text, prompt: prompt, apiKey: config.geminiKey,
-                model: model, previousMessages: previousMessages
-            )
+                model: model, previousMessages: previousMessages)
         case "openai":
-            guard !config.openAIKey.isEmpty else {
-                throw LLMError.noAPIKey(provider: "OpenAI")
-            }
+            guard !config.openAIKey.isEmpty else { throw LLMError.noAPIKey(provider: "OpenAI") }
             return try await TranscriptionJob.processWithOpenAI(
                 text: text, prompt: prompt, apiKey: config.openAIKey,
-                model: model, previousMessages: previousMessages
-            )
+                model: model, previousMessages: previousMessages)
         case "apple":
-            return try await TranscriptionJob.processWithAppleNative(
-                text: text, prompt: prompt
-            )
+            return try await TranscriptionJob.processWithAppleNative(text: text, prompt: prompt)
         case "mlx":
             let modelID = model.isEmpty ? config.mlxModel : model
             return try await TranscriptionJob.processWithMLX(
-                text: text, prompt: prompt, modelID: modelID,
-                conversational: conversational
-            )
+                text: text, prompt: prompt, modelID: modelID, conversational: conversational)
         default:
             throw LLMError.providerNotConfigured(effective.provider)
         }

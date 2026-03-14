@@ -75,36 +75,38 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
 
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
     public func menuWillOpen(_ menu: NSMenu) {
-        if settings.readiness.quickMenuModes().count != modeItems.count {
-            rebuildMenu()
-        }
+        MainActor.assumeIsolated {
+            if settings.readiness.quickMenuModes().count != modeItems.count {
+                rebuildMenu()
+            }
 
-        // Update Checkmarks and dynamic titles for Modes
-        let currentMode = settings.selectedDictationTemplate
-        for item in modeItems {
-            if let modeRaw = item.representedObject as? String {
-                item.state = (modeRaw == currentMode.rawValue) ? .on : .off
-                // Update custom mode title dynamically
-                if modeRaw == DictationTemplate.custom.rawValue {
-                    let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
-                } else {
-                    item.image = nil
+            // Update Checkmarks and dynamic titles for Modes
+            let currentMode = settings.selectedDictationTemplate
+            for item in modeItems {
+                if let modeRaw = item.representedObject as? String {
+                    item.state = (modeRaw == currentMode.rawValue) ? .on : .off
+                    // Update custom mode title dynamically
+                    if modeRaw == DictationTemplate.custom.rawValue {
+                        let name = settings.customModeName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        item.title = name.isEmpty ? DictationTemplate.custom.localizedName : name
+                    } else {
+                        item.image = nil
+                    }
                 }
             }
-        }
 
-        // Accessibility check
-        let axPresent = menu.item(withTitle: axItem.title) != nil
-        if AXIsProcessTrusted() {
-            if axPresent {
-                menu.removeItem(axItem)
-                menu.removeItem(axSeparator)
+            // Accessibility check
+            let axPresent = menu.item(withTitle: axItem.title) != nil
+            if AXIsProcessTrusted() {
+                if axPresent {
+                    menu.removeItem(axItem)
+                    menu.removeItem(axSeparator)
+                }
+            } else if !axPresent {
+                let quitIdx = menu.numberOfItems - 1
+                menu.insertItem(axSeparator, at: quitIdx)
+                menu.insertItem(axItem, at: quitIdx)
             }
-        } else if !axPresent {
-            let quitIdx = menu.numberOfItems - 1
-            menu.insertItem(axSeparator, at: quitIdx)
-            menu.insertItem(axItem, at: quitIdx)
         }
     }
 

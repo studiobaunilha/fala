@@ -21,6 +21,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // swiftlint:disable:next function_body_length
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        CrashReporter.shared.start()
+
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,

@@ -160,10 +160,11 @@ public extension AppSettings {
     }
 
     var visibleDictationTemplates: [DictationTemplate] {
-        DictationTemplate.allCases.filter { template in
+        let currentLang = transcriptionLanguage
+        return DictationTemplate.allCases.filter { template in
             if template == .translate {
                 // Hide translate if the source language is already explicitly English
-                return transcriptionLanguage != "en" && transcriptionLanguage != "en-US"
+                return currentLang != "en" && currentLang != "en-US"
             }
             return true
         }

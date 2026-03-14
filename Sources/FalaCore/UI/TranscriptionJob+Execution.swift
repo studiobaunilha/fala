@@ -172,7 +172,7 @@ private extension TranscriptionJob {
                         continuation.yield(TranscriberProgress(text: resultText, windowId: 0))
                     } else {
                         // Passthrough disk fallback for raw `.wav`s
-                        try await transcriber.transcribe(audioPath: preparedAudio.wavURL.path) { progressUpdate in
+                        _ = try await transcriber.transcribe(audioPath: preparedAudio.wavURL.path) { progressUpdate in
                             guard !Task.isCancelled else { return }
                             continuation.yield(progressUpdate)
                         }

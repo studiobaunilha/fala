@@ -7,7 +7,8 @@ public struct HardwareInfo {
         sysctlbyname("hw.model", nil, &size, nil, 0)
         var model = [CChar](repeating: 0, count: size)
         sysctlbyname("hw.model", &model, &size, nil, 0)
-        return String(cString: model)
+        let bytes = model.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }
+        return String(bytes: bytes, encoding: .utf8) ?? ""
     }
 
     /// Determines if the current Apple Silicon Mac belongs to a generation known to experience

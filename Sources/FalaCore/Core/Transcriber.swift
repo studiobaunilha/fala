@@ -67,7 +67,7 @@ public actor Transcriber: AudioTranscribing {
                 }
             }
 
-            var config = WhisperKitConfig()
+            let config = WhisperKitConfig()
             config.verbose = true
             config.logLevel = .debug
             config.model = variant
