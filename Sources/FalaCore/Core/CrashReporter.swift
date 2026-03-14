@@ -129,8 +129,8 @@ public final class CrashReporter: NSObject, MXMetricManagerSubscriber, @unchecke
         let subject = "Fala Crash Report"
             .addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? ""
         let bodyText = String(
-            // swiftlint:disable:next line_length
-            format: L10n("Olá! O app foi encerrado inesperadamente. Anexei o arquivo de crash ('%@') gerado na minha pasta Downloads.\n\nMaior detalhe sobre o que eu estava fazendo (Opcional):"),
+            format: L10n("Olá! O app foi encerrado inesperadamente. Anexei o arquivo de crash ('%@') " +
+                         "gerado na minha pasta Downloads.\n\nMaior detalhe sobre o que eu estava fazendo (Opcional):"),
             filename
         )
         let body = bodyText
