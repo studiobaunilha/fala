@@ -178,7 +178,7 @@ public final class DictationMode {
         }
     }
 
-    // swiftlint:disable:next function_body_length
+    // swiftlint:disable:next function_body_length cyclomatic_complexity
     func stopAndTranscribe() async {
         isRecording = false
         recorder.setRMSHandler(nil)
@@ -304,13 +304,16 @@ public final class DictationMode {
                 )
             }
 
-            feedback?.model.stage = .inserting
-            await profiler.measure(.textInsertion) {
-                await inserter.insert(finalText)
+            if isSelectionCommand && !config.selectionPasteDirectly {
+                insertOrPreviewResult(finalText)
+            } else {
+                feedback?.model.stage = .inserting
+                await profiler.measure(.textInsertion) {
+                    await inserter.insert(finalText)
+                }
+                feedback?.model.stage = .done
+                feedback?.dismiss()
             }
-
-            feedback?.model.stage = .done
-            feedback?.dismiss()
 
             profiler.finish(ctx)
         } catch {

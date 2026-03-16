@@ -9,6 +9,7 @@ extension SettingsView {
         Form {
             systemShortcutSection
             appLanguageSection
+            aiBehaviorSection
             fileExportSection
             replacementRulesSection
         }
@@ -80,6 +81,25 @@ extension SettingsView {
                     .disabled(true)
                 Button(L10n("Alterar...")) { settings.selectExportPath() }
             }
+        }
+    }
+
+    private var aiBehaviorSection: some View {
+        Section {
+            Toggle(
+                L10n("Colar resultado direto"),
+                isOn: $settings.selectionPasteDirectly
+            )
+        } header: {
+            Text(L10n("Comportamento de IA"))
+        } footer: {
+            Text(
+                L10n("Quando ativado, o resultado do comando de IA é colado diretamente.")
+                + " "
+                + L10n("Desativado, exibe o resultado para revisão antes de colar.")
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 

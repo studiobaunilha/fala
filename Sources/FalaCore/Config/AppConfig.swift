@@ -46,6 +46,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
     public var modeConfigs: [String: ModeConfig] = [:]
+    public var selectionPasteDirectly: Bool = true
 
     private static let storageKey = "dev.fala.config"
 
@@ -75,6 +76,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case replacements
         case replacementRules
         case modeConfigs
+        case selectionPasteDirectly
     }
 
     public init() {}
@@ -119,6 +121,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(replacements, forKey: .replacements)
         try container.encode(replacementRules, forKey: .replacementRules)
         try container.encode(modeConfigs, forKey: .modeConfigs)
+        try container.encode(selectionPasteDirectly, forKey: .selectionPasteDirectly)
     }
     
     // MARK: – Helper Methods for Mode Config
@@ -216,6 +219,7 @@ extension AppConfig {
             ?? FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path
             ?? ""
         forceWhisperNeuralEngine = (try? container.decode(Bool.self, forKey: .forceWhisperNeuralEngine)) ?? false
+        selectionPasteDirectly = (try? container.decode(Bool.self, forKey: .selectionPasteDirectly)) ?? true
         selectedDictationTemplate = (try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate))
             ?? .custom
     }

@@ -41,6 +41,7 @@ public final class AppSettings: ObservableObject {
     @Published public var customModeName: String
     @Published public var customModePrompt: String
     @Published public var globalSystemPrompt: String
+    @Published public var selectionPasteDirectly: Bool
 
     public let modelManager: ModelManager
     public let mlxModelManager: MLXModelManager
@@ -114,6 +115,7 @@ public final class AppSettings: ObservableObject {
         self.customModeName = normalizedConfig.customModeName
         self.customModePrompt = normalizedConfig.customModePrompt
         self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
+        self.selectionPasteDirectly = normalizedConfig.selectionPasteDirectly
 
         self.transcriber = transcriber
         self.parakeetTranscriber = parakeetTranscriber
@@ -251,6 +253,7 @@ public extension AppSettings {
         snapshot.customModeName = String(customModeName.prefix(30))
         snapshot.customModePrompt = customModePrompt
         snapshot.globalSystemPrompt = globalSystemPrompt
+        snapshot.selectionPasteDirectly = selectionPasteDirectly
         return snapshot
     }
 

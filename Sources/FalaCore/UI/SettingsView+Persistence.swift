@@ -95,5 +95,8 @@ extension View {
             .onChange(of: settings.geminiModel) { settings.save() }
             .onChange(of: settings.openAIModel) { settings.save() }
             .onChange(of: settings.mlxModel) { settings.save() }
+            .onChange(of: settings.selectionPasteDirectly) {
+                settings.save()
+            }
     }
 }

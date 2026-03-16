@@ -6,6 +6,7 @@ import SwiftUI
 /// Appears near the user's mouse cursor when they do a "quick tap"
 /// of the shortcut with text selected. The panel never steals focus
 /// from the active application.
+
 /// Borderless panel that can still receive key events (for the text field).
 private final class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
@@ -21,6 +22,8 @@ public final class SelectionCommandController {
 
     public init() {}
 
+    // MARK: - Command Input
+
     /// Shows the command panel near the given screen point.
     func show(
         selection: String,
@@ -34,23 +37,48 @@ public final class SelectionCommandController {
         let preview = String(selection.prefix(60))
             + (selection.count > 60 ? "…" : "")
 
-        let view = makeView(preview: preview)
-        let newPanel = makePanel(content: view)
-
-        let origin = positionPanel(
-            size: newPanel.frame.size, near: point
+        let view = SelectionCommandView(
+            selectionPreview: preview,
+            onSubmit: { [weak self] command in
+                guard let self,
+                      let sel = self.currentSelection else { return }
+                self.onSubmit?(command, sel)
+                self.dismiss()
+            },
+            onDismiss: { [weak self] in self?.dismiss() }
         )
-        newPanel.setFrameOrigin(origin)
-        newPanel.makeKeyAndOrderFront(nil)
-        panel = newPanel
-
-        escapeMonitor = NSEvent.addLocalMonitorForEvents(
-            matching: .keyDown
-        ) { [weak self] event in
-            if event.keyCode == 53 { self?.dismiss(); return nil }
-            return event
-        }
+        presentPanel(
+            content: view,
+            size: NSSize(width: 360, height: 100),
+            near: point
+        )
     }
+
+    // MARK: - Result Preview
+
+    /// Shows the result panel near the mouse cursor.
+    func showResult(
+        text: String,
+        near point: NSPoint,
+        onPaste: @escaping () -> Void
+    ) {
+        dismiss()
+        let view = SelectionResultView(
+            result: text,
+            onPaste: { [weak self] in
+                onPaste()
+                self?.dismiss()
+            },
+            onDismiss: { [weak self] in self?.dismiss() }
+        )
+        presentPanel(
+            content: view,
+            size: NSSize(width: 400, height: 260),
+            near: point
+        )
+    }
+
+    // MARK: - Dismiss
 
     func dismiss() {
         panel?.orderOut(nil)
@@ -65,30 +93,17 @@ public final class SelectionCommandController {
 
     var isVisible: Bool { panel?.isVisible ?? false }
 
-    // MARK: - Factory helpers
+    // MARK: - Shared Panel Factory
 
-    private func makeView(
-        preview: String
-    ) -> SelectionCommandView {
-        SelectionCommandView(
-            selectionPreview: preview,
-            onSubmit: { [weak self] command in
-                guard let self,
-                      let sel = self.currentSelection else { return }
-                self.onSubmit?(command, sel)
-                self.dismiss()
-            },
-            onDismiss: { [weak self] in self?.dismiss() }
-        )
-    }
-
-    private func makePanel(
-        content: SelectionCommandView
-    ) -> NSPanel {
+    private func presentPanel<V: View>(
+        content: V,
+        size: NSSize,
+        near point: NSPoint
+    ) {
         let hosting = NSHostingView(rootView: content)
         hosting.autoresizingMask = [.width, .height]
 
-        let rect = NSRect(x: 0, y: 0, width: 360, height: 100)
+        let rect = NSRect(origin: .zero, size: size)
         let container = NSView(frame: rect)
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor.clear.cgColor
@@ -112,7 +127,23 @@ public final class SelectionCommandController {
         newPanel.hasShadow = false
         newPanel.isReleasedWhenClosed = false
         newPanel.contentView = container
-        return newPanel
+
+        let origin = positionPanel(
+            size: newPanel.frame.size, near: point
+        )
+        newPanel.setFrameOrigin(origin)
+        newPanel.makeKeyAndOrderFront(nil)
+        panel = newPanel
+
+        escapeMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: .keyDown
+        ) { [weak self] event in
+            if event.keyCode == 53 {
+                self?.dismiss()
+                return nil
+            }
+            return event
+        }
     }
 
     // MARK: - Positioning

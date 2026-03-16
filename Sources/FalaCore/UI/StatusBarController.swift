@@ -21,6 +21,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private var onSettings: (() -> Void)?
     private var onTranscribe: (() -> Void)?
     private var modeItems: [NSMenuItem] = []
+    private var pasteDirectItem: NSMenuItem?
     private var currentState: AppState = .idle
     private var loadingMessage: String?
     private var downloadActivity: StatusBarDownloadActivity?
@@ -107,6 +108,8 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 menu.insertItem(axSeparator, at: quitIdx)
                 menu.insertItem(axItem, at: quitIdx)
             }
+            // Paste-direct toggle
+            pasteDirectItem?.state = settings.selectionPasteDirectly ? .on : .off
         }
     }
 
@@ -169,13 +172,8 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         }
     }
 
-    @objc private func showSettings() {
-        onSettings?()
-    }
-
-    @objc private func showTranscribe() {
-        onTranscribe?()
-    }
+    @objc private func showSettings() { onSettings?() }
+    @objc private func showTranscribe() { onTranscribe?() }
 
     @objc private func openAccessibilitySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
@@ -183,9 +181,12 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
         }
     }
 
-    @objc private func quit() {
-        NSApp.terminate(nil)
+    @objc private func togglePasteDirect() {
+        settings.selectionPasteDirectly.toggle()
+        settings.save()
     }
+
+    @objc private func quit() { NSApp.terminate(nil) }
 }
 
 private extension StatusBarController {
@@ -343,11 +344,8 @@ private extension StatusBarController {
         title.isEnabled = false
         menu.addItem(title)
         menu.addItem(.separator())
-
         let shortcutItem = NSMenuItem(
-            title: L10n("Atalho: ⌥Espaço (segure para gravar)"),
-            action: nil,
-            keyEquivalent: ""
+            title: L10n("Atalho: ⌥Espaço (segure para gravar)"), action: nil, keyEquivalent: ""
         )
         shortcutItem.isEnabled = false
         menu.addItem(shortcutItem)
@@ -355,33 +353,37 @@ private extension StatusBarController {
     }
 
     func buildModeItems() {
-        let modeHeader = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
-        modeHeader.isEnabled = false
-        menu.addItem(modeHeader)
-
+        let header = NSMenuItem(title: L10n("Modo de Captura:"), action: nil, keyEquivalent: "")
+        header.isEnabled = false
+        menu.addItem(header)
         for mode in settings.readiness.quickMenuModes() {
             let item = NSMenuItem(
                 title: mode.localizedName,
-                action: #selector(StatusBarController.selectMode(_:)),
-                keyEquivalent: ""
+                action: #selector(StatusBarController.selectMode(_:)), keyEquivalent: ""
             )
             item.target = self
             item.representedObject = mode.rawValue
             modeItems.append(item)
             menu.addItem(item)
         }
-
         menu.addItem(.separator())
     }
 
     func buildTrailingMenuItems() {
         let transcribeItem = NSMenuItem(
             title: L10n("Transcrever Arquivo…"),
-            action: #selector(StatusBarController.showTranscribe),
-            keyEquivalent: "o"
+            action: #selector(StatusBarController.showTranscribe), keyEquivalent: "o"
         )
         transcribeItem.target = self
         menu.addItem(transcribeItem)
+
+        let pasteItem = NSMenuItem(
+            title: L10n("Colar resultado direto"),
+            action: #selector(StatusBarController.togglePasteDirect), keyEquivalent: ""
+        )
+        pasteItem.target = self
+        pasteDirectItem = pasteItem
+        menu.addItem(pasteItem)
 
         settingsItem.target = self
         menu.addItem(settingsItem)
@@ -389,8 +391,7 @@ private extension StatusBarController {
 
         let quitItem = NSMenuItem(
             title: L10n("Sair do Fala"),
-            action: #selector(StatusBarController.quit),
-            keyEquivalent: "q"
+            action: #selector(StatusBarController.quit), keyEquivalent: "q"
         )
         quitItem.target = self
         menu.addItem(quitItem)
