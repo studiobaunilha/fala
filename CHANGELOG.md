@@ -2,6 +2,34 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.11.2] — 2026-03-16
+
+### Melhorias
+- **Painel de refinamento desativado no fluxo de colagem (QuickEdit)**: Atendendo a feedbacks de que o painel de ajuste interrompia a digitação fluida após a colagem de resultados de IA, a janela automática de 5 segundos foi desabilitada. A funcionalidade permanece arquiteturada para o futuro, mas inativa por padrão nesta versão.
+
+---
+
+## [1.11.1] — 2026-03-16
+
+### Correções
+- **Timer de refinamento ajustado**: O timer de fechamento de 5 segundos agora só se aplica quando o texto é colado diretamente na sua tela. Quando a opção "Colar resultado direto" está desligada e o app exibe a janela de preview, ela ficará aberta por tempo indeterminado até você fechar ou aprovar.
+
+---
+
+## [1.11] — 2026-03-16
+
+### Funcionalidades
+- **QuickEdit pós-resultado**: Após inserir um texto via ditado ou IA, um pequeno painel flutuante apresenta a pergunta "Quer ajustar?" por 5 segundos. Isso permite enviar um comando de refinamento rápido (ex: "mais formal", "traduz pra inglês") que substitui o texto original, criando um fluxo conversacional fluido sem sair do contexto.
+
+---
+
+## [1.10] — 2026-03-16
+
+### Funcionalidades
+- **Seleção + Comando de IA**: Agora você pode selecionar um texto em qualquer app e usar o atalho do Fala para modificá-lo. Pressione e segure o atalho para falar a instrução (ex: "Traduza isso para inglês") ou dê um toque curto para abrir um painel flutuante e digitar o comando. A IA vai usar o seu texto selecionado como contexto e colar o resultado por cima dele.
+- **Redesign do HUD de Ditado**: O clássico painel quadrado de gravação foi substituído por uma elegante "pílula" compacta que exibe waveforms coloridas e animadas, reagindo à sua voz em tempo real e usando materiais nativos do sistema.
+- **Preview de Resultados**: Uma nova configuração em *Ajustes > Geral > Comportamento de IA* permite desligar o "Colar resultado direto". Quando desligado, a IA exibe o texto gerado num painel flutuante para você revisar antes de decidir se quer colar (Cmd+Enter) ou descartar (Esc).
+
 ## [1.3] — 2026-03-10
 
 ### Funcionalidades
