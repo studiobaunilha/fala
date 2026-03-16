@@ -149,19 +149,22 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
+            showRefinementPanel(for: result, timeout: 5.0)
+        } else {
+            showRefinementPanel(for: result, timeout: nil)
         }
-        showRefinementPanel(for: result)
     }
 
     /// Shows the result panel with refinement field.
     /// After paste (or when `selectionPasteDirectly` is off), the user
-    /// gets ~5s to type a follow-up refinement command.
-    func showRefinementPanel(for text: String) {
+    /// gets ~5s to type a follow-up refinement command, or indefinitely if timeout is nil.
+    func showRefinementPanel(for text: String, timeout: Double?) {
         feedback?.dismiss()
         statusBar?.setState(.idle)
         selectionCommandController?.showResult(
             text: text,
             near: NSEvent.mouseLocation,
+            timeout: timeout,
             onRefine: { [weak self] command in
                 guard let self else { return }
                 Task { @MainActor in
@@ -203,8 +206,10 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
+            showRefinementPanel(for: result, timeout: 5.0)
+        } else {
+            showRefinementPanel(for: result, timeout: nil)
         }
-        showRefinementPanel(for: result)
     }
 
     func llmResponse(

@@ -304,16 +304,10 @@ public final class DictationMode {
                 )
             }
 
-            if isSelectionCommand {
-                if config.selectionPasteDirectly {
-                    feedback?.model.stage = .inserting
-                    await profiler.measure(.textInsertion) {
-                        await inserter.insert(finalText)
-                    }
-                    feedback?.model.stage = .done
-                    feedback?.dismiss()
-                }
-                showRefinementPanel(for: finalText)
+            if isSelectionCommand && !config.selectionPasteDirectly {
+                feedback?.model.stage = .done
+                feedback?.dismiss()
+                showRefinementPanel(for: finalText, timeout: nil)
             } else {
                 feedback?.model.stage = .inserting
                 await profiler.measure(.textInsertion) {
@@ -321,6 +315,7 @@ public final class DictationMode {
                 }
                 feedback?.model.stage = .done
                 feedback?.dismiss()
+                showRefinementPanel(for: finalText, timeout: 5.0)
             }
 
             profiler.finish(ctx)

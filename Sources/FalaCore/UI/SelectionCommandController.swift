@@ -60,6 +60,7 @@ public final class SelectionCommandController {
     func showResult(
         text: String,
         near point: NSPoint,
+        timeout: Double? = nil,
         onRefine: ((String) -> Void)? = nil,
         onPaste: @escaping () -> Void
     ) {
@@ -76,7 +77,8 @@ public final class SelectionCommandController {
                     handler(command)
                 }
             },
-            onDismiss: { [weak self] in self?.dismiss() }
+            onDismiss: { [weak self] in self?.dismiss() },
+            timeout: timeout
         )
         presentPanel(
             content: view,

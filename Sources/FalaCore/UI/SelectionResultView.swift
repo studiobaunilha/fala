@@ -16,8 +16,8 @@ struct SelectionResultView: View {
     @State private var timerProgress: CGFloat = 1.0
     @FocusState private var isFocused: Bool
 
-    /// Seconds before auto-dismiss.
-    private let timeout: Double = 5.0
+    /// Seconds before auto-dismiss, or `nil` to stay open.
+    let timeout: Double?
 
     private let shape = RoundedRectangle(
         cornerRadius: CornerRadius.xl, style: .continuous
@@ -28,7 +28,7 @@ struct SelectionResultView: View {
             resultContent
             if onRefine != nil { refinementField }
             actionBar
-            if onRefine != nil { timerBar }
+            if onRefine != nil, timeout != nil { timerBar }
         }
         .padding(Spacing.lg)
         .frame(width: 400)
@@ -50,9 +50,9 @@ struct SelectionResultView: View {
     // MARK: - Timer
 
     private func runTimer() async {
-        guard onRefine != nil else { return }
+        guard onRefine != nil, let limit = timeout else { return }
         let steps = 50
-        let interval = timeout / Double(steps)
+        let interval = limit / Double(steps)
         for _ in 0..<steps {
             try? await Task.sleep(
                 nanoseconds: UInt64(interval * 1_000_000_000)
