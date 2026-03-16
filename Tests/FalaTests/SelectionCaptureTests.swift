@@ -86,6 +86,7 @@ final class SelectionCaptureTests: XCTestCase, @unchecked Sendable {
 
         await transcriber.setResult("Hello world test text")
 
+        // No SelectionCapture injected → pendingSelectionContext stays nil.
         let mode = DictationMode(
             recorder: recorder,
             transcriber: transcriber,
@@ -96,8 +97,169 @@ final class SelectionCaptureTests: XCTestCase, @unchecked Sendable {
         await mode.startRecording()
         await mode.stopAndTranscribe()
 
-        // Raw mode: text inserted directly without LLM
+        // Raw mode without selection: text inserted directly without LLM
         XCTAssertEqual(inserter.insertedTexts.first, "Hello world test text")
+    }
+
+    // MARK: - wrapForSelectionCommand
+
+    func testWrapForSelectionCommandIncludesSelectionAndInstruction() {
+        let result = DictationMode.wrapForSelectionCommand(
+            "Resuma isso", selection: "O Brasil é um país grande"
+        )
+        XCTAssert(result.contains("O Brasil é um país grande"))
+        XCTAssert(result.contains("Resuma isso"))
+        XCTAssert(result.contains("Selected text:"))
+        XCTAssert(result.contains("User instruction:"))
+        XCTAssert(result.contains("---"))
+    }
+
+    // MARK: - Selection + AI Command flow
+
+    func testSelectionCommandForcesLLMForRawTemplate() async throws {
+        let recorder = MockRecorder()
+        let transcriber = MockTranscriber()
+        let inserter = MockInserter()
+
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .raw
+        liveConfig.llmProvider = "gemini"
+        liveConfig.geminiKey = "test-key"
+
+        await transcriber.setResult("Resuma isso para mim")
+
+        var llmWasCalled = false
+        let mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            configProvider: { liveConfig },
+            llmProcessor: { _, _, _, _ in
+                llmWasCalled = true
+                return "Resumo do texto"
+            }
+        )
+
+        // Simulate user having text selected
+        mode.setPendingSelectionForTesting("Texto longo que será resumido")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertTrue(llmWasCalled, "LLM should be invoked for selection command")
+    }
+
+    func testSelectionCommandReplacesWithLLMResult() async throws {
+        let recorder = MockRecorder()
+        let transcriber = MockTranscriber()
+        let inserter = MockInserter()
+
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .raw
+        liveConfig.llmProvider = "gemini"
+        liveConfig.geminiKey = "test-key"
+
+        await transcriber.setResult("Corrija a gramatica")
+
+        let mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            configProvider: { liveConfig },
+            llmProcessor: { _, _, _, _ in
+                return "Texto com gramática corrigida"
+            }
+        )
+
+        mode.setPendingSelectionForTesting("Texto com erro de gramatica")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertEqual(
+            inserter.insertedTexts.first,
+            "Texto com gramática corrigida"
+        )
+    }
+
+    func testSelectionCommandFallsBackOnLLMError() async throws {
+        let recorder = MockRecorder()
+        let transcriber = MockTranscriber()
+        let inserter = MockInserter()
+
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .raw
+        liveConfig.llmProvider = "gemini"
+        liveConfig.geminiKey = "test-key"
+
+        await transcriber.setResult("Resuma isso para mim")
+
+        let mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            configProvider: { liveConfig },
+            llmProcessor: { _, _, _, _ in
+                throw LLMError.noAPIKey(provider: "Gemini")
+            }
+        )
+
+        mode.setPendingSelectionForTesting("Texto selecionado que seria processado")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        // Falls back to raw transcription when LLM fails
+        XCTAssertEqual(
+            inserter.insertedTexts.first,
+            "Resuma isso para mim"
+        )
+    }
+
+    func testNoSelectionKeepsNormalRawFlow() async throws {
+        let recorder = MockRecorder()
+        let transcriber = MockTranscriber()
+        let inserter = MockInserter()
+
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .raw
+
+        await transcriber.setResult("Texto normal sem selecao")
+
+        var llmWasCalled = false
+        let mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            configProvider: { liveConfig },
+            llmProcessor: { _, _, _, _ in
+                llmWasCalled = true
+                return "Should not appear"
+            }
+        )
+
+        // No selection injected — pendingSelectionContext remains nil
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertFalse(llmWasCalled, "LLM should NOT be invoked without selection")
+        XCTAssertEqual(
+            inserter.insertedTexts.first,
+            "Texto normal sem selecao"
+        )
     }
 }
 

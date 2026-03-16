@@ -132,7 +132,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             configProvider: configProvider,
             transcriberResolver: transcriberServices.resolve,
             transcriberPrewarmer: transcriberServices.prewarm,
-            readiness: readiness
+            readiness: readiness,
+            selectionCapture: SelectionCapture(),
+            selectionCommandController: SelectionCommandController()
         )
     }
 

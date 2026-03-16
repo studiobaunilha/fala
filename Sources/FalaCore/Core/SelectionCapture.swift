@@ -21,6 +21,7 @@ public struct SelectionCapture {
         let changeCount = pasteboard.changeCount
         let previous = pasteboard.string(forType: .string)
 
+        print("[Fala] SelectionCapture: simulating Cmd+C...")
         simulateCmdC()
 
         // Give the target app time to write to the clipboard.
@@ -28,6 +29,7 @@ public struct SelectionCapture {
 
         guard pasteboard.changeCount != changeCount else {
             // Clipboard unchanged — no selection was copied.
+            print("[Fala] SelectionCapture: clipboard unchanged — no selection detected.")
             return nil
         }
 
@@ -42,8 +44,10 @@ public struct SelectionCapture {
         // Only return meaningful content (not whitespace-only).
         guard let text = captured?.trimmingCharacters(in: .whitespacesAndNewlines),
               !text.isEmpty else {
+            print("[Fala] SelectionCapture: captured empty/whitespace text.")
             return nil
         }
+        print("[Fala] SelectionCapture: captured \(text.count) chars.")
         return text
     }
 

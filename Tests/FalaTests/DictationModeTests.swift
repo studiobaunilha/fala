@@ -61,7 +61,7 @@ final class MockInserter: TextInserting, @unchecked Sendable {
     private(set) var insertedTexts: [String] = []
     private(set) var savedToClipboardTexts: [String] = []
 
-    @MainActor func insert(_ text: String) {
+    @MainActor func insert(_ text: String) async {
         insertedTexts.append(text)
     }
 

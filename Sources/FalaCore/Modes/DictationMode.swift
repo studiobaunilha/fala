@@ -19,20 +19,27 @@ public final class DictationMode {
         _ effective: AppConfig.EffectiveConfig
     ) async throws -> String
 
-    private let recorder: any AudioRecording
-    private let inserter: any TextInserting
-    private weak var statusBar: StatusBarController?
-    private let feedback: DictationFeedbackController?
-    private let configProvider: ConfigProvider
+    let recorder: any AudioRecording
+    let inserter: any TextInserting
+    weak var statusBar: StatusBarController?
+    let feedback: DictationFeedbackController?
+    let configProvider: ConfigProvider
     private let transcriberResolver: TranscriberResolver
     private let transcriberPrewarmer: TranscriberPrewarmer?
-    private let llmProcessor: LLMProcessor?
+    let llmProcessor: LLMProcessor?
     private let readiness: RuntimeReadinessEvaluator?
     private let selectionCapture: SelectionCapture?
+    let selectionCommandController: SelectionCommandController?
     public let conversationMemory = ConversationMemory()
 
-    private var isRecording = false
-    private var pendingSelectionContext: String?
+    var isRecording = false
+    var pendingSelectionContext: String?
+    var keyDownTime: Date?
+
+    /// Test-only: inject a simulated selection context.
+    func setPendingSelectionForTesting(_ text: String?) {
+        pendingSelectionContext = text
+    }
 
     /// Production initialiser — uses real concrete implementations.
     public convenience init(transcriber: Transcriber, statusBar: StatusBarController) {
@@ -58,7 +65,8 @@ public final class DictationMode {
         transcriberPrewarmer: TranscriberPrewarmer? = nil,
         llmProcessor: LLMProcessor? = nil,
         readiness: RuntimeReadinessEvaluator? = nil,
-        selectionCapture: SelectionCapture? = nil
+        selectionCapture: SelectionCapture? = nil,
+        selectionCommandController: SelectionCommandController? = nil
     ) {
         self.recorder = recorder
         self.inserter = inserter
@@ -72,6 +80,7 @@ public final class DictationMode {
         self.llmProcessor = llmProcessor
         self.readiness = readiness
         self.selectionCapture = selectionCapture
+        self.selectionCommandController = selectionCommandController
     }
 
     final class WeakBox: @unchecked Sendable {
@@ -125,16 +134,22 @@ public final class DictationMode {
         }
         do {
             let config = configProvider()
+            keyDownTime = Date()
 
-            // Capture selected text before recording for conversational modes.
+            // Set immediately — before any await — so keyUp can always
+            // reach stopAndTranscribe() even for very short taps.
+            isRecording = true
+
+            // Capture selected text before recording for AI modes.
             // Must happen before startRecording() so the simulated Cmd+C
             // doesn't interfere with audio capture.
-            if config.selectedDictationTemplate.isConversational,
-               let capture = selectionCapture {
+            if let capture = selectionCapture {
                 pendingSelectionContext = await capture.captureSelection()
-            } else {
-                pendingSelectionContext = nil
             }
+
+            // If stopAndTranscribe() already ran during the await above
+            // (quick tap), skip the rest — the panel is already showing.
+            guard isRecording else { return }
 
             // Wire RMS levels to the floating feedback panel
             if let feedback {
@@ -153,11 +168,12 @@ public final class DictationMode {
                     await prewarmer(prewarmConfig)
                 }
             }
-            isRecording = true
             statusBar?.setState(.recording)
-            feedback?.model.stage = .recording
+            feedback?.model.stage = pendingSelectionContext != nil
+                ? .selectionCommand : .recording
             feedback?.show()
         } catch {
+            isRecording = false
             print("[Fala] Recording start failed: \(error.localizedDescription)")
         }
     }
@@ -166,6 +182,9 @@ public final class DictationMode {
     func stopAndTranscribe() async {
         isRecording = false
         recorder.setRMSHandler(nil)
+
+        if handleQuickTapIfNeeded() { return }
+
         statusBar?.setState(.transcribing)
         feedback?.model.stage = .transcribing
 
@@ -178,8 +197,10 @@ public final class DictationMode {
             }
             defer { try? FileManager.default.removeItem(at: audioURL) }
 
-            let samples = try profiler.measure(.audioConversion) {
-                try AudioConverter.toFloat16k(from: audioURL)
+            let samples = try await profiler.measure(.audioConversion) {
+                try await Task.detached {
+                    try AudioConverter.toFloat16k(from: audioURL)
+                }.value
             }
             ctx.audioSampleCount = samples.count
             guard !samples.isEmpty else {
@@ -192,7 +213,9 @@ public final class DictationMode {
 
             // Skip silent audio — avoids unnecessary transcription and LLM calls
             let rms: Float = profiler.measure(.rmsValidation) {
-                sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count))
+                var sum: Float = 0
+                for sample in samples { sum += sample * sample }
+                return sqrt(sum / Float(samples.count))
             }
             ctx.audioRMS = rms
             guard rms > 0.001 else {
@@ -255,19 +278,35 @@ public final class DictationMode {
 
             feedback?.model.stage = .processing
 
-            if template.requiresLLM {
-                inserter.saveToClipboard(text)
-            }
             let selectionContext = pendingSelectionContext
             pendingSelectionContext = nil
-            let finalText = await profiledProcessText(
-                text, config: config, template: template,
-                selectionContext: selectionContext, profiler: profiler
-            )
+
+            // Selection + AI Command: when the user has selected text and
+            // the current template does NOT normally use an LLM (.raw,
+            // .translate), treat the dictated text as an instruction to
+            // apply to the selected content via the LLM.
+            let isSelectionCommand = selectionContext != nil
+                && !template.requiresLLM
+
+            let finalText: String
+            if isSelectionCommand, let selection = selectionContext {
+                finalText = await processSelectionCommand(
+                    text, selection: selection, config: config,
+                    profiler: profiler
+                )
+            } else {
+                if template.requiresLLM {
+                    inserter.saveToClipboard(text)
+                }
+                finalText = await profiledProcessText(
+                    text, config: config, template: template,
+                    selectionContext: selectionContext, profiler: profiler
+                )
+            }
 
             feedback?.model.stage = .inserting
-            profiler.measure(.textInsertion) {
-                inserter.insert(finalText)
+            await profiler.measure(.textInsertion) {
+                await inserter.insert(finalText)
             }
 
             feedback?.model.stage = .done
@@ -343,53 +382,5 @@ public final class DictationMode {
         }
 
         return finalText
-    }
-
-    private func llmResponse(
-        text: String,
-        prompt: String,
-        config: AppConfig,
-        effective: AppConfig.EffectiveConfig,
-        previousMessages: [[String: String]] = [],
-        conversational: Bool = false
-    ) async throws -> String {
-        if let llmProcessor {
-            return try await llmProcessor(text, prompt, config, effective)
-        }
-        return try await dispatchLLM(
-            text: text, prompt: prompt,
-            config: config, effective: effective,
-            previousMessages: previousMessages,
-            conversational: conversational
-        )
-    }
-
-    private func dispatchLLM(
-        text: String, prompt: String, config: AppConfig,
-        effective: AppConfig.EffectiveConfig,
-        previousMessages: [[String: String]] = [],
-        conversational: Bool = false
-    ) async throws -> String {
-        let model = effective.model
-        switch effective.provider {
-        case "gemini":
-            guard !config.geminiKey.isEmpty else { throw LLMError.noAPIKey(provider: "Gemini") }
-            return try await TranscriptionJob.processWithGemini(
-                text: text, prompt: prompt, apiKey: config.geminiKey,
-                model: model, previousMessages: previousMessages)
-        case "openai":
-            guard !config.openAIKey.isEmpty else { throw LLMError.noAPIKey(provider: "OpenAI") }
-            return try await TranscriptionJob.processWithOpenAI(
-                text: text, prompt: prompt, apiKey: config.openAIKey,
-                model: model, previousMessages: previousMessages)
-        case "apple":
-            return try await TranscriptionJob.processWithAppleNative(text: text, prompt: prompt)
-        case "mlx":
-            let modelID = model.isEmpty ? config.mlxModel : model
-            return try await TranscriptionJob.processWithMLX(
-                text: text, prompt: prompt, modelID: modelID, conversational: conversational)
-        default:
-            throw LLMError.providerNotConfigured(effective.provider)
-        }
     }
 }

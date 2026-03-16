@@ -88,7 +88,7 @@ public final class DictationFeedbackModel: ObservableObject {
         let targetLevel = normalizedLevel(for: mailbox.current())
         let nextLevel: Float
 
-        if stage == .recording {
+        if stage == .recording || stage == .selectionCommand {
             nextLevel = displayedLevel + ((targetLevel - displayedLevel) * Self.smoothingFactor)
         } else {
             nextLevel = displayedLevel * Self.decayFactor

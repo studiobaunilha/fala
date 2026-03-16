@@ -93,4 +93,39 @@ public enum PromptDefaults {
     Format and correct this audio transcription. Keep the original language. Fix punctuation.
     Return ONLY the processed text. No comments, no preamble, no greetings.
     """
+
+    // MARK: - Selection + AI Command
+
+    /// Returns the system prompt for Selection + AI Command mode,
+    /// where the user selects text and dictates an instruction to apply to it.
+    public static func selectionCommandPrompt(for provider: String) -> String {
+        switch provider {
+        case "apple":
+            return selectionCommandApple
+        case "mlx":
+            return selectionCommandMLX
+        default:
+            return selectionCommandCloud
+        }
+    }
+
+    private static let selectionCommandCloud = """
+    O usuário selecionou um texto e ditou uma instrução por voz.
+    Aplique a instrução ao texto selecionado. Retorne APENAS o resultado final.
+    Mantenha o idioma original do texto selecionado, salvo instrução contrária do usuário.
+
+    ---
+    REGRA CRÍTICA: Sua saída inteira será colada diretamente no lugar do texto original.
+    NÃO inclua preâmbulos, explicações, saudações ou meta-texto.
+    NÃO diga "Aqui está", "Segue abaixo", "Entendi", "Claro" ou similar.
+    Qualquer palavra além do resultado processado é um erro.
+    """
+
+    // swiftlint:disable:next line_length
+    private static let selectionCommandApple = "The user selected text and spoke an instruction. Apply the instruction to the selected text. Return ONLY the result. No comments, no preamble. Keep the original language unless told otherwise."
+
+    private static let selectionCommandMLX = """
+    Apply the user's instruction to the selected text. Return ONLY the result.
+    No comments, no preamble. Keep the original language unless told otherwise.
+    """
 }

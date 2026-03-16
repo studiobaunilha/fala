@@ -19,7 +19,7 @@ public struct TextInserter: TextInserting {
         pasteboard.setString(text, forType: .string)
     }
 
-    public func insert(_ text: String) {
+    public func insert(_ text: String) async {
         // AXIsProcessTrustedWithOptions(prompt:true) both checks the permission AND
         // triggers the system dialog asking the user to grant Accessibility access.
         // On subsequent calls (after permission is granted) it returns true immediately.
@@ -41,7 +41,7 @@ public struct TextInserter: TextInserting {
         pasteboard.setString(text, forType: .string)
 
         // Let the clipboard settle before simulating the keystroke.
-        Thread.sleep(forTimeInterval: 0.05)
+        try? await Task.sleep(nanoseconds: 50_000_000)
         simulateCmdV()
 
         // Restore previous clipboard asynchronously after paste completes.
