@@ -149,25 +149,62 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
-        } else {
-            insertOrPreviewResult(result)
         }
+        showRefinementPanel(for: result)
     }
 
-    /// Dismisses the HUD and shows the result in a floating panel.
-    /// The user can paste (Enter) or dismiss (Escape).
-    func insertOrPreviewResult(_ text: String) {
+    /// Shows the result panel with refinement field.
+    /// After paste (or when `selectionPasteDirectly` is off), the user
+    /// gets ~5s to type a follow-up refinement command.
+    func showRefinementPanel(for text: String) {
         feedback?.dismiss()
         statusBar?.setState(.idle)
         selectionCommandController?.showResult(
             text: text,
-            near: NSEvent.mouseLocation
-        ) { [weak self] in
-            guard let self else { return }
-            Task { @MainActor in
-                await self.inserter.insert(text)
+            near: NSEvent.mouseLocation,
+            onRefine: { [weak self] command in
+                guard let self else { return }
+                Task { @MainActor in
+                    await self.processRefinement(
+                        command, previousResult: text
+                    )
+                }
+            },
+            onPaste: { [weak self] in
+                guard let self else { return }
+                Task { @MainActor in
+                    await self.inserter.insert(text)
+                }
             }
+        )
+    }
+
+    /// Re-processes a refinement command using the previous result
+    /// as context. Chains indefinitely (each result shows a new
+    /// refinement panel).
+    private func processRefinement(
+        _ command: String, previousResult: String
+    ) async {
+        feedback?.model.reset()
+        feedback?.model.stage = .processing
+        feedback?.show()
+        statusBar?.setState(.recording)
+
+        let config = configProvider()
+        let profiler = DictationProfiler.makeIfEnabled()
+        let result = await processSelectionCommand(
+            command, selection: previousResult,
+            config: config, profiler: profiler
+        )
+
+        if config.selectionPasteDirectly {
+            feedback?.model.stage = .inserting
+            await inserter.insert(result)
+            feedback?.model.stage = .done
+            feedback?.dismiss()
+            statusBar?.setState(.idle)
         }
+        showRefinementPanel(for: result)
     }
 
     func llmResponse(

@@ -1,13 +1,23 @@
 import SwiftUI
 
-/// Read-only panel showing the LLM result before pasting.
+/// Panel showing the LLM result with an optional refinement field.
 ///
-/// Matches the command input panel design — dark material, white stroke,
-/// design system tokens throughout.
+/// After the AI processes a command, this panel displays the result
+/// and offers a text field for follow-up refinements ("mais formal",
+/// "traduz pra inglês", etc.). Auto-dismisses after ~5s unless the
+/// user starts typing.
 struct SelectionResultView: View {
     let result: String
     let onPaste: () -> Void
+    let onRefine: ((String) -> Void)?
     let onDismiss: () -> Void
+
+    @State private var refinement = ""
+    @State private var timerProgress: CGFloat = 1.0
+    @FocusState private var isFocused: Bool
+
+    /// Seconds before auto-dismiss.
+    private let timeout: Double = 5.0
 
     private let shape = RoundedRectangle(
         cornerRadius: CornerRadius.xl, style: .continuous
@@ -16,7 +26,9 @@ struct SelectionResultView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             resultContent
+            if onRefine != nil { refinementField }
             actionBar
+            if onRefine != nil { timerBar }
         }
         .padding(Spacing.lg)
         .frame(width: 400)
@@ -32,6 +44,23 @@ struct SelectionResultView: View {
             radius: 24, x: 0, y: 14
         )
         .environment(\.colorScheme, .dark)
+        .task { await runTimer() }
+    }
+
+    // MARK: - Timer
+
+    private func runTimer() async {
+        guard onRefine != nil else { return }
+        let steps = 50
+        let interval = timeout / Double(steps)
+        for _ in 0..<steps {
+            try? await Task.sleep(
+                nanoseconds: UInt64(interval * 1_000_000_000)
+            )
+            if !refinement.isEmpty { return }
+            timerProgress -= 1.0 / CGFloat(steps)
+        }
+        if refinement.isEmpty { onDismiss() }
     }
 
     // MARK: - Subviews
@@ -44,6 +73,35 @@ struct SelectionResultView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxHeight: 200)
+    }
+
+    private var refinementField: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            TextField(
+                L10n("Quer ajustar?"),
+                text: $refinement
+            )
+            .textFieldStyle(.plain)
+            .font(Typography.body)
+            .focused($isFocused)
+            .onSubmit {
+                let trimmed = refinement.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+                guard !trimmed.isEmpty else { return }
+                onRefine?(trimmed)
+            }
+
+            if !refinement.isEmpty {
+                Text("↩")
+                    .font(Typography.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
     }
 
     private var actionBar: some View {
@@ -71,8 +129,21 @@ struct SelectionResultView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
-            .keyboardShortcut(.return, modifiers: [])
+            .keyboardShortcut(.return, modifiers: [.command])
         }
+    }
+
+    private var timerBar: some View {
+        GeometryReader { geo in
+            Capsule()
+                .fill(Color.white.opacity(0.15))
+                .frame(
+                    width: geo.size.width * max(timerProgress, 0),
+                    height: 2
+                )
+                .animation(.linear(duration: 0.1), value: timerProgress)
+        }
+        .frame(height: 2)
     }
 
     // MARK: - Background

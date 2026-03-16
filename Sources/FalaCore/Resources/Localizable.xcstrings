@@ -7981,6 +7981,22 @@
           }
         }
       }
+    },
+    "Quer ajustar?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Want to refine?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Quieres ajustar?"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

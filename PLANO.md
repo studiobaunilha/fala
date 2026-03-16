@@ -1,169 +1,156 @@
-# Fala - Plano
+# Plano de Funcionalidades — Fala
 
-Este e o unico plano ativo do repositorio.
+> Documento vivo de acompanhamento. Marque `[x]` conforme concluir cada item.
 
-Ele consolida apenas trabalho ainda em aberto, com base em:
+---
 
-- commits ja entregues no Git
-- backlog anterior
-- notas em `docs/brainstorming/`
+## Feature A — Selection + AI Command ✅
 
-O que ja foi entregue nao reaparece aqui. O historico fica no Git e no `CHANGELOG.md`.
+Selecionar texto + atalho do Fala → enviar comando de IA sobre a seleção.
 
-## Guardrails
+### A1. Comando por voz (hold)
+- [x] Capturar seleção via `SelectionCapture` (Cmd+C) ao pressionar atalho
+- [x] Detectar texto selecionado → entrar em modo `.selectionCommand`
+- [x] Gravar comando de voz enquanto segura o atalho
+- [x] Enviar `[seleção] + [comando]` ao LLM com prompt dedicado
+- [x] Inserir resultado via Cmd+V (substitui seleção)
+- [x] HUD âmbar indicando modo seleção
 
-Toda entrega deste plano precisa respeitar estes gates:
+### A2. Comando digitado (quick tap)
+- [x] Detectar toque rápido (<400ms) vs hold
+- [x] Abrir `SelectionCommandView` — painel flutuante próximo ao cursor
+- [x] Campo de texto + preview da seleção (60 chars)
+- [x] Enter → envia ao LLM, Escape → cancela
+- [x] `KeyablePanel` para receber teclado sem roubar foco do app
+- [x] Race condition corrigida (`isRecording` setado antes do await)
 
-- `make lint`
-- `make test`
-- `make check`
-- build debug verde
-- build release verde sempre que tocar fluxo distribuido, onboarding, warmup, menu bar, batch ou runtime principal
-- `make test-mlx` sempre que tocar catalogo MLX, download MLX, warmup MLX ou pos-processamento MLX
-- TDD e testes de regressao guiados por risco real
-- nenhuma mudanca de performance sem instrumentacao suficiente para comparar antes e depois
-- nenhum fallback silencioso em fluxos principais
+### A3. Preview do resultado
+- [x] Toggle `selectionPasteDirectly` em `AppConfig` / `AppSettings`
+- [x] Menu bar: "Colar resultado direto" (checkmark)
+- [x] Ajustes → Geral: seção "Comportamento de IA"
+- [x] `SelectionResultView` — painel read-only com botão Colar (Enter)
+- [x] `insertOrPreviewResult()` centraliza lógica para voz e digitado
+- [x] 4 chaves L10n (pt/en/es)
 
-## Estado atual
+### A4. HUD pill redesenhado
+- [x] Formato pill com `continuousCornerRadius`
+- [x] Waveform animado durante gravação
+- [x] `ultraThinMaterial` + gradientes + design tokens do projeto
 
-Hoje, o que estava em P0 e P1 ja foi fechado.
+### A5. Release
+- [x] Commits atômicos (06a74e5, 413ed56, eeace75, fe3626b)
+- [x] Release v1.10 (build 20) — notarizada + publicada
 
-Isso inclui, entre outros pontos:
+---
 
-- licenca e relaunch
-- revalidacao automatica de licenca no launch e recuperacao mais resiliente do entitlement local
-- onboarding e readiness
-- warmup principal
-- catalogo e selecao de modelos
-- reorganizacao dos Ajustes
-- restauracao do chrome nativo da janela de Ajustes
-- editor unificado de prompts
-- fila de varios arquivos
-- empacotamento e release
-- batch sem dependencia externa de `ffmpeg`
+## Feature B — QuickEdit pós-resultado
 
-O backlog aberto ficou reduzido a quatro frentes principais, mais um bloco curto de acabamento.
+Após a IA processar e colar o resultado (voz ou digitado), o painel permanece
+visível por alguns segundos permitindo um segundo comando rápido — "agora
+reformata", "mais formal", "traduz para inglês", etc.
 
-## Checkpoint de retomada
+Funciona como uma **continuação natural** do fluxo que já existe: o resultado
+aparece no `SelectionResultView` (ou é colado direto), e o painel se transforma
+num campo de input por ~5s antes de sumir.
 
-- **Frente 1 - batch / performance e cancelamento**: em andamento; esta retomada fechou instrumentacao por estagio, cancelamento mais honesto, `--profile`, `--prepare-only`, entrypoint async no CLI, regressao E2E com `AAC/M4A` gerado pela stack da Apple e baseline frio para `WAV`
-- **Frente 2 - latencia no ditado rapido**: nao iniciada nesta retomada; continua apenas planejada
-- **Frente 3 - streaming Whisper / preview vivo**: nao iniciada nesta retomada; continua apenas planejada
-- **Frente 4 - multiplos modos personalizados**: nao iniciada nesta retomada; continua apenas planejada
-- **Backlog curto**: sem avancos nesta retomada
+### B1. Painel pós-inserção
+- [x] Após colar resultado, reabrir/manter o painel flutuante por ~5s
+- [x] Mostrar campo de texto "Quer ajustar?" com o resultado como contexto
+- [x] Timer visual (barra de progresso sutil ou fade-out gradual)
+- [x] Clicar/digitar → cancela o timer, painel permanece
+- [x] Ignorar → painel desaparece após timeout
+- [x] Escape → fecha imediatamente
 
-## Agora
+### B2. Fluxo de refinamento
+- [x] Usuário digita segundo comando → LLM recebe `[resultado anterior] + [novo comando]`
+- [x] Resultado substitui o texto que acabou de ser colado (Cmd+A/Cmd+V ou re-select)
+- [x] Pode encadear N refinamentos (painel reaparece após cada um)
+- [x] Respeitar toggle `selectionPasteDirectly` (preview vs colar direto)
 
-### 1. Investigacao de performance e cancelamento na transcricao de arquivos
+### B3. Integração com fluxos existentes
+- [x] Reutilizar `SelectionCommandView` / `SelectionCommandController`
+- [x] Funciona tanto no fluxo de voz (hold) quanto no digitado (quick tap)
+- [x] Considerar se aplica também ao modo Raw/Translate (sem seleção)
 
-**Status**
+### B4. Testes e qualidade
+- [x] Testes unitários para o fluxo de refinamento
+- [x] `make check` passando (0 lint, todos os testes)
+- [x] Chaves L10n para textos novos
 
-- em andamento
+### B5. Release
+- [x] Commit atômico
+- [x] Release com bump adequado
 
-**Motivo**
+---
 
-Ainda existe percepcao de atraso antes da transcricao comecar de fato, e o cancelamento ainda precisa ficar mais responsivo no fluxo batch.
+## Feature C — Screenshot + AI Command
 
-**Ja avancado**
+Toque rápido **sem texto selecionado** → ativa captura de tela (estilo Cmd+Shift+4).
+O screenshot vira contexto visual para uma pergunta de voz ou digitada ao LLM.
 
-- batch agora distingue preparo do motor, transcricao e pos-processamento na UI
-- preparo de audio do batch saiu do `MainActor`, reduzindo travamento perceptivel antes da transcricao comecar
-- cancelamento passou a interromper a task de processamento e a respeitar cancelamento durante a transcricao incremental
-- cancelamento durante preparo de audio agora aborta o pipeline antes do warmup/transcribe e limpa arquivo temporario parcial
-- cada execucao batch agora registra tempos de preparo de audio, preparo do motor, transcricao, pos-processamento e total
-- a telemetria de batch agora diferencia `WAV` em fast path vs conversao real e tambem marca se o modelo ja estava `ready`, `loading` ou `cold`
-- o CLI `fala transcribe` agora aceita `--profile` para emitir o mesmo breakdown de tempos fora da UI e facilitar comparacao reproduzivel entre `WAV` e `nao WAV`
-- o CLI de batch agora roda com entrypoint async sem bloquear em semaforo e tambem aceita `--prepare-only` para medir apenas a normalizacao de audio
-- regressao end-to-end adicionada para exercitar o executavel construido com `AAC/M4A` gerado pela propria stack da Apple e garantir que `--prepare-only` para antes do warmup
-- regressao adicionada para estado `preparingModel`, cancelamento durante preparo de audio, limpeza de temporario cancelado e captura de metricas
-- baseline frio medido no app empacotado para `WAV` ja normalizado: preparo ~`0.000s`, warmup do modelo ~`7.386s`, transcricao ~`0.620s`, total ~`8.024s`
-- validacao ja rodada com `make check`, build debug e build release
+Exemplo: selecionar uma área de um chat → perguntar "o que essa pessoa quis dizer?"
+→ LLM com visão analisa a imagem e responde.
 
-**Ainda falta**
+### C1. Captura de tela
+- [ ] Quick tap sem seleção → invocar `screencapture -i` (seleção interativa)
+- [ ] Salvar screenshot em diretório temporário
+- [ ] Detectar cancelamento (Escape) vs captura concluída
+- [ ] Exibir preview pequeno no painel flutuante após captura
 
-- fechar uma amostra `nao WAV` representativa e estavel para comparacao real com o baseline `WAV`; o fixture sintetico `AAC/M4A` gerado por `ffmpeg` nao e uma boa referencia aqui, porque a propria stack nativa da Apple (`ExtAudioFile` e `afconvert`) o rejeita com `cfmt/fmt?`
-- decidir se o proximo corte principal deve atacar warmup/pool do motor no caminho `WAV` ou ampliar compatibilidade de ingestao para `M4A/AAC` externos que fujam do conjunto validado pela stack da Apple
-- revisar se ainda existe algum trecho longo sem cancelamento bounded no caminho de batch
-- avaliar se faz sentido atacar cancelamento mais fino dentro da propria conversao de audio, sem trocar estabilidade por responsividade artificial
+### C2. Fluxo de pergunta
+- [ ] Após captura, abrir painel de comando (voz ou digitado)
+- [ ] Usuário faz a pergunta sobre a imagem
+- [ ] Enviar imagem + pergunta ao LLM com suporte a visão
+- [ ] Resultado aparece no painel de resultado (respeitando toggle paste/preview)
 
-**Retomar daqui**
+### C3. Suporte a modelos com visão
+- [ ] Adicionar flag `supportsVision: Bool` ao modelo de configuração de LLM
+- [ ] Marcar quais providers/modelos suportam imagens (Gemini, GPT-4o, etc.)
+- [ ] Se modelo ativo não suporta visão → mostrar aviso e sugerir trocar
+- [ ] Apple Intelligence local (MLX) provavelmente não suporta → desabilitar
 
-- usar `fala transcribe <arquivo> --profile --prepare-only` com um `M4A/AAC` real de referencia do mundo real, por exemplo uma gravacao externa ou Voice Memos, em vez de depender do fixture sintetico do `ffmpeg`
-- comparar esse `nao WAV` com o baseline atual do `WAV`; hoje o caminho frio de `WAV` mostra que o gargalo dominante ja medido e o warmup do modelo, nao o preparo de audio
-- depois disso, repetir o fluxo completo com modelo frio vs aquecido para decidir se o proximo corte mexe primeiro em warmup/pool ou em compatibilidade de ingestao externa
+### C4. Integração nas APIs de LLM
+- [ ] Adaptar `llmResponse()` para aceitar imagem opcional (`Data?` / `URL?`)
+- [ ] Gemini: enviar como `inlineData` (base64) na API
+- [ ] OpenAI: enviar como `image_url` com base64 data URI
+- [ ] Prompt ajustado: "Analise esta imagem e responda à pergunta do usuário"
 
-**Definicao de pronto**
+### C5. Testes e qualidade
+- [ ] Testes unitários para detecção de seleção vazia + screenshot flow
+- [ ] `make check` passando
+- [ ] Chaves L10n para textos novos
 
-- usar a instrumentacao nova para fechar diagnostico comparativo entre WAV e nao WAV
-- eliminar o principal gargalo identificado sem perder estabilidade
-- manter cancelamento imediato ou claramente bounded nas etapas longas
-- preservar a UI refletindo o estagio real sem ambiguidade
-- manter regressao cobrindo caminho cancelado e caminho otimizado
+### C6. Release
+- [ ] Commit atômico
+- [ ] Release com bump adequado
 
-### 2. Investigacao de variacao de latencia no ditado rapido
+---
 
-**Status**
+## Feature D — Vocabulário Pessoal (futuro)
 
-- nao iniciado nesta retomada
+Aprender correções automaticamente quando o usuário edita o texto recém-colado.
 
-**Motivo**
+### D1. Detecção de edição
+- [ ] Monitorar via Accessibility API se o texto muda nos ~5s após inserção
+- [ ] Comparar texto original vs editado (diff)
 
-O caminho rapido de ditado ainda apresenta variacao perceptivel em alguns cenarios, mesmo quando o runtime deveria estar quente.
+### D2. UI de aprendizado
+- [ ] HUD discreto "Aprender correção?" com as duas versões
+- [ ] Confirmar → persiste em `replacementRules`
+- [ ] Rejeitar → descarta
 
-**Definicao de pronto**
+### D3. Integração
+- [ ] Reutilizar UI existente de Regras de Substituição nos Ajustes
+- [ ] Testes unitários
+- [ ] Release
 
-- medir cold path e warm path do fluxo de ditado
-- localizar o ponto que causa travadas ocasionais antes da insercao final
-- corrigir a principal fonte de variacao sem degradar confiabilidade
-- cobrir a regressao com testes automatizados e validacao real de build
+---
 
-## Proximo
+## Referência rápida
 
-### 3. Streaming Whisper / preview vivo
-
-**Status**
-
-- nao iniciado nesta retomada
-
-**Motivo**
-
-Continua sendo a proxima expansao funcional relevante e ainda depende de spike tecnico antes de implementacao final.
-
-**Definicao de pronto**
-
-- definir arquitetura do preview incremental
-- garantir que preview nao polua a insercao final
-- evitar texto instavel ou piscando no alvo
-- cobrir o fluxo com testes de regressao do processamento incremental
-
-### 4. Multiplos modos personalizados
-
-**Status**
-
-- nao iniciado nesta retomada
-
-**Motivo**
-
-Hoje o produto ainda suporta apenas um modo customizado.
-
-**Definicao de pronto**
-
-- permitir criar, editar, ordenar e remover mais de um modo personalizado
-- reaproveitar a UI e a logica de prompts ja existentes
-- migrar configuracoes antigas sem quebrar usuarios atuais
-- cobrir persistencia, migracao e fluxo principal com testes
-
-## Backlog curto
-
-Estes itens continuam abertos, mas ficam abaixo das cinco frentes acima:
-
-- ocultar `Traduzir para Ingles` quando o idioma efetivo da aplicacao ja for ingles
-- revalidar se `mlx-community/Qwen3.5-4B-MLX-4bit` merece entrar no catalogo curado; so promover depois de smoke test real
-
-## Estacionado para depois
-
-Nao entra no ciclo atual, mas continua registrado como direcao futura:
-
-- gravacao de reunioes com audio do sistema + microfone, com timeline consolidada
-- exploracao de UI persistente para esse fluxo, incluindo alternativa no notch/menu bar se fizer sentido
-- exposicao futura de API ou automacao local do app
+| Feature | Status | Release |
+|---------|--------|---------|
+| A — Selection + AI Command | ✅ Completa | v1.10 |
+| B — QuickEdit pós-resultado | ✅ Completa | v1.11 |
+| C — Screenshot + AI Command | 🔲 Planejada | — |
+| D — Vocabulário Pessoal | 🔲 Futuro | — |
