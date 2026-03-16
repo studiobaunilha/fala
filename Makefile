@@ -13,7 +13,7 @@ GREY  := \033[2m
 RESET := \033[0m
 
 .DEFAULT_GOAL := help
-.PHONY: help check lint test test-mlx hooks dev install kill logs clean release release-dry
+.PHONY: help check lint test test-mlx hooks dev install kill logs logs-save clean release release-dry
 
 help: ## Mostra este menu
 	@printf "\n  $(BOLD)Fala$(RESET)\n\n"
@@ -46,6 +46,7 @@ dev: check ## check → build debug → relança o app (PROFILE=0 para desabilit
 	@$(APPBUILD) debug --open
 	@printf "$(GREEN)✓ App relançado — verifique o menu bar$(RESET)\n"
 	@if [ "$(PROFILE)" != "0" ]; then printf "$(GREY)  Profiling habilitado (use PROFILE=0 para desabilitar)$(RESET)\n"; fi
+	@printf "$(GREY)  Para gravar logs em arquivo: make logs-save$(RESET)\n"
 
 install: check ## check → build release → instala
 	@printf "$(GREY)▶ xcodebuild (Release)$(RESET)\n"
@@ -58,7 +59,13 @@ kill: ## Encerra o app
 
 logs: ## Mostra logs do app em tempo real (Ctrl+C para sair)
 	@printf "$(GREY)Aguardando logs de Fala… (Ctrl+C para sair)$(RESET)\n"
-	@log stream --predicate 'process == "Fala"' --level debug
+	@log stream --predicate 'subsystem == "dev.fala.app"' --level debug --style syslog
+
+logs-save: ## Grava logs em ~/Desktop/fala-logs/ e exibe em tempo real (Ctrl+C para parar)
+	@mkdir -p "$(HOME)/Desktop/fala-logs"
+	@LOG_FILE="$(HOME)/Desktop/fala-logs/fala-$$(date +%Y%m%d-%H%M%S).log"; \
+		printf "$(GREY)Gravando em $$LOG_FILE… (Ctrl+C para parar)$(RESET)\n"; \
+		log stream --predicate 'subsystem == "dev.fala.app"' --level debug --style syslog | tee "$$LOG_FILE"
 
 clean: ## Remove artefatos de build (.build/)
 	@$(SWIFT) package clean

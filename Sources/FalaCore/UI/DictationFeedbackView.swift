@@ -3,10 +3,13 @@ import SwiftUI
 /// Floating dictation overlay — shows audio waveform and stage progress.
 /// Uses native macOS material for the surface and lightweight custom rendering
 /// for the animated voice treatment.
+///
+/// Layout: pill shape (width × 80, cornerRadius 40). The waveform area
+/// communicates the current stage visually — no explicit icon row needed.
 enum DictationFeedbackLayout {
     static let width: CGFloat = 292
-    static let height: CGFloat = 132
-    static let cornerRadius: CGFloat = 27
+    static let height: CGFloat = 80
+    static let cornerRadius: CGFloat = 40
     static let waveformHeight: CGFloat = 46
     static let barWidth: CGFloat = 10
     static let barSpacing: CGFloat = 5
@@ -47,7 +50,7 @@ struct DictationFeedbackView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            FalaColors.accent.opacity(model.stage == .recording ? 0.12 : 0.05),
+                            accentColor(for: model.stage).opacity(model.stage == .recording ? 0.12 : 0.05),
                             Color.clear
                         ],
                         center: .topLeading,
@@ -59,21 +62,24 @@ struct DictationFeedbackView: View {
             panelShape
                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 0.8)
 
-            VStack(spacing: Spacing.lg) {
-                HStack(spacing: Spacing.md) {
-                    StageIndicatorRow(stage: model.stage, template: model.template)
-                    if model.template.isConversational,
-                       model.conversationTurnCount > 0 {
-                        ConversationTurnBadge(count: model.conversationTurnCount)
-                    }
-                }
-                WaveformBars(
-                    levels: model.rmsHistory,
-                    isRecording: model.stage == .recording
-                )
-            }
+            WaveformBars(
+                levels: model.rmsHistory,
+                stage: model.stage
+            )
             .padding(.horizontal, Spacing.xl)
-            .padding(.vertical, Spacing.lg)
+            .padding(.vertical, Spacing.md)
+
+            // Conversation turn badge — overlaid top-right corner
+            if model.template.isConversational, model.conversationTurnCount > 0 {
+                ConversationTurnBadge(count: model.conversationTurnCount)
+                    .padding(.trailing, Spacing.sm)
+                    .padding(.top, Spacing.sm)
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .topTrailing
+                    )
+            }
         }
         .frame(
             width: DictationFeedbackLayout.width,
@@ -81,102 +87,59 @@ struct DictationFeedbackView: View {
         )
         .clipShape(panelShape)
         .overlay {
-            GlowBorder(isActive: model.stage == .recording)
+            GlowBorder(isActive: model.stage == .recording || model.stage == .selectionCommand)
         }
         .shadow(color: Color.black.opacity(0.22), radius: 24, x: 0, y: 14)
         .animation(AnimationConfig.spring, value: model.stage)
     }
-}
 
-// MARK: - Stage Indicator Row
-
-private struct StageIndicatorRow: View {
-    let stage: DictationStage
-    let template: DictationTemplate
-
-    private var activeStages: [(DictationStage, String)] {
-        var stages: [(DictationStage, String)] = [
-            (.recording, "mic.fill"),
-            (.transcribing, "waveform")
-        ]
-        if template.requiresLLM {
-            stages.append((.processing, "gearshape"))
+    private func accentColor(for stage: DictationStage) -> Color {
+        switch stage {
+        case .selectionCommand: return .orange
+        case .recording: return FalaColors.accent
+        case .transcribing: return .cyan
+        case .processing, .inserting: return FalaColors.purple
+        case .done: return FalaColors.success
         }
-        stages.append(contentsOf: [
-            (.inserting, "doc.on.clipboard"),
-            (.done, "checkmark.circle")
-        ])
-        return stages
-    }
-
-    var body: some View {
-        let stages = activeStages
-        HStack(spacing: Spacing.md) {
-            ForEach(Array(stages.enumerated()), id: \.offset) { idx, item in
-                let (itemStage, icon) = item
-                let state = indicatorState(for: itemStage, order: stages.map(\.0))
-                Image(systemName: state == .completed ? "checkmark.circle.fill" : icon)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(state.color)
-                    .scaleEffect(state == .active ? 1.12 : 1.0)
-                    .animation(AnimationConfig.spring, value: stage)
-
-                if idx < stages.count - 1 {
-                    Capsule()
-                        .fill(state.lineColor)
-                        .frame(width: 16, height: 1)
-                }
-            }
-        }
-    }
-
-    private enum IndicatorState {
-        case pending
-        case active
-        case completed
-
-        var color: Color {
-            switch self {
-            case .pending:
-                return .secondary.opacity(0.4)
-            case .active:
-                return FalaColors.accent
-            case .completed:
-                return FalaColors.success
-            }
-        }
-
-        var lineColor: Color {
-            switch self {
-            case .completed:
-                return FalaColors.success.opacity(0.55)
-            case .active:
-                return FalaColors.accent.opacity(0.45)
-            case .pending:
-                return Color.secondary.opacity(0.18)
-            }
-        }
-    }
-
-    private func indicatorState(for itemStage: DictationStage, order: [DictationStage]) -> IndicatorState {
-        guard let current = order.firstIndex(of: stage),
-              let target = order.firstIndex(of: itemStage) else {
-            return .pending
-        }
-
-        if target < current { return .completed }
-        if target == current { return .active }
-        return .pending
     }
 }
 
 // MARK: - Waveform Bars
 
+/// Renders the waveform area. Visual appearance adapts to the dictation stage:
+/// - `.recording`            → dynamic bars driven by real-time RMS
+/// - `.transcribing`         → staggered breathing dots (cyan)
+/// - `.processing/.inserting`→ a bright dot traveling left-to-right (purple)
+/// - `.done`                 → faded breathing dots (fade-out handled by controller)
 private struct WaveformBars: View {
     let levels: [Float]
-    let isRecording: Bool
+    let stage: DictationStage
+
+    @State private var breathPhase: Double = 0
+    @State private var travelOffset: Double = 0
 
     var body: some View {
+        Group {
+            switch stage {
+            case .selectionCommand, .recording:
+                recordingCanvas
+            case .transcribing:
+                breathingCanvas
+            case .processing, .inserting:
+                travelCanvas
+            case .done:
+                breathingCanvas
+                    .opacity(0.3)
+            }
+        }
+        .frame(height: DictationFeedbackLayout.waveformHeight)
+        .onAppear { startAnimations() }
+        .onChange(of: stage) { _, _ in startAnimations() }
+    }
+
+    // MARK: Recording — dynamic bars driven by real RMS
+
+    private var recordingCanvas: some View {
         Canvas(opaque: false, colorMode: .extendedLinear, rendersAsynchronously: true) { context, size in
             let barCount = max(levels.count, 1)
             let totalSpacing = CGFloat(max(barCount - 1, 0)) * DictationFeedbackLayout.barSpacing
@@ -193,40 +156,107 @@ private struct WaveformBars: View {
                 startPoint: CGPoint(x: 0, y: size.height),
                 endPoint: CGPoint(x: 0, y: 0)
             )
-
             for (index, level) in levels.enumerated() {
                 let originX = startX + (CGFloat(index) * (
                     DictationFeedbackLayout.barWidth + DictationFeedbackLayout.barSpacing
                 ))
-                let path: Path
-
-                if isRecording {
-                    let easedLevel = pow(CGFloat(level), 0.82)
-                    let height = max((easedLevel * availableHeight), 7)
-                    let rect = CGRect(
-                        x: originX,
-                        y: baseline - (height / 2),
-                        width: DictationFeedbackLayout.barWidth,
-                        height: height
-                    )
-                    path = Path(
-                        roundedRect: rect,
-                        cornerRadius: DictationFeedbackLayout.barWidth / 2
-                    )
-                } else {
-                    let dotRect = CGRect(
-                        x: originX - ((DictationFeedbackLayout.inactiveDotSize - DictationFeedbackLayout.barWidth) / 2),
-                        y: baseline - (DictationFeedbackLayout.inactiveDotSize / 2),
-                        width: DictationFeedbackLayout.inactiveDotSize,
-                        height: DictationFeedbackLayout.inactiveDotSize
-                    )
-                    path = Path(ellipseIn: dotRect)
-                }
-
+                let easedLevel = pow(CGFloat(level), 0.82)
+                let height = max(easedLevel * availableHeight, 7)
+                let rect = CGRect(
+                    x: originX,
+                    y: baseline - height / 2,
+                    width: DictationFeedbackLayout.barWidth,
+                    height: height
+                )
+                let path = Path(roundedRect: rect, cornerRadius: DictationFeedbackLayout.barWidth / 2)
                 context.fill(path, with: gradient)
             }
         }
-        .frame(height: DictationFeedbackLayout.waveformHeight)
+    }
+
+    // MARK: Transcribing — dots that breathe with staggered phase
+
+    private var breathingCanvas: some View {
+        Canvas(opaque: false, colorMode: .extendedLinear, rendersAsynchronously: true) { context, size in
+            let barCount = max(levels.count, 1)
+            let totalSpacing = CGFloat(max(barCount - 1, 0)) * DictationFeedbackLayout.barSpacing
+            let totalWaveWidth = (CGFloat(barCount) * DictationFeedbackLayout.barWidth) + totalSpacing
+            let startX = max((size.width - totalWaveWidth) / 2, 0)
+            let baseline = size.height / 2
+            let gradient = GraphicsContext.Shading.linearGradient(
+                Gradient(colors: [
+                    Color.cyan.opacity(0.9),
+                    FalaColors.accent.opacity(0.7)
+                ]),
+                startPoint: CGPoint(x: 0, y: size.height),
+                endPoint: CGPoint(x: 0, y: 0)
+            )
+            for index in 0..<barCount {
+                let originX = startX + (CGFloat(index) * (
+                    DictationFeedbackLayout.barWidth + DictationFeedbackLayout.barSpacing
+                ))
+                let phaseOffset = (Double(index) / Double(max(barCount - 1, 1))) * .pi
+                let breathe = (sin(breathPhase + phaseOffset) + 1) / 2
+                let dotSize = DictationFeedbackLayout.inactiveDotSize * (0.55 + 0.45 * breathe)
+                let dotRect = CGRect(
+                    x: originX - (dotSize - DictationFeedbackLayout.barWidth) / 2,
+                    y: baseline - dotSize / 2,
+                    width: dotSize,
+                    height: dotSize
+                )
+                context.fill(Path(ellipseIn: dotRect), with: gradient)
+            }
+        }
+    }
+
+    // MARK: Processing/Inserting — bright dot traveling left → right
+
+    private var travelCanvas: some View {
+        Canvas(opaque: false, colorMode: .extendedLinear, rendersAsynchronously: true) { context, size in
+            let barCount = max(levels.count, 1)
+            let totalSpacing = CGFloat(max(barCount - 1, 0)) * DictationFeedbackLayout.barSpacing
+            let totalWaveWidth = (CGFloat(barCount) * DictationFeedbackLayout.barWidth) + totalSpacing
+            let startX = max((size.width - totalWaveWidth) / 2, 0)
+            let baseline = size.height / 2
+            let gradient = GraphicsContext.Shading.linearGradient(
+                Gradient(colors: [
+                    FalaColors.purple.opacity(0.95),
+                    FalaColors.accent.opacity(0.8),
+                    Color.cyan.opacity(0.6)
+                ]),
+                startPoint: CGPoint(x: 0, y: size.height),
+                endPoint: CGPoint(x: 0, y: 0)
+            )
+            for index in 0..<barCount {
+                let originX = startX + (CGFloat(index) * (
+                    DictationFeedbackLayout.barWidth + DictationFeedbackLayout.barSpacing
+                ))
+                let fraction = (Double(index) / Double(max(barCount - 1, 1)) + travelOffset)
+                    .truncatingRemainder(dividingBy: 1.0)
+                // Gaussian intensity — bright peak sweeps left to right
+                let dist = abs(fraction - 0.5)
+                let intensity = exp(-dist * dist * 18)
+                let dotSize = DictationFeedbackLayout.inactiveDotSize * (0.4 + 0.6 * intensity)
+                let dotRect = CGRect(
+                    x: originX - (dotSize - DictationFeedbackLayout.barWidth) / 2,
+                    y: baseline - dotSize / 2,
+                    width: dotSize,
+                    height: dotSize
+                )
+                context.fill(Path(ellipseIn: dotRect), with: gradient)
+            }
+        }
+    }
+
+    private func startAnimations() {
+        breathPhase = 0
+        travelOffset = 0
+        withAnimation(.linear(duration: 2.2).repeatForever(autoreverses: false)) {
+            breathPhase = .pi * 2
+        }
+        withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
+            travelOffset = 1.0
+        }
     }
 }
 
@@ -261,10 +291,10 @@ private struct GlowBorder: View {
             cornerRadius: DictationFeedbackLayout.cornerRadius,
             style: .continuous
         )
-
         shape
             .strokeBorder(gradient, lineWidth: isActive ? 1.6 : 0.85)
             .opacity(isActive ? 1.0 : 0.55)
+            // Amber glow for selectionCommand is derived from isActive
             .shadow(color: Color.cyan.opacity(isActive ? 0.24 : 0.08), radius: isActive ? 14 : 5)
             .shadow(color: FalaColors.purple.opacity(isActive ? 0.18 : 0.05), radius: isActive ? 24 : 8)
             .shadow(color: FalaColors.accent.opacity(isActive ? 0.16 : 0.04), radius: isActive ? 10 : 4)
