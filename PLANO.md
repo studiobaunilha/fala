@@ -151,6 +151,6 @@ Aprender correções automaticamente quando o usuário edita o texto recém-cola
 | Feature | Status | Release |
 |---------|--------|---------|
 | A — Selection + AI Command | ✅ Completa | v1.10 |
-| B — QuickEdit pós-resultado | ✅ Completa | v1.11 |
+| B — QuickEdit pós-resultado | ⏸️ Pausada | — |
 | C — Screenshot + AI Command | 🔲 Planejada | — |
 | D — Vocabulário Pessoal | 🔲 Futuro | — |

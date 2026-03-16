@@ -149,7 +149,7 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
-            showRefinementPanel(for: result, timeout: 5.0)
+            // Feature disabled: showRefinementPanel(for: result, timeout: 5.0)
         } else {
             showRefinementPanel(for: result, timeout: nil)
         }
@@ -165,14 +165,7 @@ extension DictationMode {
             text: text,
             near: NSEvent.mouseLocation,
             timeout: timeout,
-            onRefine: { [weak self] command in
-                guard let self else { return }
-                Task { @MainActor in
-                    await self.processRefinement(
-                        command, previousResult: text
-                    )
-                }
-            },
+            onRefine: nil, // Feature disabled for now
             onPaste: { [weak self] in
                 guard let self else { return }
                 Task { @MainActor in

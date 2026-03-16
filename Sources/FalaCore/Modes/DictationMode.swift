@@ -315,7 +315,7 @@ public final class DictationMode {
                 }
                 feedback?.model.stage = .done
                 feedback?.dismiss()
-                showRefinementPanel(for: finalText, timeout: 5.0)
+                // Feature disabled: showRefinementPanel(for: finalText, timeout: 5.0)
             }
 
             profiler.finish(ctx)
