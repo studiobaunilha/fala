@@ -7,9 +7,19 @@
 - Este arquivo registra apenas decisões fechadas, escopo aprovado, trabalho em andamento, backlog validado e itens concluídos.
 - Este arquivo não contém snippets de código, explicações de implementação, changelog, commits, releases ou relato histórico.
 - Mudanças de escopo devem entrar primeiro na definição do item correspondente; o checklist serve apenas para acompanhamento.
+- Premissas de engenharia, arquitetura e qualidade fazem parte deste arquivo quando já estiverem decididas para o projeto.
 
 ## Decisões fechadas
 - O `PLANO.md` é a fonte única de verdade do plano do projeto.
+- O projeto adota `zero warning` e `zero error` como barra de qualidade.
+- Nenhuma frente é considerada pronta sem passar `make lint`, `make test`, `make check`, build debug sem regressão funcional e validação manual do fluxo alterado.
+- Mudanças em catálogo MLX, loader MLX, warmup MLX ou seleção de modelo MLX exigem `make test-mlx`.
+- Strings visíveis ao usuário em `UI` e `App` devem sair do catálogo de localização.
+- Novas superfícies de UI devem usar tokens, componentes e primitivos compartilhados do design system sempre que existir abstração equivalente.
+- Rede, filesystem, `NSWorkspace`, permissões e integrações de sistema não devem ficar implementados diretamente em `View` ou extensão de `View`.
+- Providers, engines, tasks e identificadores centrais do domínio não devem proliferar como `String` sem tipo dedicado.
+- URLs externas, endpoints, subjects, nomes de arquivo e defaults de integração devem ficar centralizados.
+- Novos singletons só entram com justificativa explícita; o padrão preferido é injeção de dependência com protocolos e serviços.
 - O `Meeting Mode` entra como iniciativa principal nova do produto.
 - O escopo inicial de `Meeting Mode` é sessão completa: captura ao vivo, transcript em tempo real, histórico de sessão e notas pós-reunião.
 - O `Meeting Mode` não inclui copiloto em tempo real nem sugestões contextuais durante a chamada no primeiro release.
@@ -21,8 +31,50 @@
 - Em macOS abaixo de `14.2`, o `Meeting Mode` funciona apenas com microfone.
 - `Command Mode` não faz parte deste roadmap atual.
 - Busca em base de conhecimento e sugestões durante reunião ficam fora do escopo imediato.
+- `Arquitetura e qualidade` é uma frente transversal e deve acompanhar as próximas entregas sem bloquear refactors totais antes de evolução de produto.
+- A ordem de execução atual começa por `Vocabulário do Parakeet`, segue por `Onboarding`, depois `Edit Mode` e só então abre `Meeting Mode`.
+
+## Prioridade atual
+- Foco imediato: fechar `Vocabulário do Parakeet` com os guardrails mínimos de `Arquitetura e qualidade` necessários para essa frente.
+- Próxima frente: `Onboarding`.
+- Frente seguinte: `Edit Mode`.
+- Próxima grande frente nova: `Meeting Mode`.
+- Dependências do `Meeting Mode`: `Sessão e notas` depois da base de captura e transcript.
+- Consolidação posterior: `Activity Center e stats` depois que ditado, batch e reunião puderem ser unificados no mesmo histórico.
 
 ## Roadmap ativo
+
+### Arquitetura e qualidade
+Status: Active
+
+Definição:
+- O projeto deve reforçar separação entre UI, aplicação, domínio e infraestrutura.
+- O design system deve governar overlays, painéis e novas superfícies reutilizáveis.
+- A base técnica deve reduzir acoplamento, stringly-typed domain e dependência implícita de singletons.
+
+Inclui:
+- Extração de serviços e use cases hoje embutidos na UI.
+- Tipagem de providers, engines, tasks e identificadores centrais.
+- Centralização de defaults externos e constantes de integração.
+- Consolidação de tokens, componentes e primitivos de UI.
+- Expansão da cobertura automatizada para fluxos críticos.
+
+Não inclui:
+- Reescrita total da arquitetura.
+- Refactors cosméticos sem ganho estrutural.
+- Mudança de stack por preferência.
+
+Checklist:
+- [ ] Remover rede direta da camada de UI.
+- [ ] Remover IO de arquivo e integrações de sistema direta da camada de UI.
+- [ ] Introduzir tipos dedicados para transcription engine, LLM provider e tasks centrais.
+- [ ] Reduzir dependência de singletons nos fluxos centrais.
+- [ ] Centralizar URLs, endpoints, subjects, nomes de arquivo e defaults externos.
+- [ ] Fechar pontos cegos do audit de strings hard-coded em `UI` e `App`.
+- [ ] Migrar overlays e painéis para primitivos compartilhados do design system.
+- [ ] Consolidar tokens de espaçamento, tipografia, cor, tamanho e superfície usados fora do design system.
+- [ ] Adicionar cobertura automatizada para fluxos críticos ainda sem teste de interação.
+- [ ] Manter quality gates obrigatórios antes de fechar cada frente.
 
 ### Meeting Mode
 Status: Planned
@@ -172,6 +224,11 @@ Checklist:
 
 ### Vocabulário do Parakeet
 Status: Active
+
+Definição de prioridade:
+- Primeira frente de execução da fase atual.
+- Deve ser concluída antes de abrir `Onboarding` como foco principal.
+- Pode puxar apenas os ajustes de arquitetura e qualidade estritamente necessários para fechar essa entrega com segurança.
 
 Definição:
 - O Fala deve aprender correções do usuário e usar isso para melhorar o resultado futuro.

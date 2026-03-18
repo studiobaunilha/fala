@@ -2,23 +2,23 @@
 
 ![Fala](./MyIcon.iconset/icon_128x128.png)
 
-O **Fala** é uma ferramenta nativa, unificada e privada de transcrição de áudio e ditado inteligente para macOS. Foi construída do zero para **Apple Silicon (M1 ou superior)**, focando em entregar o máximo de performance, privacidade e utilidade sem depender de serviços externos na nuvem.
+O **Fala** é uma ferramenta nativa de transcrição de áudio e ditado inteligente para macOS. Foi construída do zero para **Apple Silicon (M1 ou superior)**, com foco em performance, privacidade e integração fluida com o sistema.
 
-Seja você um advogado analisando depoimentos, um médico documentando diagnósticos, ou um executivo lidando com reuniões confidenciais: seus áudios **nunca saem do seu Mac**.
+A transcrição principal roda localmente no dispositivo. Recursos opcionais de pós-processamento podem usar modelos locais ou provedores de API configurados pelo usuário.
 
 ---
 
 ## 1. O que o Fala resolve?
-Esqueça gravar áudios em um app, exportar, subir no navegador, esperar a transcrição e depois colar no ChatGPT para arrumar a pontuação.
+O Fala reduz o atrito entre gravar, transcrever, revisar e reutilizar conteúdo de áudio no macOS.
 
-Com o Fala, você tem um fluxo mágico e contínuo:
-1. **Dite em qualquer lugar:** Segure um atalho no teclado em qualquer aplicativo (Word, Slack, Mail, Xcode). Fale naturalmente. Ao soltar a tecla, o texto digitado magicamente aparece formatado sob o seu cursor.
-2. **Basta arrastar:** Solte um áudio (ou vídeo) gravado. O Fala transcreve e te entrega o texto pronto para revisar, resumir ou exportar em segundos.
+Fluxos principais:
+1. **Ditado em qualquer app:** Segure o atalho global, fale normalmente e solte para transcrever e inserir o texto no campo ativo.
+2. **Transcrição de arquivos:** Selecione um áudio ou vídeo local para transcrever, revisar, resumir ou exportar.
 
 ## 2. Principais Funcionalidades
 
 ### 1. 100% Offline e Privado no seu Mac
-* Utiliza o Motor Apple Neural Engine em conjunto com as melhores bibliotecas (`WhisperKit` e `FluidAudio`) para inferência local. Você não paga taxas por minuto de áudio ou mensalidades absurdas.
+* Utiliza o Apple Neural Engine em conjunto com `WhisperKit` e `FluidAudio` para inferência local de transcrição.
 * Compatibilidade testada em toda a linha **Apple Silicon (M1, M2, M3, M4)**.
 
 ### 2. Modos de Uso Inteligentes
@@ -26,7 +26,7 @@ Com o Fala, você tem um fluxo mágico e contínuo:
 * **Batch (Arquivos):** Transcreva gravações de reuniões, aulas, entrevistas ou vídeos. Suporta vários formatos (`.mp3`, `.m4a`, `.wav`, etc).
 
 ### 3. Pós-processamento com Inteligência Artificial
-Ninguém gosta de ler transcrições cheias de "éhhh", "hmmm" e pontuação quebrada. O Fala roteia o texto bruto para Modelos de Linguagem (Locais via MLX ou via API como Gemini e OpenAI) para limpar a sujeira.
+O Fala pode encaminhar o texto transcrito para modelos de linguagem, locais via MLX ou remotos via API, para limpeza, formatação e transformação do conteúdo.
 * [Limpar & Formatar:] Arruma gramática e remove vícios de linguagem.
 * [Resumir:] Extrai direto o assunto e tópicos chaves do áudio.
 * [Traduzir:] Dite em Português e o texto será inserido em Inglês.
@@ -35,7 +35,7 @@ Ninguém gosta de ler transcrições cheias de "éhhh", "hmmm" e pontuação que
 ### 4. Controle Total na sua Mão
 * **Acurácia vs Velocidade:** Ajuste fino sobre o motor Whisper (via *Greedy Decoding*). Otimize caso precise de transcrições instantâneas ou extremamente apuradas.
 * **Auto-Substituição:** Crie suas regras de dicionário. ("píar" vira "PR", "Jira" vira "JIRA"). 
-* **Prompt Global Hakeável:** Você quem manda na IA. Se não gostar do estilo de formatação do Fala, você pode editar o Prompt de Sistema raiz.
+* **Prompts por modo e provedor:** Ajuste o comportamento dos modos com prompts específicos para o fluxo e o provedor configurado.
 
 ---
 

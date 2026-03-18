@@ -56,15 +56,15 @@ make release BUMP=major    # 1.0 → 2.0   (breaking change)
 ```
 
 O script automaticamente:
-1. ✅ Verifica que a working tree está limpa
-2. ✅ Verifica chave EdDSA e wrangler
-3. ✅ Bumpa a versão + build em `Info.plist`
-4. ✅ Commita e cria tag `vX.Y`
-5. ✅ Builda release otimizado
-6. ✅ Cria `.app` + `.dmg`
-7. ✅ Assina com EdDSA
-8. ✅ Gera e faz upload do `appcast.xml` + `.dmg` para o R2
-9. ✅ Push do commit + tag
+1. Verifica que a working tree está limpa.
+2. Verifica chave EdDSA e `wrangler`.
+3. Atualiza versão e build em `Info.plist`.
+4. Cria commit e tag `vX.Y`.
+5. Gera o build otimizado de release.
+6. Cria `.app` e `.dmg`.
+7. Assina o artefato com EdDSA.
+8. Gera e publica `appcast.xml` e `.dmg` no R2.
+9. Faz push do commit e da tag.
 
 ### Testar sem publicar
 
@@ -73,35 +73,6 @@ make release-dry BUMP=patch
 ```
 
 Faz tudo localmente mas **não faz upload** e **reverte** o commit/tag automaticamente.
-
----
-
-## Canais: Preciso de Beta?
-
-### A resposta curta: **não agora**.
-
-Para um estúdio individual, beta channels adicionam complexidade sem benefício real até você ter um grupo de beta testers. A recomendação:
-
-| Fase do projeto | Abordagem |
-|---|---|
-| **Agora** (pré-launch / poucos usuários) | Canal único. Você É o beta tester. |
-| **Quando tiver ~50+ usuários** | Considere um canal beta |
-| **Quando tiver ~500+ usuários** | Beta + rollout gradual |
-
-### Se/quando quiser beta
-
-O Sparkle suporta canais nativamente. Basta adicionar `<sparkle:channel>beta</sparkle:channel>` no item do appcast:
-
-```xml
-<item>
-  <title>Versão 1.2-beta1</title>
-  <sparkle:channel>beta</sparkle:channel>
-  <sparkle:version>10</sparkle:version>
-  ...
-</item>
-```
-
-Usuários no canal padrão **não veem** esse item. Só precisaria adicionar um toggle no painel de Atualizações para o usuário optar pelo canal beta. Mas isso é futuro.
 
 ---
 
@@ -132,12 +103,12 @@ Cloudflare R2 (bucket: fala-updates)
 
 | Item | Status |
 |---|---|
-| Chave EdDSA privada | ✅ No Keychain do macOS (gerada via `generate_keys`) |
-| Chave EdDSA pública | ✅ Em `Info.plist` (`SUPublicEDKey`) |
-| DMGs assinados | ✅ Cada release é assinada com `sign_update` |
-| HTTPS | ✅ R2 serve via HTTPS |
+| Chave EdDSA privada | No Keychain do macOS, gerada via `generate_keys` |
+| Chave EdDSA pública | Em `Info.plist` (`SUPublicEDKey`) |
+| DMGs assinados | Cada release é assinada com `sign_update` |
+| HTTPS | O R2 serve os artefatos via HTTPS |
 
-> **⚠️ Importante**: A chave privada vive no seu Keychain. Se perder (trocar de Mac), não consegue publicar updates que o Sparkle aceite. Faça backup:
+> **Importante:** A chave privada vive no seu Keychain. Se ela for perdida, você não conseguirá publicar updates que o Sparkle aceite. Faça backup:
 > ```bash
 > .build/artifacts/sparkle/Sparkle/bin/generate_keys -p
 > ```
@@ -147,11 +118,9 @@ Cloudflare R2 (bucket: fala-updates)
 
 ## Checklist Rápido de Release
 
-```
-□ Código testado e commitado (working tree limpa)
-□ make release BUMP=patch|minor|major
-□ Testar: abrir o app antigo → Ajustes → Atualizações → Verificar Agora
-```
+- [ ] Código testado e commitado, com working tree limpa.
+- [ ] Executar `make release BUMP=patch|minor|major`.
+- [ ] Validar a atualização no app anterior em `Ajustes → Atualizações → Verificar Agora`.
 
 ---
 

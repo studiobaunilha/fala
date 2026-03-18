@@ -104,4 +104,61 @@ final class SettingsCleanupSourceTests: XCTestCase {
             }
         }
     }
+
+    func testOfficialDocsNoLongerAdvertiseRemovedGlobalPromptSurface() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let files = [
+            "README.md",
+            "docs/SPEC.md",
+            "docs/WEBSITE_SPEC.md",
+            "docs/RELEASE.md"
+        ].map { repoRoot.appendingPathComponent($0) }
+
+        let bannedSnippets = [
+            "Prompt Global Hakeável",
+            "Prompt de Sistema raiz",
+            "global prompt"
+        ]
+
+        for fileURL in files {
+            let source = try String(contentsOf: fileURL, encoding: .utf8)
+            for snippet in bannedSnippets {
+                XCTAssertFalse(
+                    source.localizedCaseInsensitiveContains(snippet),
+                    "\(fileURL.lastPathComponent) should not advertise removed global prompt surface '\(snippet)'"
+                )
+            }
+        }
+    }
+
+    func testOfficialDocsAvoidEmojiMarkers() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        let files = [
+            "README.md",
+            "CHANGELOG.md",
+            "docs/SPEC.md",
+            "docs/RELEASE.md",
+            "docs/LICENSING_BACKEND_CONTRACT.md"
+        ].map { repoRoot.appendingPathComponent($0) }
+
+        let bannedSnippets = ["✅", "⚠️", "🚀", "💡", "🛠"]
+
+        for fileURL in files {
+            let source = try String(contentsOf: fileURL, encoding: .utf8)
+            for snippet in bannedSnippets {
+                XCTAssertFalse(
+                    source.contains(snippet),
+                    "\(fileURL.lastPathComponent) should not contain emoji marker '\(snippet)'"
+                )
+            }
+        }
+    }
 }

@@ -15,6 +15,30 @@ final class QualityGatesSourceAuditTests: XCTestCase {
         XCTAssertTrue(source.contains("test-mlx:"))
     }
 
+    func testSwiftTestRunsWithWarningsAsErrors() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let fileURL = repoRoot.appendingPathComponent("scripts/swift-env.sh")
+        let source = try String(contentsOf: fileURL, encoding: .utf8)
+
+        XCTAssertTrue(source.contains("-Xswiftc -warnings-as-errors"))
+    }
+
+    func testXcodeBuildTreatsWarningsAsErrors() throws {
+        let repoRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let fileURL = repoRoot.appendingPathComponent("scripts/build-app.sh")
+        let source = try String(contentsOf: fileURL, encoding: .utf8)
+
+        XCTAssertTrue(source.contains("SWIFT_TREAT_WARNINGS_AS_ERRORS=YES"))
+        XCTAssertTrue(source.contains("GCC_TREAT_WARNINGS_AS_ERRORS=YES"))
+        XCTAssertTrue(source.contains("CLANG_TREAT_WARNINGS_AS_ERRORS=YES"))
+    }
+
     func testDedicatedMLXSmokeScriptRunsPackagedAppBinary() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

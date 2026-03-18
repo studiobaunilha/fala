@@ -19,6 +19,7 @@ run_swift_test() {
         -Xswiftc "$XCTEST_FRAMEWORK_DIR" \
         -Xswiftc -F \
         -Xswiftc "$XCTEST_PRIVATE_FRAMEWORK_DIR" \
+        -Xswiftc -warnings-as-errors \
         "$@"
 }
 

@@ -2,41 +2,25 @@ import Foundation
 import XCTest
 
 final class LocalizedUISourceAuditTests: XCTestCase {
-    // swiftlint:disable:next function_body_length
-    func testCriticalViewsDoNotContainHardcodedUserFacingStrings() throws {
+    func testUISourcesDoNotContainHardcodedUserFacingStrings() throws {
         let repoRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
 
-        let files = [
-            "Sources/FalaCore/App/AppMainMenu.swift",
-            "Sources/FalaCore/UI/StatusBarController.swift",
-            "Sources/FalaCore/UI/SettingsView.swift",
-            "Sources/FalaCore/UI/SettingsView+Ext.swift",
-            "Sources/FalaCore/UI/SettingsView+About.swift",
-            "Sources/FalaCore/UI/SettingsView+TranscriptionModels.swift",
-            "Sources/FalaCore/UI/SettingsView+LLM.swift",
-            "Sources/FalaCore/UI/SettingsView+LLMProviders.swift",
-            "Sources/FalaCore/UI/SettingsView+License.swift",
-            "Sources/FalaCore/UI/SettingsView+Modes.swift",
-            "Sources/FalaCore/UI/SettingsView+Updates.swift",
-            "Sources/FalaCore/UI/DesignSystem/CatalogActionViews.swift",
-            "Sources/FalaCore/UI/DesignSystem/MLXCatalogViews.swift",
-            "Sources/FalaCore/UI/DesignSystem/PromptEditorViews.swift",
-            "Sources/FalaCore/UI/DesignSystem/WhisperCatalogViews.swift",
-            "Sources/FalaCore/UI/SettingsWindowController.swift",
-            "Sources/FalaCore/UI/TranscribeWindowController.swift",
-            "Sources/FalaCore/UI/TranscribeView.swift",
-            "Sources/FalaCore/UI/TranscribeView+Ext.swift",
-            "Sources/FalaCore/UI/TranscribeView+Queue.swift"
-        ].map { repoRoot.appendingPathComponent($0) }
+        let files = try swiftFiles(
+            in: [
+                repoRoot.appendingPathComponent("Sources/FalaCore/UI"),
+                repoRoot.appendingPathComponent("Sources/FalaCore/App")
+            ]
+        )
 
         let uiLiteralPattern =
-            #"\b(?:Text|Button|Label|Section|Picker|LabeledContent|"#
-            + #"TextField|SecureField|navigationTitle|help)\(\s*"([^"]+)""#
-        let menuLiteralPattern = #"NSMenuItem\s*\(\s*title:\s*"([^"]+)""#
-        let patterns = [uiLiteralPattern, menuLiteralPattern]
+            #"\b(?:Text|Button|Label|Section|Picker|LabeledContent|TextField|SecureField|Toggle|"#
+            + #"navigationTitle|help|alert|confirmationDialog)\(\s*"([^"]+)""#
+        let menuItemLiteralPattern = #"NSMenuItem\s*\(\s*title:\s*"([^"]+)""#
+        let menuLiteralPattern = #"NSMenu\s*\(\s*title:\s*"([^"]+)""#
+        let patterns = [uiLiteralPattern, menuItemLiteralPattern, menuLiteralPattern]
 
         let regexes = try patterns.map { try NSRegularExpression(pattern: $0) }
         var violations: [String] = []
@@ -54,16 +38,44 @@ final class LocalizedUISourceAuditTests: XCTestCase {
                     }
 
                     let literal = String(source[range]).trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !literal.isEmpty else { continue }
-                    guard !literal.contains(#"\("#) else { continue }
-                    violations.append("\(fileURL.lastPathComponent): \(literal)")
+                    guard !shouldIgnoreLiteral(literal) else { continue }
+                    let relativePath = fileURL.path.replacingOccurrences(of: repoRoot.path + "/", with: "")
+                    violations.append("\(relativePath): \(literal)")
                 }
             }
         }
 
         XCTAssertTrue(
             violations.isEmpty,
-            "Critical UI files still contain raw user-facing strings:\n\(violations.joined(separator: "\n"))"
+            "UI/App sources still contain raw user-facing strings:\n\(violations.joined(separator: "\n"))"
         )
+    }
+
+    private func swiftFiles(in roots: [URL]) throws -> [URL] {
+        var files: [URL] = []
+
+        for root in roots {
+            let enumerator = FileManager.default.enumerator(
+                at: root,
+                includingPropertiesForKeys: nil
+            )
+
+            while let fileURL = enumerator?.nextObject() as? URL {
+                guard fileURL.pathExtension == "swift" else { continue }
+                files.append(fileURL)
+            }
+        }
+
+        return files.sorted { $0.path < $1.path }
+    }
+
+    private func shouldIgnoreLiteral(_ literal: String) -> Bool {
+        let trimmed = literal.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return true }
+        guard !trimmed.contains(#"\("#) else { return true }
+
+        return !trimmed.unicodeScalars.contains { scalar in
+            CharacterSet.alphanumerics.contains(scalar)
+        }
     }
 }

@@ -153,7 +153,7 @@ private extension SettingsView {
             }
             
             Toggle(L10n("Forçar uso da Neural Engine (Experimental)"), isOn: $settings.forceWhisperNeuralEngine)
-                .onChange(of: settings.forceWhisperNeuralEngine) { _ in
+                .onChange(of: settings.forceWhisperNeuralEngine) {
                     settings.save()
                 }
 

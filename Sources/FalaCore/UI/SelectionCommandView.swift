@@ -53,7 +53,7 @@ struct SelectionCommandView: View {
                 .foregroundStyle(.secondary)
 
             TextField(
-                "O que fazer com o texto?",
+                L10n("O que fazer com o texto?"),
                 text: $command
             )
             .textFieldStyle(.plain)
