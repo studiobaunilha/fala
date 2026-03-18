@@ -22,20 +22,8 @@ extension SettingsView {
         let correct = newCorrect.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !variant.isEmpty, !correct.isEmpty else { return }
-
-        // If a rule for this replacement word already exists, add the variant to it
-        if let idx = settings.replacementRules.firstIndex(where: {
-            $0.replacement.caseInsensitiveCompare(correct) == .orderedSame
-        }) {
-            if !settings.replacementRules[idx].variants.contains(where: {
-                $0.caseInsensitiveCompare(variant) == .orderedSame
-            }) {
-                settings.replacementRules[idx].variants.append(variant)
-            }
-        } else {
-            settings.replacementRules.append(
-                ReplacementRule(variants: [variant], replacement: correct)
-            )
+        guard settings.addReplacementRule(variant: variant, replacement: correct) else {
+            return
         }
         newIncorrect = ""
         newCorrect = ""
@@ -132,7 +120,7 @@ extension SettingsView {
                         Spacer()
                         Button(role: .destructive) {
                             withAnimation {
-                                settings.replacementRules.removeAll { $0.id == rule.id }
+                                _ = settings.removeReplacementRule(id: rule.id)
                             }
                         } label: {
                             Image(systemName: "trash")
@@ -148,10 +136,10 @@ extension SettingsView {
                                     .foregroundStyle(.secondary)
                                 Button {
                                     withAnimation {
-                                        rule.variants.removeAll { $0 == variant }
-                                        if rule.variants.isEmpty {
-                                            settings.replacementRules.removeAll { $0.id == rule.id }
-                                        }
+                                        _ = settings.removeReplacementVariant(
+                                            variant,
+                                            fromRuleID: rule.id
+                                        )
                                     }
                                 } label: {
                                     Image(systemName: "xmark.circle.fill")

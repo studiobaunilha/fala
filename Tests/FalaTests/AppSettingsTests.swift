@@ -166,4 +166,41 @@ final class AppSettingsTests: XCTestCase {
             "mlx-community/gemma-3-text-4b-it-4bit"
         )
     }
+
+    @MainActor
+    func testAddReplacementRuleUsesUnifiedVocabularyRules() {
+        let settings = AppSettings(
+            config: AppConfig(),
+            transcriber: Transcriber(modelName: AppConfig().activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        let didChange = settings.addReplacementRule(
+            variant: "git hub",
+            replacement: "GitHub"
+        )
+
+        XCTAssertTrue(didChange)
+        XCTAssertEqual(settings.replacementRules.count, 1)
+        XCTAssertEqual(settings.replacementRules[0].variants, ["git hub"])
+        XCTAssertEqual(settings.replacementRules[0].replacement, "GitHub")
+    }
+
+    @MainActor
+    func testRemoveReplacementVariantDeletesRuleWhenLastVariantIsRemoved() {
+        var config = AppConfig()
+        let rule = ReplacementRule(variants: ["jirah"], replacement: "JIRA")
+        config.replacementRules = [rule]
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        let didChange = settings.removeReplacementVariant("JIRAH", fromRuleID: rule.id)
+
+        XCTAssertTrue(didChange)
+        XCTAssertTrue(settings.replacementRules.isEmpty)
+    }
 }
