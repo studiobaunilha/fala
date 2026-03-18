@@ -116,7 +116,6 @@ public final class DictationMode {
     }
 
     // MARK: – Internal (accessible from tests via @testable import)
-
     func startRecording() async {
         guard !isRecording else { return }
         if let issue = readiness?.primaryIssueForDictation() {
@@ -315,7 +314,23 @@ public final class DictationMode {
                 }
                 feedback?.model.stage = .done
                 feedback?.dismiss()
-                // Feature disabled: showRefinementPanel(for: finalText, timeout: 5.0)
+
+                // Feature D: Start monitoring for manual corrections
+                Task { @MainActor in
+                    TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
+                        Task { @MainActor in
+                            CorrectionLearningController.shared.promptForCorrection(
+                                original: oldText,
+                                corrected: newText
+                            ) {
+                                // User clicked "Salvar" -> Create Rule
+                                var config = AppConfig()
+                                config.addNewReplacementRule(from: oldText, to: newText)
+                            }
+                        }
+                    }
+                    TextCorrectionObserver.shared.startMonitoring(insertedText: finalText)
+                }
             }
 
             profiler.finish(ctx)
@@ -325,10 +340,8 @@ public final class DictationMode {
             profiler.finish(ctx)
             feedback?.dismiss()
         }
-
         statusBar?.setState(.idle)
     }
-
     private func profiledProcessText(
         _ text: String,
         config: AppConfig,
@@ -339,7 +352,6 @@ public final class DictationMode {
         var finalText = profiler.measure(.replacementRules) {
             ReplacementRule.applyAll(text, rules: config.replacementRules)
         }
-
         let modeConfig = config.getEffectiveConfig(for: template)
         let basePrompt = modeConfig.prompt
 
@@ -348,15 +360,11 @@ public final class DictationMode {
                 basePrompt: basePrompt, template: template,
                 modeConfig: modeConfig, config: config
             )
-            // Include conversation history for providers that support it.
-            // Apple Intelligence is excluded — its ~3B model handles
-            // multi-turn poorly; each call is a standalone exchange.
             let useMemory = template.isConversational
                 && PromptDefaults.supportsConversationMemory(modeConfig.provider)
             let history = useMemory
                 ? conversationMemory.messagesForAPI()
                 : []
-            // Wrap user text with selection context when available.
             let userText = Self.wrapWithSelectionContext(
                 text, selection: selectionContext
             )

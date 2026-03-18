@@ -30,7 +30,6 @@ extension DictationMode {
         }
         return true
     }
-
     static func wrapWithSelectionContext(
         _ text: String, selection: String?
     ) -> String {
@@ -149,7 +148,18 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
-            // Feature disabled: showRefinementPanel(for: result, timeout: 5.0)
+
+            // Feature D: Start monitoring for manual corrections
+            TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
+                CorrectionLearningController.shared.promptForCorrection(
+                    original: oldText,
+                    corrected: newText
+                ) {
+                    var config = AppConfig()
+                    config.addNewReplacementRule(from: oldText, to: newText)
+                }
+            }
+            TextCorrectionObserver.shared.startMonitoring(insertedText: result)
         } else {
             showRefinementPanel(for: result, timeout: nil)
         }
@@ -170,6 +180,18 @@ extension DictationMode {
                 guard let self else { return }
                 Task { @MainActor in
                     await self.inserter.insert(text)
+
+                    // Feature D: Start monitoring for manual corrections after manual paste
+                    TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
+                        CorrectionLearningController.shared.promptForCorrection(
+                            original: oldText,
+                            corrected: newText
+                        ) {
+                            var config = AppConfig()
+                            config.addNewReplacementRule(from: oldText, to: newText)
+                        }
+                    }
+                    TextCorrectionObserver.shared.startMonitoring(insertedText: text)
                 }
             }
         )
@@ -200,6 +222,22 @@ extension DictationMode {
             feedback?.dismiss()
             statusBar?.setState(.idle)
             showRefinementPanel(for: result, timeout: 5.0)
+
+            // Feature D: Start monitoring for manual corrections
+            Task { @MainActor in
+                TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
+                    Task { @MainActor in
+                        CorrectionLearningController.shared.promptForCorrection(
+                            original: oldText,
+                            corrected: newText
+                        ) {
+                            var config = AppConfig()
+                            config.addNewReplacementRule(from: oldText, to: newText)
+                        }
+                    }
+                }
+                TextCorrectionObserver.shared.startMonitoring(insertedText: result)
+            }
         } else {
             showRefinementPanel(for: result, timeout: nil)
         }
@@ -213,8 +251,8 @@ extension DictationMode {
         previousMessages: [[String: String]] = [],
         conversational: Bool = false
     ) async throws -> String {
-        if let llmProcessor {
-            return try await llmProcessor(text, prompt, config, effective)
+        if let processor = self.llmProcessor {
+            return try await processor(text, prompt, config, effective)
         }
         return try await dispatchLLM(
             text: text, prompt: prompt,

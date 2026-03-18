@@ -190,4 +190,57 @@ final class AppConfigTests: XCTestCase {
         XCTAssertNotNil(json?["appLanguage"])
         XCTAssertNotNil(json?["transcriptionLanguage"])
     }
+
+    // MARK: – Vocabulary learning
+
+    func testUpsertReplacementRuleAppendsNewRule() {
+        var config = AppConfig()
+
+        let didChange = config.upsertReplacementRule(from: "jirah", to: "JIRA")
+
+        XCTAssertTrue(didChange)
+        XCTAssertEqual(config.replacementRules.count, 1)
+        XCTAssertEqual(config.replacementRules[0].variants, ["jirah"])
+        XCTAssertEqual(config.replacementRules[0].replacement, "JIRA")
+    }
+
+    func testUpsertReplacementRuleMergesVariantIntoExistingReplacement() {
+        var config = AppConfig()
+        config.replacementRules = [
+            ReplacementRule(variants: ["git hub"], replacement: "GitHub")
+        ]
+
+        let didChange = config.upsertReplacementRule(from: "github", to: "github")
+
+        XCTAssertFalse(didChange, "Identity replacements should be ignored before merge.")
+
+        let merged = config.upsertReplacementRule(from: "git-hub", to: "github")
+
+        XCTAssertTrue(merged)
+        XCTAssertEqual(config.replacementRules.count, 1)
+        XCTAssertEqual(config.replacementRules[0].replacement, "GitHub")
+        XCTAssertEqual(config.replacementRules[0].variants, ["git hub", "git-hub"])
+    }
+
+    func testUpsertReplacementRuleSkipsDuplicateVariantCaseInsensitively() {
+        var config = AppConfig()
+        config.replacementRules = [
+            ReplacementRule(variants: ["jirah"], replacement: "JIRA")
+        ]
+
+        let duplicateVariant = config.upsertReplacementRule(from: "JIRAH", to: "jira")
+
+        XCTAssertFalse(duplicateVariant)
+        XCTAssertEqual(config.replacementRules.count, 1)
+        XCTAssertEqual(config.replacementRules[0].variants, ["jirah"])
+    }
+
+    func testUpsertReplacementRuleIgnoresIdentityAfterTrimming() {
+        var config = AppConfig()
+
+        let didChange = config.upsertReplacementRule(from: "  GitHub  ", to: "github")
+
+        XCTAssertFalse(didChange)
+        XCTAssertTrue(config.replacementRules.isEmpty)
+    }
 }

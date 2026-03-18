@@ -145,6 +145,22 @@
         }
       }
     },
+    "Aprender correção?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learn this correction?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Aprender esta corrección?"
+          }
+        }
+      }
+    },
     "A seleção antiga %@ foi migrada para %@.": {
       "localizations": {
         "en": {
@@ -3395,7 +3411,20 @@
       }
     },
     "Ignorar": {
-      "localizations": {}
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignore"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorar"
+          }
+        }
+      }
     },
     "Incompatível": {
       "localizations": {
@@ -4920,6 +4949,22 @@
         }
       }
     },
+    "O que fazer com o texto?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What should be done with the text?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué se debe hacer con el texto?"
+          }
+        }
+      }
+    },
     "O provedor e o modelo de IA do modo atual já estão válidos.": {
       "localizations": {
         "en": {
@@ -5271,6 +5316,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "O selecciona uno o más archivos para iniciar la transcripción por lotes."
+          }
+        }
+      }
+    },
+    "Para:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para:"
           }
         }
       }
@@ -6410,6 +6471,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Guardar transcripciones"
+          }
+        }
+      }
+    },
+    "Salvar regra": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save rule"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar regla"
           }
         }
       }
@@ -7978,6 +8055,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desactivado, muestra el resultado para revisión antes de pegar."
+          }
+        }
+      }
+    },
+    "De:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De:"
           }
         }
       }
