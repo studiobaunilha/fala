@@ -1,25 +1,13 @@
 import XCTest
 @testable import FalaCore
 
-@MainActor
-final class TextCorrectionObserverTests: XCTestCase {
-
-    override func setUp() async throws {
-        try await super.setUp()
-        TextCorrectionObserver.shared.stopMonitoring()
-        TextCorrectionObserver.shared.onCorrectionDetected = nil
-    }
-
-    override func tearDown() async throws {
-        TextCorrectionObserver.shared.stopMonitoring()
-        TextCorrectionObserver.shared.onCorrectionDetected = nil
-        try await super.tearDown()
-    }
+final class CorrectionLearningAnalyzerTests: XCTestCase {
+    private let analyzer = CorrectionLearningAnalyzer()
 
     func testSingleWordCorrection() {
         let old = "O gato pulou"
         let new = "O cachorro pulou"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "gato")
@@ -29,7 +17,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testPureInsertionReturnsNil() {
         let old = "O rato roeu a roupa"
         let new = "O grande rato roeu a roupa"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertNil(result)
@@ -38,7 +26,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testPrefixWordCorrection() {
         let old = "infelizmente isso aconteceu"
         let new = "felizmente isso aconteceu"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "infelizmente")
@@ -48,7 +36,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testTrailingCorrection() {
         let old = "vamos correr rapido"
         let new = "vamos correr rapidamente"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "rapido")
@@ -58,7 +46,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testPunctuationDifferencesStillReturnCoreCorrection() {
         let old = "O gato pulou."
         let new = "O cachorro pulou!"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "gato")
@@ -68,7 +56,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testIdenticalStringsReturnNil() {
         let old = "texto igual"
         let new = "texto igual"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertNil(result)
@@ -77,7 +65,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testTooManyChangesReturnsNil() {
         let old = "O gato preto cruzou a estrada de barro"
         let new = "A vaca branca pulou a cerca de madeira"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertNil(result)
@@ -86,7 +74,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testMidWordCharacterReplacement() {
         let old = "A batata estava boa"
         let new = "A batada estava boa"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "batata")
@@ -96,7 +84,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testMultiWordReplacementIsSupported() {
         let old = "Precisamos falar com o git hub hoje"
         let new = "Precisamos falar com o GitHub hoje"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertEqual(result?.original, "git hub")
@@ -106,14 +94,14 @@ final class TextCorrectionObserverTests: XCTestCase {
     func testPunctuationOnlyChangesReturnNil() {
         let old = "O gato pulou."
         let new = "O gato pulou!"
-        let result = TextCorrectionObserver.shared.extractCorrectionBase(
+        let result = analyzer.extractCorrectionBase(
             oldText: old, newText: new
         )
         XCTAssertNil(result)
     }
 
     func testCorrectionBelongsToInsertedTextWhenPhraseIsPresent() {
-        let belongs = TextCorrectionObserver.shared.correctionBelongsToInsertedText(
+        let belongs = analyzer.correctionBelongsToInsertedText(
             "git hub",
             insertedText: "Precisamos revisar o git hub hoje"
         )
@@ -122,7 +110,7 @@ final class TextCorrectionObserverTests: XCTestCase {
     }
 
     func testCorrectionBelongsToInsertedTextRejectsUnrelatedPhrase() {
-        let belongs = TextCorrectionObserver.shared.correctionBelongsToInsertedText(
+        let belongs = analyzer.correctionBelongsToInsertedText(
             "planilha",
             insertedText: "Precisamos revisar o git hub hoje"
         )
@@ -131,11 +119,32 @@ final class TextCorrectionObserverTests: XCTestCase {
     }
 
     func testCorrectionBelongsToInsertedTextIsCaseAndAccentInsensitive() {
-        let belongs = TextCorrectionObserver.shared.correctionBelongsToInsertedText(
+        let belongs = analyzer.correctionBelongsToInsertedText(
             "acao rapida",
             insertedText: "Precisamos de uma Ação Rápida hoje"
         )
 
         XCTAssertTrue(belongs)
+    }
+
+    func testLearnedCorrectionReturnsNilWhenChangeDoesNotBelongToInsertedText() {
+        let learned = analyzer.learnedCorrection(
+            from: "texto com git hub",
+            to: "texto com GitHub",
+            insertedText: "texto sem relação"
+        )
+
+        XCTAssertNil(learned)
+    }
+
+    func testLearnedCorrectionUsesInsertedTextAsOwnershipCheck() {
+        let learned = analyzer.learnedCorrection(
+            from: "texto com git hub",
+            to: "texto com GitHub",
+            insertedText: "texto com git hub"
+        )
+
+        XCTAssertEqual(learned?.original, "git hub")
+        XCTAssertEqual(learned?.corrected, "GitHub")
     }
 }

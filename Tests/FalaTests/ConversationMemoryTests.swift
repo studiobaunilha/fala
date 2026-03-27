@@ -92,20 +92,20 @@ final class ConversationMemoryTests: XCTestCase {
 
     func testContextKeyChangeResetsMemory() {
         let memory = ConversationMemory()
-        memory.append(userText: "Q1", assistantResponse: "A1", contextKey: "askAI::openai")
+        memory.append(userText: "Q1", assistantResponse: "A1", contextKey: "conversation::openai")
         XCTAssertEqual(memory.turnCount, 1)
         // Same key preserves history
-        memory.append(userText: "Q2", assistantResponse: "A2", contextKey: "askAI::openai")
+        memory.append(userText: "Q2", assistantResponse: "A2", contextKey: "conversation::openai")
         XCTAssertEqual(memory.turnCount, 2)
         // Different key resets before appending
-        memory.append(userText: "Q3", assistantResponse: "A3", contextKey: "askAI::gemini")
+        memory.append(userText: "Q3", assistantResponse: "A3", contextKey: "conversation::gemini")
         XCTAssertEqual(memory.turnCount, 1)
         XCTAssertEqual(memory.turns[0].content, "Q3")
     }
 
     func testNilContextKeyDoesNotReset() {
         let memory = ConversationMemory()
-        memory.append(userText: "Q1", assistantResponse: "A1", contextKey: "askAI::mlx")
+        memory.append(userText: "Q1", assistantResponse: "A1", contextKey: "conversation::mlx")
         memory.append(userText: "Q2", assistantResponse: "A2")
         XCTAssertEqual(memory.turnCount, 2)
     }

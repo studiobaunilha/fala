@@ -188,7 +188,7 @@ final class SelectionCaptureTests: XCTestCase, @unchecked Sendable {
         )
     }
 
-    func testSelectionCommandFallsBackOnLLMError() async throws {
+    func testSelectionCommandDoesNotInsertVoiceInstructionWhenLLMIsUnavailable() async throws {
         let recorder = MockRecorder()
         let transcriber = MockTranscriber()
         let inserter = MockInserter()
@@ -218,11 +218,7 @@ final class SelectionCaptureTests: XCTestCase, @unchecked Sendable {
         await mode.startRecording()
         await mode.stopAndTranscribe()
 
-        // Falls back to raw transcription when LLM fails
-        XCTAssertEqual(
-            inserter.insertedTexts.first,
-            "Resuma isso para mim"
-        )
+        XCTAssertTrue(inserter.insertedTexts.isEmpty)
     }
 
     func testNoSelectionKeepsNormalRawFlow() async throws {

@@ -86,11 +86,11 @@ public enum KeychainHelper {
     public static func save(token: String, for account: String) throws {
         guard let data = token.data(using: .utf8) else { return }
 
-        // Secure baseline matching query
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
+            kSecUseDataProtectionKeychain as String: true
         ]
 
         // Check if item already exists
@@ -128,16 +128,21 @@ public enum KeychainHelper {
             kSecAttrService as String: serviceName,
             kSecAttrAccount as String: account,
             kSecReturnData as String: kCFBooleanTrue as Any,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecUseDataProtectionKeychain as String: true
         ]
 
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        
+
+        if status == errSecItemNotFound, let migrated = try migrateFromLoginKeychain(account: account) {
+            return migrated
+        }
+
         guard status != errSecItemNotFound else {
             return nil
         }
-        
+
         guard status == errSecSuccess else {
             throw KeychainError.unhandledError(status: status)
         }
@@ -146,6 +151,33 @@ public enum KeychainHelper {
             throw KeychainError.unexpectedData
         }
 
+        return token
+    }
+
+    /// Migrates an item from the legacy login keychain to the Data Protection keychain.
+    /// Returns the migrated value, or nil if nothing was found in the legacy keychain.
+    private static func migrateFromLoginKeychain(account: String) throws -> String? {
+        let legacyQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: kCFBooleanTrue as Any,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(legacyQuery as CFDictionary, &item)
+
+        guard status == errSecSuccess,
+              let data = item as? Data,
+              let token = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        // Save to the Data Protection keychain
+        try save(token: token, for: account)
+        // Remove from the legacy login keychain
+        SecItemDelete(legacyQuery as CFDictionary)
         return token
     }
 
@@ -165,7 +197,8 @@ public enum KeychainHelper {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
-            kSecAttrAccount as String: account
+            kSecAttrAccount as String: account,
+            kSecUseDataProtectionKeychain as String: true
         ]
 
         let status = SecItemDelete(query as CFDictionary)

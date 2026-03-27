@@ -81,6 +81,62 @@ final class RuntimeReadinessEvaluatorTests: XCTestCase {
             $0.kind == .mlxModelMissing && $0.title == "Modelo MLX necessário"
         })
     }
+
+    func testQuickMenuKeepsCustomVisibleWhenLLMIsNotReady() {
+        var config = AppConfig()
+        config.llmProvider = "gemini"
+        config.geminiKey = ""
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: ReadinessPermissionProvider()
+        )
+
+        let modes = settings.readiness.quickMenuModes()
+
+        XCTAssertTrue(modes.contains(.raw))
+        XCTAssertTrue(modes.contains(.custom))
+        XCTAssertFalse(modes.contains(.askAI))
+    }
+
+    func testSelectionCommandUsesOnlyActiveProviderReadiness() {
+        var config = AppConfig()
+        config.llmProvider = "openai"
+        config.openAIKey = "test-key"
+        config.geminiKey = ""
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: ReadinessPermissionProvider()
+        )
+
+        let issues = settings.readiness.issuesForSelectionCommand()
+
+        XCTAssertTrue(issues.isEmpty)
+    }
+
+    func testSelectionCommandReportsMissingCloudKeyForActiveProvider() {
+        var config = AppConfig()
+        config.llmProvider = "gemini"
+        config.geminiKey = ""
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: ReadinessPermissionProvider()
+        )
+
+        let issues = settings.readiness.issuesForSelectionCommand()
+
+        XCTAssertTrue(issues.contains {
+            $0.kind == .cloudAPIKeyMissing && $0.title == "Chave Gemini necessária"
+        })
+    }
 }
 
 @MainActor

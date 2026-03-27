@@ -203,4 +203,50 @@ final class AppSettingsTests: XCTestCase {
         XCTAssertTrue(didChange)
         XCTAssertTrue(settings.replacementRules.isEmpty)
     }
+
+    @MainActor
+    func testAddParakeetVocabularyTermUsesNormalizedDedicatedStore() {
+        let settings = AppSettings(
+            config: AppConfig(),
+            transcriber: Transcriber(modelName: AppConfig().activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        let didChange = settings.addParakeetVocabularyTerm(text: " OpenAI ")
+        let duplicate = settings.addParakeetVocabularyTerm(text: "openai")
+
+        XCTAssertTrue(didChange)
+        XCTAssertFalse(duplicate)
+        XCTAssertEqual(settings.parakeetVocabularyTerms, [ParakeetVocabularyTerm(text: "OpenAI")])
+    }
+
+    @MainActor
+    func testRemoveParakeetVocabularyTermDeletesMatchingTextCaseInsensitively() {
+        var config = AppConfig()
+        config.parakeetVocabularyTerms = [ParakeetVocabularyTerm(text: "OpenAI")]
+
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        let didChange = settings.removeParakeetVocabularyTerm(text: " openai ")
+
+        XCTAssertTrue(didChange)
+        XCTAssertTrue(settings.parakeetVocabularyTerms.isEmpty)
+    }
+
+    @MainActor
+    func testVisibleDictationTemplatesHideAskAIButKeepCustomVisible() {
+        let settings = AppSettings(
+            config: AppConfig(),
+            transcriber: Transcriber(modelName: AppConfig().activeWhisperModel),
+            modelManager: ModelManager()
+        )
+
+        XCTAssertTrue(settings.visibleDictationTemplates.contains(.raw))
+        XCTAssertTrue(settings.visibleDictationTemplates.contains(.custom))
+        XCTAssertFalse(settings.visibleDictationTemplates.contains(.askAI))
+    }
 }

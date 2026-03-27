@@ -83,7 +83,12 @@ public enum BatchMode {
             .appendingPathExtension(options.format)
 
         let transcriber: any AudioTranscribing = if config.transcriptionEngine == "parakeet" {
-            ParakeetTranscriber()
+            ParakeetTranscriber(
+                runtime: DefaultParakeetRuntimeManager(),
+                vocabularyProvider: {
+                    config.parakeetVocabularyStore
+                }
+            )
         } else {
             Transcriber(modelName: options.model)
         }

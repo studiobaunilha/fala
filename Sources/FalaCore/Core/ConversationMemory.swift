@@ -1,6 +1,6 @@
 import Foundation
 
-/// Maintains conversation history for askAI mode across consecutive calls.
+/// Maintains conversation history for the legacy conversational LLM mode.
 /// Memory is held in-process only — it does not persist across app sessions.
 @MainActor
 public final class ConversationMemory {

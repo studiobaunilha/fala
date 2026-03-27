@@ -24,6 +24,10 @@ let macOSXCTestSettings: [SwiftSetting] = [
     )
 ]
 
+let localWarningsAsErrorsSwiftSettings: [SwiftSetting] = [
+    .unsafeFlags(["-warnings-as-errors"])
+]
+
 let macOSXCTestLinkerSettings: [LinkerSetting] = [
     .unsafeFlags(
         [
@@ -70,7 +74,8 @@ let package = Package(
             resources: [
                 .process("Resources/Localizable.xcstrings"),
                 .process("Resources/MLXCatalog.json")
-            ]
+            ],
+            swiftSettings: localWarningsAsErrorsSwiftSettings
         ),
         // Thin executable shell: only main.swift + linker-embedded Info.plist.
         .executableTarget(
@@ -78,6 +83,7 @@ let package = Package(
             dependencies: ["FalaCore"],
             path: "Sources/Fala",
             exclude: ["Resources"],
+            swiftSettings: localWarningsAsErrorsSwiftSettings,
             linkerSettings: [
                 .unsafeFlags([
                     "-Xlinker", "-sectcreate",
@@ -96,7 +102,7 @@ let package = Package(
             name: "FalaTests",
             dependencies: ["FalaCore"],
             path: "Tests/FalaTests",
-            swiftSettings: macOSXCTestSettings,
+            swiftSettings: macOSXCTestSettings + localWarningsAsErrorsSwiftSettings,
             linkerSettings: macOSXCTestLinkerSettings
         ),
     ]

@@ -35,6 +35,8 @@ extension SettingsView {
             } else if settings.llmProvider == "openai" {
                 openAICredentialsSection
             }
+
+            SelectionCommandSettingsView(settings: settings)
         }
         .formStyle(.grouped)
         .navigationTitle(L10n("IA & LLM"))

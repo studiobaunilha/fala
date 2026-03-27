@@ -10,6 +10,7 @@ import CoreGraphics
 @MainActor
 public struct TextInserter: TextInserting {
     private static let vKeyCode: CGKeyCode = 0x09 // kVK_ANSI_V
+    private static let zKeyCode: CGKeyCode = 0x06 // kVK_ANSI_Z
 
     public init() {}
 
@@ -20,14 +21,7 @@ public struct TextInserter: TextInserting {
     }
 
     public func insert(_ text: String) async {
-        // AXIsProcessTrustedWithOptions(prompt:true) both checks the permission AND
-        // triggers the system dialog asking the user to grant Accessibility access.
-        // On subsequent calls (after permission is granted) it returns true immediately.
-        // "AXTrustedCheckOptionPrompt" is the raw value of kAXTrustedCheckOptionPrompt.
-        // Using the string literal avoids a Swift 6 concurrency error on the C global.
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-        let trusted = AXIsProcessTrustedWithOptions(options)
-        guard trusted else {
+        guard isAccessibilityTrusted(prompt: true) else {
             // Accessibility not granted yet: copy to clipboard so text is not lost.
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
@@ -54,11 +48,40 @@ public struct TextInserter: TextInserting {
         }
     }
 
+    public func undoLastInsertion() async {
+        guard isAccessibilityTrusted(prompt: true) else {
+            return
+        }
+
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        simulateCommandKey(Self.zKeyCode)
+    }
+
+    public func replaceLastInsertion(with text: String) async {
+        guard isAccessibilityTrusted(prompt: true) else {
+            saveToClipboard(text)
+            return
+        }
+
+        await undoLastInsertion()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        await insert(text)
+    }
+
+    private func isAccessibilityTrusted(prompt: Bool) -> Bool {
+        let options = ["AXTrustedCheckOptionPrompt": prompt] as CFDictionary
+        return AXIsProcessTrustedWithOptions(options)
+    }
+
     private func simulateCmdV() {
+        simulateCommandKey(Self.vKeyCode)
+    }
+
+    private func simulateCommandKey(_ keyCode: CGKeyCode) {
         let src = CGEventSource(stateID: .hidSystemState)
         guard
-            let down = CGEvent(keyboardEventSource: src, virtualKey: Self.vKeyCode, keyDown: true),
-            let up   = CGEvent(keyboardEventSource: src, virtualKey: Self.vKeyCode, keyDown: false)
+            let down = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true),
+            let up   = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false)
         else { return }
 
         down.flags = .maskCommand

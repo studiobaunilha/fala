@@ -260,7 +260,7 @@ public actor MLXModelCache {
     private var cache: [String: ModelContext] = [:]
 
     // Cached conversational session keyed by "repoID::promptHash".
-    // Reused across consecutive askAI calls for multi-turn support.
+    // Reused across consecutive conversational LLM calls for multi-turn support.
     private var conversationalSession: (key: String, session: ChatSession)?
 
     /// Runs inference on a cached (or freshly loaded) model entirely within

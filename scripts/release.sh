@@ -77,6 +77,13 @@ if ! command -v wrangler &>/dev/null; then
     fail "wrangler não encontrado. Execute: npm install -g wrangler"
 fi
 
+# Notarization keychain profile? (only needed for real releases)
+if ! $DRY_RUN; then
+    if ! xcrun notarytool history --keychain-profile "fala-notary" &>/dev/null; then
+        fail "Keychain profile 'fala-notary' não encontrado ou inválido. Configure com: xcrun notarytool store-credentials \"fala-notary\""
+    fi
+fi
+
 ok "Pré-requisitos OK"
 
 # ── 1. Bump version ───────────────────────────────────────────────────────────
@@ -121,11 +128,22 @@ APP_DIR="$TMP_DIR/${APP_NAME}.app"
 DEVELOPER_DIR="$XCODE" bash "$REPO_DIR/scripts/build-app.sh" release --app-dir "$APP_DIR"
 ok "App bundle criado"
 
+# ── 3.5. Verify app bundle signature ─────────────────────────────────────────
+info "Verificando assinatura do app bundle…"
+codesign --verify --deep --strict "$APP_DIR" 2>&1 || fail "Assinatura do app bundle inválida"
+ok "Assinatura do app bundle verificada"
+
 # ── 4. Create DMG ──────────────────────────────────────────────────────────────
 info "Criando DMG…"
 DMG_PATH="$TMP_DIR/$DMG_NAME"
 hdiutil create -volname "$APP_NAME" -srcfolder "$APP_DIR" -ov -format UDZO "$DMG_PATH" 2>&1 | tail -1
 ok "DMG: $DMG_NAME"
+
+# ── 4.1. Codesign DMG ────────────────────────────────────────────────────────
+info "Assinando DMG…"
+CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" release)"
+codesign --force --timestamp --sign "$CODESIGN_IDENTITY" "$DMG_PATH"
+ok "DMG assinado"
 
 # ── 4.5. Notarize App ──────────────────────────────────────────────────────────
 # Notarization requires an app-specific password stored in the keychain (e.g., as 'fala-notary').
@@ -137,6 +155,10 @@ if ! $DRY_RUN; then
     info "Grampeando (stapling) o ticket ao DMG…"
     xcrun stapler staple "$DMG_PATH"
     ok "Ticket grampeado ao DMG"
+
+    info "Validando ticket grampeado…"
+    xcrun stapler validate "$DMG_PATH" || fail "Validação do staple falhou"
+    ok "Staple validado com sucesso"
 else
     info "[dry-run] Ignorando notarização via notarytool."
 fi

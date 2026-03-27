@@ -25,6 +25,7 @@ public final class AppSettings: ObservableObject {
     @Published public var batchTemperature: Float
     @Published public var replacements: [String: String]
     @Published public var replacementRules: [ReplacementRule]
+    @Published var parakeetVocabularyTerms: [ParakeetVocabularyTerm]
     @Published public var defaultExportPath: String
     @Published public var forceWhisperNeuralEngine: Bool
 
@@ -38,6 +39,7 @@ public final class AppSettings: ObservableObject {
     @Published public var mlxModel: String
     @Published public var mlxCatalogMigrationNotice: MLXCatalogMigrationNotice?
     @Published public var modeConfigs: [String: ModeConfig]
+    @Published public var selectionCommandConfig: SelectionCommandConfig
     @Published public var customModeName: String
     @Published public var customModePrompt: String
     @Published public var globalSystemPrompt: String
@@ -100,6 +102,7 @@ public final class AppSettings: ObservableObject {
         self.batchTemperature = normalizedConfig.batchTemperature
         self.replacements = normalizedConfig.replacements
         self.replacementRules = normalizedConfig.replacementRules
+        self.parakeetVocabularyTerms = normalizedConfig.parakeetVocabularyTerms
         self.defaultExportPath = normalizedConfig.defaultExportPath
         self.forceWhisperNeuralEngine = normalizedConfig.forceWhisperNeuralEngine
         self.selectedDictationTemplate = normalizedConfig.selectedDictationTemplate
@@ -112,6 +115,7 @@ public final class AppSettings: ObservableObject {
         self.mlxModel = normalizedConfig.mlxModel
         self.mlxCatalogMigrationNotice = normalization.migrationNotice
         self.modeConfigs = normalizedConfig.modeConfigs
+        self.selectionCommandConfig = normalizedConfig.selectionCommandConfig
         self.customModeName = normalizedConfig.customModeName
         self.customModePrompt = normalizedConfig.customModePrompt
         self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
@@ -164,6 +168,9 @@ public extension AppSettings {
     var visibleDictationTemplates: [DictationTemplate] {
         let currentLang = transcriptionLanguage
         return DictationTemplate.allCases.filter { template in
+            if template == .askAI {
+                return false
+            }
             if template == .translate {
                 // Hide translate if the source language is already explicitly English
                 return currentLang != "en" && currentLang != "en-US"
@@ -239,6 +246,7 @@ public extension AppSettings {
         snapshot.batchTemperature = batchTemperature
         snapshot.replacements = replacements
         snapshot.replacementRules = replacementRules
+        snapshot.parakeetVocabularyTerms = parakeetVocabularyTerms
         snapshot.defaultExportPath = defaultExportPath
         snapshot.forceWhisperNeuralEngine = forceWhisperNeuralEngine
         snapshot.selectedDictationTemplate = selectedDictationTemplate
@@ -250,6 +258,7 @@ public extension AppSettings {
         snapshot.openAIModel = openAIModel
         snapshot.mlxModel = mlxModel
         snapshot.modeConfigs = modeConfigs
+        snapshot.selectionCommandConfig = selectionCommandConfig
         snapshot.customModeName = String(customModeName.prefix(30))
         snapshot.customModePrompt = customModePrompt
         snapshot.globalSystemPrompt = globalSystemPrompt

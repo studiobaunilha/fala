@@ -9,7 +9,8 @@ extension DictationMode {
         let elapsed = -(keyDownTime?.timeIntervalSinceNow ?? -1)
         keyDownTime = nil
         guard elapsed < 0.4,
-              let selection = pendingSelectionContext else {
+              let selection = pendingSelectionContext,
+              let selectionCommandController else {
             return false
         }
         pendingSelectionContext = nil
@@ -17,7 +18,7 @@ extension DictationMode {
         feedback?.dismiss()
         statusBar?.setState(.idle)
         let config = configProvider()
-        selectionCommandController?.show(
+        selectionCommandController.show(
             selection: selection,
             near: NSEvent.mouseLocation
         ) { [weak self] command, sel in
@@ -93,16 +94,14 @@ extension DictationMode {
         selection: String,
         config: AppConfig,
         profiler: any DictationProfiling
-    ) async -> String {
+    ) async -> String? {
         let userText = Self.wrapForSelectionCommand(
             command, selection: selection
         )
-        let aiConfig = config.getEffectiveConfig(for: .askAI)
-        let prompt = PromptDefaults.selectionCommandPrompt(
-            for: aiConfig.provider
-        )
-        inserter.saveToClipboard(command)
+        let aiConfig = config.getEffectiveSelectionCommandConfig()
+        let prompt = aiConfig.prompt
         do {
+            inserter.saveToClipboard(command)
             let result = try await profiler.measure(.llmProcessing) {
                 try await llmResponse(
                     text: userText, prompt: prompt,
@@ -114,13 +113,16 @@ extension DictationMode {
             let msg = error.localizedDescription
             print("[Fala] \(msg) — selection command requer LLM.")
             statusBar?.showTemporaryWarning(msg)
-            return command
+            return nil
         } catch {
             print(
                 "[Fala] Selection command LLM error: "
                 + "\(error.localizedDescription)"
             )
-            return command
+            statusBar?.showTemporaryWarning(
+                L10n("Seleção + IA indisponível no momento.")
+            )
+            return nil
         }
     }
 
@@ -137,10 +139,14 @@ extension DictationMode {
         statusBar?.setState(.recording)
 
         let profiler = DictationProfiler.makeIfEnabled()
-        let result = await processSelectionCommand(
+        guard let result = await processSelectionCommand(
             command, selection: selection,
             config: config, profiler: profiler
-        )
+        ) else {
+            feedback?.dismiss()
+            statusBar?.setState(.idle)
+            return
+        }
 
         if config.selectionPasteDirectly {
             feedback?.model.stage = .inserting
@@ -148,18 +154,7 @@ extension DictationMode {
             feedback?.model.stage = .done
             feedback?.dismiss()
             statusBar?.setState(.idle)
-
-            // Feature D: Start monitoring for manual corrections
-            TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
-                CorrectionLearningController.shared.promptForCorrection(
-                    original: oldText,
-                    corrected: newText
-                ) {
-                    var config = AppConfig()
-                    config.addNewReplacementRule(from: oldText, to: newText)
-                }
-            }
-            TextCorrectionObserver.shared.startMonitoring(insertedText: result)
+            presentInsertionReviewIfNeeded(for: result)
         } else {
             showRefinementPanel(for: result, timeout: nil)
         }
@@ -180,18 +175,7 @@ extension DictationMode {
                 guard let self else { return }
                 Task { @MainActor in
                     await self.inserter.insert(text)
-
-                    // Feature D: Start monitoring for manual corrections after manual paste
-                    TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
-                        CorrectionLearningController.shared.promptForCorrection(
-                            original: oldText,
-                            corrected: newText
-                        ) {
-                            var config = AppConfig()
-                            config.addNewReplacementRule(from: oldText, to: newText)
-                        }
-                    }
-                    TextCorrectionObserver.shared.startMonitoring(insertedText: text)
+                    self.presentInsertionReviewIfNeeded(for: text)
                 }
             }
         )
@@ -210,10 +194,14 @@ extension DictationMode {
 
         let config = configProvider()
         let profiler = DictationProfiler.makeIfEnabled()
-        let result = await processSelectionCommand(
+        guard let result = await processSelectionCommand(
             command, selection: previousResult,
             config: config, profiler: profiler
-        )
+        ) else {
+            feedback?.dismiss()
+            statusBar?.setState(.idle)
+            return
+        }
 
         if config.selectionPasteDirectly {
             feedback?.model.stage = .inserting
@@ -222,22 +210,6 @@ extension DictationMode {
             feedback?.dismiss()
             statusBar?.setState(.idle)
             showRefinementPanel(for: result, timeout: 5.0)
-
-            // Feature D: Start monitoring for manual corrections
-            Task { @MainActor in
-                TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
-                    Task { @MainActor in
-                        CorrectionLearningController.shared.promptForCorrection(
-                            original: oldText,
-                            corrected: newText
-                        ) {
-                            var config = AppConfig()
-                            config.addNewReplacementRule(from: oldText, to: newText)
-                        }
-                    }
-                }
-                TextCorrectionObserver.shared.startMonitoring(insertedText: result)
-            }
         } else {
             showRefinementPanel(for: result, timeout: nil)
         }

@@ -38,9 +38,9 @@ public struct ReadinessIssue: Identifiable, Equatable, Sendable {
 
 @MainActor
 public final class RuntimeReadinessEvaluator: ObservableObject {
-    private unowned let settings: AppSettings
+    unowned let settings: AppSettings
     private let modelManager: ModelManager
-    private let mlxCatalogService: MLXCatalogService
+    let mlxCatalogService: MLXCatalogService
     private let licenseManager: LicenseManager
     private let permissionProvider: SystemPermissionProviding
     private let warmupCoordinator: WarmupCoordinator
@@ -130,12 +130,12 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
 
     public func isModeVisibleInQuickMenu(_ template: DictationTemplate) -> Bool {
         switch template {
-        case .raw:
+        case .raw, .custom:
             return true
         case .translate:
             return settings.transcriptionEngine == "whisper"
-        case .custom, .askAI:
-            return llmIssues(for: template).isEmpty
+        case .askAI:
+            return false
         }
     }
 
@@ -317,7 +317,6 @@ private extension RuntimeReadinessEvaluator {
 
         return []
     }
-
     private func cloudProviderIssues(
         apiKey: String,
         title: String,

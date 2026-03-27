@@ -5,7 +5,7 @@ extension TranscriptionJob {
                 makeWhisperBatchTranscriber(config: config)
             },
             parakeetFactory: {
-                makeParakeetBatchTranscriber()
+                makeParakeetBatchTranscriber(config: config)
             }
         )
     }
@@ -49,8 +49,13 @@ extension TranscriptionJob {
         )
     }
 
-    static func makeParakeetBatchTranscriber() -> BatchPreloadableTranscriber {
-        let transcriber = ParakeetTranscriber()
+    static func makeParakeetBatchTranscriber(config: AppConfig) -> BatchPreloadableTranscriber {
+        let transcriber = ParakeetTranscriber(
+            runtime: DefaultParakeetRuntimeManager(),
+            vocabularyProvider: {
+                config.parakeetVocabularyStore
+            }
+        )
         return BatchPreloadableTranscriber(
             loadState: {
                 await transcriber.loadState()

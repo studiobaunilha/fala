@@ -27,7 +27,7 @@ public enum PromptDefaults {
         return processingPrompt(for: provider, model: model)
     }
 
-    // MARK: - Conversational (askAI)
+    // MARK: - Conversational (legacy hidden mode)
 
     /// Whether the provider supports multi-turn conversation memory.
     ///

@@ -45,6 +45,8 @@ public struct AppConfig: Codable, Sendable, Equatable {
 
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
+    var parakeetVocabularyTerms: [ParakeetVocabularyTerm] = []
+    public var selectionCommandConfig: SelectionCommandConfig = .init()
     public var modeConfigs: [String: ModeConfig] = [:]
     public var selectionPasteDirectly: Bool = true
 
@@ -75,6 +77,8 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case globalSystemPrompt
         case replacements
         case replacementRules
+        case parakeetVocabularyTerms
+        case selectionCommandConfig
         case modeConfigs
         case selectionPasteDirectly
     }
@@ -120,6 +124,8 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(globalSystemPrompt, forKey: .globalSystemPrompt)
         try container.encode(replacements, forKey: .replacements)
         try container.encode(replacementRules, forKey: .replacementRules)
+        try container.encode(parakeetVocabularyTerms, forKey: .parakeetVocabularyTerms)
+        try container.encode(selectionCommandConfig, forKey: .selectionCommandConfig)
         try container.encode(modeConfigs, forKey: .modeConfigs)
         try container.encode(selectionPasteDirectly, forKey: .selectionPasteDirectly)
     }
@@ -137,17 +143,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
 
         let provider = modeConfig?.provider ?? llmProvider
 
-        let model: String
-        if let modeModel = modeConfig?.model, !modeModel.isEmpty {
-            model = modeModel
-        } else {
-            switch provider {
-            case "gemini": model = geminiModel
-            case "openai": model = openAIModel
-            case "mlx":    model = mlxModel
-            default:       model = ""
-            }
-        }
+        let model = resolvedLLMModel(for: provider, preferredModel: modeConfig?.model)
 
         // Prompt resolution hierarchy:
         // 1. Per-provider override from providerPrompts
@@ -204,6 +200,12 @@ extension AppConfig {
     private mutating func decodeReplacementFields(from container: KeyedDecodingContainer<CodingKeys>) {
         replacements = (try? container.decode([String: String].self, forKey: .replacements)) ?? [:]
         replacementRules = (try? container.decode([ReplacementRule].self, forKey: .replacementRules)) ?? []
+        parakeetVocabularyTerms = (
+            try? container.decode([ParakeetVocabularyTerm].self, forKey: .parakeetVocabularyTerms)
+        ) ?? []
+        selectionCommandConfig = (
+            try? container.decode(SelectionCommandConfig.self, forKey: .selectionCommandConfig)
+        ) ?? SelectionCommandConfig()
         modeConfigs = (try? container.decode([String: ModeConfig].self, forKey: .modeConfigs)) ?? [:]
 
         if replacementRules.isEmpty && !replacements.isEmpty {
@@ -256,6 +258,7 @@ extension AppConfig {
             appLanguage: resolvedAppLanguage
         )
         modeConfigs = Self.normalizeModeConfigs(modeConfigs)
+        migrateAskAISettingsIfNeeded()
         migrateGlobalSystemPromptIfNeeded()
     }
 
@@ -316,6 +319,22 @@ extension AppConfig {
             modeConfigs[template.rawValue] = config
         }
         globalSystemPrompt = Self.defaultGlobalSystemPrompt
+    }
+
+    private mutating func migrateAskAISettingsIfNeeded() {
+        if let askAIConfig = modeConfigs[DictationTemplate.askAI.rawValue] {
+            if selectionCommandConfig.prompt == nil {
+                selectionCommandConfig.prompt = askAIConfig.prompt
+            }
+            if selectionCommandConfig.providerPrompts == nil {
+                selectionCommandConfig.providerPrompts = askAIConfig.providerPrompts
+            }
+            modeConfigs.removeValue(forKey: DictationTemplate.askAI.rawValue)
+        }
+
+        if selectedDictationTemplate == .askAI {
+            selectedDictationTemplate = .raw
+        }
     }
 
     private static func normalizeModeConfigs(_ configs: [String: ModeConfig]) -> [String: ModeConfig] {

@@ -8075,6 +8075,214 @@
         }
       }
     },
+    "Ideal para ajustes simples sobre a seleção. Para instruções longas ou complexas, considere Gemini, OpenAI ou MLX.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal for simple adjustments on selected text. For longer or more complex instructions, consider Gemini, OpenAI, or MLX."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal para ajustes simples sobre la selección. Para instrucciones más largas o complejas, considera Gemini, OpenAI o MLX."
+          }
+        }
+      }
+    },
+    "Instruções enviadas ao LLM para agir sobre o texto selecionado. Cada provedor pode ter seu próprio prompt otimizado.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instructions sent to the LLM to act on the selected text. Each provider can have its own optimized prompt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrucciones enviadas al LLM para actuar sobre el texto seleccionado. Cada proveedor puede tener su propio prompt optimizado."
+          }
+        }
+      }
+    },
+    "O prompt customizado será substituído pelo padrão desta ferramenta. Esta ação não pode ser desfeita.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The customized prompt will be replaced by this tool's default prompt. This action cannot be undone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El prompt personalizado será sustituido por el prompt predeterminado de esta herramienta. Esta acción no se puede deshacer."
+          }
+        }
+      }
+    },
+    "O provedor e o modelo desta ferramenta seguem a configuração global de IA & LLM.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This tool uses the global AI & LLM provider and model settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta herramienta usa la configuración global de proveedor y modelo de IA & LLM."
+          }
+        }
+      }
+    },
+    "Seleção + IA": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selection + AI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selección + IA"
+          }
+        }
+      }
+    },
+    "Usado quando você seleciona um texto e dita uma instrução ou pergunta sobre ele.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used when you select text and dictate an instruction or question about it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se usa cuando seleccionas un texto y dictas una instrucción o pregunta sobre él."
+          }
+        }
+      }
+    },
+    "Assistente Conversacional (Legado)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversational Assistant (Legacy)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asistente conversacional (Legado)"
+          }
+        }
+      }
+    },
+    "Baixe ou selecione um modelo MLX local compatível antes de usar Seleção + IA.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download or select a compatible local MLX model before using Selection + AI."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descarga o selecciona un modelo local de MLX compatible antes de usar Selección + IA."
+          }
+        }
+      }
+    },
+    "Configure uma chave da API Gemini para usar Seleção + IA.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure a Gemini API key to use Selection + AI."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura una clave de API de Gemini para usar Selección + IA."
+          }
+        }
+      }
+    },
+    "Configure uma chave da API OpenAI para usar Seleção + IA.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure an OpenAI API key to use Selection + AI."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura una clave de API de OpenAI para usar Selección + IA."
+          }
+        }
+      }
+    },
+    "Selecione um modelo MLX válido do catálogo antes de usar Seleção + IA.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a valid MLX model from the catalog before using Selection + AI."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un modelo de MLX válido del catálogo antes de usar Selección + IA."
+          }
+        }
+      }
+    },
+    "Seleção + IA indisponível no momento.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selection + AI is currently unavailable."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selección + IA no está disponible en este momento."
+          }
+        }
+      }
+    },
+    "Troque para MLX, Gemini ou OpenAI para usar Seleção + IA neste Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to MLX, Gemini, or OpenAI to use Selection + AI on this Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia a MLX, Gemini u OpenAI para usar Selección + IA en esta Mac."
+          }
+        }
+      }
+    },
     "Quer ajustar?": {
       "localizations": {
         "en": {

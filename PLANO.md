@@ -16,6 +16,11 @@
 - Mudanças em catálogo MLX, loader MLX, warmup MLX ou seleção de modelo MLX exigem `make test-mlx`.
 - Strings visíveis ao usuário em `UI` e `App` devem sair do catálogo de localização.
 - Novas superfícies de UI devem usar tokens, componentes e primitivos compartilhados do design system sempre que existir abstração equivalente.
+- Superfícies flutuantes de revisão pós-inserção não devem cobrir a área principal de texto do usuário.
+- Balões, overlays e painéis rápidos devem parecer discretos e próximos da linguagem visual nativa do macOS.
+- `Perguntar à IA` não é mais um modo visível de captura.
+- `Selection + AI Command` tem configuração própria dentro de `IA & LLM` e segue o provedor/modelo global de IA.
+- `Personalizado` continua sendo um modo válido do produto independentemente do motor de transcrição selecionado.
 - Rede, filesystem, `NSWorkspace`, permissões e integrações de sistema não devem ficar implementados diretamente em `View` ou extensão de `View`.
 - Providers, engines, tasks e identificadores centrais do domínio não devem proliferar como `String` sem tipo dedicado.
 - URLs externas, endpoints, subjects, nomes de arquivo e defaults de integração devem ficar centralizados.
@@ -234,9 +239,11 @@ Definição:
 - O Fala deve aprender correções do usuário e usar isso para melhorar o resultado futuro.
 - O vocabulário precisa unificar regras manuais, correções aprendidas e boosting do Parakeet.
 - O fluxo deve ser útil sem bloquear a transcrição normal quando algo falhar.
+- O aprendizado pós-inserção deve acontecer por uma superfície própria do Fala, sem depender de observar edição em campos de terceiros.
 
 Inclui:
-- Aprendizado de correções após inserção.
+- Review Bubble pós-inserção para revisar ou aprender correções.
+- Edição rápida do último texto inserido a partir do próprio Fala.
 - Regras de substituição persistidas.
 - Vocabulário específico do Parakeet.
 - Fallback seguro quando boosting falhar.
@@ -245,20 +252,22 @@ Não inclui:
 - Diarização.
 - Personalização por usuário em nuvem.
 - Ajustes automáticos baseados em telemetria.
+- Observação passiva de edição em apps de terceiros como mecanismo principal de aprendizado.
 
 Checklist:
-- [x] Detectar edição manual logo após inserir texto.
-- [x] Comparar texto inserido com texto corrigido.
-- [x] Perguntar ao usuário se a correção deve ser aprendida.
-- [x] Salvar correção confirmada como regra.
-- [x] Descartar correção quando o usuário ignora.
-- [x] Cobertura básica por testes unitários para detecção de correção.
+- [x] Review Bubble pós-inserção.
+- [x] Posicionamento do Review Bubble sem cobrir a área principal de texto.
+- [x] Aparência discreta e alinhada ao macOS.
+- [x] Ação de editar o último texto inserido.
+- [x] Aprender correção a partir da edição confirmada.
+- [x] Descartar sugestão quando o usuário ignora o bubble.
+- [x] Cobertura automatizada do fluxo de revisão pós-inserção.
 - [ ] Gerenciamento unificado de vocabulário e regras no produto.
-- [ ] Store dedicado de vocabulário do Parakeet.
-- [ ] Termos de boosting específicos do Parakeet.
-- [ ] Aplicação de boosting no passe final da transcrição.
-- [ ] Unificação entre regras manuais, correções aprendidas e boosting.
-- [ ] Fallback seguro quando boosting falhar.
+- [x] Store dedicado de vocabulário do Parakeet.
+- [x] Termos de boosting específicos do Parakeet.
+- [x] Aplicação de boosting no passe final da transcrição.
+- [x] Unificação entre regras manuais, correções aprendidas e boosting.
+- [x] Fallback seguro quando boosting falhar.
 
 ## Backlog validado
 
@@ -315,6 +324,7 @@ Checklist:
 - [x] Fluxo digitado sobre seleção.
 - [x] Preview ou substituição direta do resultado.
 - [x] HUD dedicado para o modo de seleção.
+- [x] Configuração própria de prompt dentro de `IA & LLM`.
 
 ### QuickEdit pós-resultado
 Status: Done

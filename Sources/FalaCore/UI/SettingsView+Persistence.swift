@@ -77,6 +77,7 @@ extension View {
             .onChange(of: settings.batchTemperature) { settings.save() }
             .onChange(of: settings.replacements) { settings.save() }
             .onChange(of: settings.replacementRules) { settings.save() }
+            .onChange(of: settings.parakeetVocabularyTerms) { settings.save() }
             .observeMoreSettingsChanges(settings)
     }
 

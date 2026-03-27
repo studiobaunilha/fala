@@ -92,7 +92,6 @@ for raw_line in sys.stdin:
             -configuration "$CONFIGURATION" \
             -destination "platform=macOS" \
             -derivedDataPath "$DERIVED_DATA" \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             GCC_TREAT_WARNINGS_AS_ERRORS=YES \
             CLANG_TREAT_WARNINGS_AS_ERRORS=YES \
             build >"$log_file" 2>&1; then

@@ -143,6 +143,9 @@ final class AppConfigTests: XCTestCase {
         config.dictationModel = "large-v3"
         config.batchModel = "turbo"
         config.outputFormat = "md"
+        config.parakeetVocabularyTerms = [
+            ParakeetVocabularyTerm(text: "OpenAI")
+        ]
 
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -153,6 +156,7 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(decoded.batchModel, "turbo")
         XCTAssertEqual(decoded.activeWhisperModel, "large-v3")
         XCTAssertEqual(decoded.outputFormat, "md")
+        XCTAssertEqual(decoded.parakeetVocabularyTerms, [ParakeetVocabularyTerm(text: "OpenAI")])
     }
 
     func testNormalizeWhisperModelSelectionPrefersCustomBatchSelection() {

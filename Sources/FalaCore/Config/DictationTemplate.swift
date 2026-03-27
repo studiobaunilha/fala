@@ -5,7 +5,8 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
     case translate = "Traduzir para Inglês"
     case custom = "Personalizado"
 
-    // Assistente
+    // Legacy hidden conversational mode kept for config migration and
+    // compatibility with older persisted states.
     case askAI = "Perguntar à IA"
 
     public var icon: String {
@@ -23,6 +24,24 @@ public enum DictationTemplate: String, CaseIterable, Codable, Sendable {
         case .translate: return L10n("Traduzir para Inglês")
         case .custom: return L10n("Personalizado")
         case .askAI: return L10n("Perguntar à IA")
+        }
+    }
+
+    public var diagnosticName: String {
+        switch self {
+        case .askAI:
+            return L10n("Assistente Conversacional (Legado)")
+        case .raw, .translate, .custom:
+            return localizedName
+        }
+    }
+
+    public var conversationContextKeyPrefix: String {
+        switch self {
+        case .askAI:
+            return "conversation"
+        case .raw, .translate, .custom:
+            return rawValue
         }
     }
 

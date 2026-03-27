@@ -30,6 +30,7 @@ public final class DictationMode {
     private let readiness: RuntimeReadinessEvaluator?
     private let selectionCapture: SelectionCapture?
     let selectionCommandController: SelectionCommandController?
+    private let insertionReviewPresenter: (any InsertionReviewPresenting)?
     public let conversationMemory = ConversationMemory()
 
     var isRecording = false
@@ -66,7 +67,8 @@ public final class DictationMode {
         llmProcessor: LLMProcessor? = nil,
         readiness: RuntimeReadinessEvaluator? = nil,
         selectionCapture: SelectionCapture? = nil,
-        selectionCommandController: SelectionCommandController? = nil
+        selectionCommandController: SelectionCommandController? = nil,
+        insertionReviewPresenter: (any InsertionReviewPresenting)? = nil
     ) {
         self.recorder = recorder
         self.inserter = inserter
@@ -81,6 +83,7 @@ public final class DictationMode {
         self.readiness = readiness
         self.selectionCapture = selectionCapture
         self.selectionCommandController = selectionCommandController
+        self.insertionReviewPresenter = insertionReviewPresenter
     }
 
     final class WeakBox: @unchecked Sendable {
@@ -280,19 +283,25 @@ public final class DictationMode {
             let selectionContext = pendingSelectionContext
             pendingSelectionContext = nil
 
-            // Selection + AI Command: when the user has selected text and
-            // the current template does NOT normally use an LLM (.raw,
-            // .translate), treat the dictated text as an instruction to
-            // apply to the selected content via the LLM.
+            // Selection + AI Command takes precedence whenever there is
+            // selected text. This keeps the feature independent from the
+            // currently visible dictation mode and preserves the old
+            // "ask about the selection" behavior as a dedicated tool.
             let isSelectionCommand = selectionContext != nil
-                && !template.requiresLLM
 
             let finalText: String
             if isSelectionCommand, let selection = selectionContext {
-                finalText = await processSelectionCommand(
+                guard let selectionResult = await processSelectionCommand(
                     text, selection: selection, config: config,
                     profiler: profiler
-                )
+                ) else {
+                    ctx.outcome = .failed
+                    profiler.finish(ctx)
+                    feedback?.dismiss()
+                    statusBar?.setState(.idle)
+                    return
+                }
+                finalText = selectionResult
             } else {
                 if template.requiresLLM {
                     inserter.saveToClipboard(text)
@@ -314,23 +323,7 @@ public final class DictationMode {
                 }
                 feedback?.model.stage = .done
                 feedback?.dismiss()
-
-                // Feature D: Start monitoring for manual corrections
-                Task { @MainActor in
-                    TextCorrectionObserver.shared.onCorrectionDetected = { oldText, newText in
-                        Task { @MainActor in
-                            CorrectionLearningController.shared.promptForCorrection(
-                                original: oldText,
-                                corrected: newText
-                            ) {
-                                // User clicked "Salvar" -> Create Rule
-                                var config = AppConfig()
-                                config.addNewReplacementRule(from: oldText, to: newText)
-                            }
-                        }
-                    }
-                    TextCorrectionObserver.shared.startMonitoring(insertedText: finalText)
-                }
+                presentInsertionReviewIfNeeded(for: finalText)
             }
 
             profiler.finish(ctx)
@@ -342,6 +335,14 @@ public final class DictationMode {
         }
         statusBar?.setState(.idle)
     }
+
+    func presentInsertionReviewIfNeeded(for insertedText: String) {
+        insertionReviewPresenter?.present(
+            insertedText: insertedText,
+            using: inserter
+        )
+    }
+
     private func profiledProcessText(
         _ text: String,
         config: AppConfig,
@@ -379,7 +380,7 @@ public final class DictationMode {
                 }
                 finalText = stripLLMPreamble(result)
                 if useMemory {
-                    let ctxKey = "\(template.rawValue)::\(modeConfig.provider)"
+                    let ctxKey = "\(template.conversationContextKeyPrefix)::\(modeConfig.provider)"
                     conversationMemory.append(
                         userText: userText, assistantResponse: finalText,
                         contextKey: ctxKey
@@ -388,13 +389,12 @@ public final class DictationMode {
                 }
             } catch let error as LLMError {
                 let msg = error.localizedDescription
-                print("[Fala] \(msg) — modo '\(template.localizedName)' requer LLM.")
+                print("[Fala] \(msg) — modo '\(template.diagnosticName)' requer LLM.")
                 statusBar?.showTemporaryWarning(msg)
             } catch {
                 print("[Fala] LLM processing error: \(error.localizedDescription)")
             }
         }
-
         return finalText
     }
 }

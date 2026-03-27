@@ -16,6 +16,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var transcribeController: TranscribeWindowController?
     private var feedbackController: DictationFeedbackController?
     private var onboardingController: OnboardingWindowController?
+    private var insertionReviewController: InsertionReviewController?
     private var appSettings: AppSettings?
     private var cancellables = Set<AnyCancellable>()
 
@@ -94,6 +95,20 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         let feedbackCtrl = DictationFeedbackController()
         feedbackController = feedbackCtrl
+        let insertionReviewCtrl = InsertionReviewController(
+            learnCorrection: { original, corrected in
+                if appSettings.addReplacementRule(
+                    variant: original,
+                    replacement: corrected
+                ) {
+                    appSettings.save()
+                    print(
+                        "[Fala] Saved learned correction: '\(original)' -> '\(corrected)'"
+                    )
+                }
+            }
+        )
+        insertionReviewController = insertionReviewCtrl
 
         let dictation = makeDictationMode(
             statusBar: bar,
@@ -134,7 +149,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             transcriberPrewarmer: transcriberServices.prewarm,
             readiness: readiness,
             selectionCapture: SelectionCapture(),
-            selectionCommandController: SelectionCommandController()
+            selectionCommandController: SelectionCommandController(),
+            insertionReviewPresenter: insertionReviewController
         )
     }
 

@@ -60,6 +60,8 @@ actor MockTranscriber: AudioTranscribing {
 final class MockInserter: TextInserting, @unchecked Sendable {
     private(set) var insertedTexts: [String] = []
     private(set) var savedToClipboardTexts: [String] = []
+    private(set) var undoCallCount = 0
+    private(set) var replacedTexts: [String] = []
 
     @MainActor func insert(_ text: String) async {
         insertedTexts.append(text)
@@ -67,6 +69,14 @@ final class MockInserter: TextInserting, @unchecked Sendable {
 
     @MainActor func saveToClipboard(_ text: String) {
         savedToClipboardTexts.append(text)
+    }
+
+    @MainActor func undoLastInsertion() async {
+        undoCallCount += 1
+    }
+
+    @MainActor func replaceLastInsertion(with text: String) async {
+        replacedTexts.append(text)
     }
 }
 
