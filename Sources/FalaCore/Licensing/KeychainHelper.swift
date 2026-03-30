@@ -161,7 +161,25 @@ public enum KeychainHelper {
             throw KeychainError.unexpectedData
         }
 
+        // Re-save with permissive ACL so future reads after app updates don't
+        // trigger password prompts due to stale per-binary ACLs.
+        migrateToPermissiveACLIfNeeded(account: account, data: data)
+
         return token
+    }
+
+    private static func migrateToPermissiveACLIfNeeded(account: String, data: Data) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
+
+        var newQuery = query
+        newQuery[kSecValueData as String] = data
+        newQuery[kSecAttrAccess as String] = try? makePermissiveAccess()
+        SecItemAdd(newQuery as CFDictionary, nil)
     }
 
     public static func read(accounts: [String]) throws -> [String: String] {

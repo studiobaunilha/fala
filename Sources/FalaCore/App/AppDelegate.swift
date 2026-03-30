@@ -127,6 +127,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         LicenseManager.shared.reconcileEntitlementOnAppLaunch()
         appSettings.warmupCoordinator.scheduleSelectedWarmup()
         syncDownloadUI(for: bar, settings: appSettings)
+        VersionChangeDetector.handleVersionChangeIfNeeded()
         onboardingCtrl.showIfNeeded()
     }
 
