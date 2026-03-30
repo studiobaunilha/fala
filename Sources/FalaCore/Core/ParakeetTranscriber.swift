@@ -136,6 +136,8 @@ private extension ParakeetTranscriber {
             lock.withLock {
                 vocabularyBoostingState = .configured(vocabularyStore)
             }
+        } catch is CancellationError {
+            // Cancelled by a newer refresh — don't change state.
         } catch {
             await runtime.disableVocabularyBoosting()
             lock.withLock {
