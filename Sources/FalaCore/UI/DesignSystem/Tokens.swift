@@ -80,6 +80,11 @@ public enum WindowSize {
     public static let onboardingDefaultWidth: CGFloat = 700
     public static let onboardingMinWidth: CGFloat = 600
     public static let onboardingMaxWidth: CGFloat = 1000
+
+    public static let releaseNotesWidth: CGFloat = 560
+    public static let releaseNotesDefaultHeight: CGFloat = 520
+    public static let releaseNotesMinHeight: CGFloat = 360
+    public static let releaseNotesMaxHeight: CGFloat = 800
 }
 
 public enum LayoutMetric {

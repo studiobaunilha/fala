@@ -73,7 +73,8 @@ let package = Package(
             path: "Sources/FalaCore",
             resources: [
                 .process("Resources/Localizable.xcstrings"),
-                .process("Resources/MLXCatalog.json")
+                .process("Resources/MLXCatalog.json"),
+                .process("Resources/ReleaseNotes.json")
             ],
             swiftSettings: localWarningsAsErrorsSwiftSettings
         ),

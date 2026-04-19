@@ -5,6 +5,7 @@ extension SettingsView {
         Form {
             applicationIdentitySection
             updatesPreferencesSection
+            releaseNotesSection
             licenseStatusSection
             if !licenseManager.isPro {
                 licenseActivationSection

@@ -1,0 +1,78 @@
+{
+  "releases": [
+    {
+      "version": "1.12",
+      "date": "2026-04-19",
+      "highlights": {
+        "pt-BR": [
+          "Interface em Français: suporte completo ao francês, além de Português, English e Español.",
+          "Ditado por Fn/Globe: dois toques rápidos na tecla Fn/Globe iniciam e param a gravação (opcional em Ajustes → Geral).",
+          "Dica melhor no gravador de atalho: explica quais teclas funcionam e por que Tab e Fn/Globe sozinhos não podem ser capturados.",
+          "Descrições dos modelos MLX traduzidas nos três idiomas suportados.",
+          "Migração automática de permissão do chaveiro após atualização (eliminando prompts de senha) e reexibição do onboarding."
+        ],
+        "en": [
+          "Français interface: full French support alongside Português, English, and Español.",
+          "Dictation via Fn/Globe: tap the Fn/Globe key twice to start and stop recording (opt-in under Settings → General).",
+          "Better hint in the shortcut recorder: explains which keys work and why Tab and Fn/Globe alone can't be captured.",
+          "MLX model descriptions translated across all supported languages.",
+          "Automatic keychain permission migration after updates (no more password prompts) and onboarding reshown on update."
+        ],
+        "es": [
+          "Interfaz en Français: soporte completo para francés, además de Português, English y Español.",
+          "Dictado con Fn/Globo: dos pulsaciones rápidas de Fn/Globo inician y detienen la grabación (opcional en Ajustes → General).",
+          "Mejor indicación en el grabador de atajos: explica qué teclas funcionan y por qué Tab y Fn/Globo solos no pueden capturarse.",
+          "Descripciones de los modelos MLX traducidas en los idiomas soportados.",
+          "Migración automática del permiso de llavero tras la actualización (evita prompts de contraseña) y onboarding reabierto al actualizar."
+        ],
+        "fr": [
+          "Interface en Français : prise en charge complète du français, aux côtés de Português, English et Español.",
+          "Dictée via Fn/Globe : deux pressions rapides sur Fn/Globe démarrent et arrêtent l'enregistrement (optionnel dans Réglages → Général).",
+          "Meilleur message dans l'enregistreur de raccourci : explique quelles touches fonctionnent et pourquoi Tab et Fn/Globe seules ne peuvent pas être capturées.",
+          "Descriptions des modèles MLX traduites dans toutes les langues prises en charge.",
+          "Migration automatique des autorisations du trousseau après mise à jour (plus de demandes de mot de passe) et onboarding réaffiché à la mise à jour."
+        ]
+      }
+    },
+    {
+      "version": "1.11.7",
+      "date": "2026-04-18",
+      "highlights": {
+        "pt-BR": [
+          "Migração de ACL do chaveiro para instalações existentes, evitando prompts de senha após atualização.",
+          "Reexibição do onboarding essencial após atualização quando permissões precisam ser reconcedidas."
+        ],
+        "en": [
+          "Keychain ACL migration for existing installs, preventing password prompts after updates.",
+          "Essential onboarding reshown after updates when permissions need to be regranted."
+        ],
+        "es": [
+          "Migración de ACL del llavero para instalaciones existentes, evitando prompts de contraseña tras actualizaciones.",
+          "Onboarding esencial reabierto tras actualizaciones cuando los permisos necesitan reautorizarse."
+        ],
+        "fr": [
+          "Migration de l'ACL du trousseau pour les installations existantes, évitant les demandes de mot de passe après mise à jour.",
+          "Onboarding essentiel réaffiché après mise à jour lorsque les autorisations doivent être redonnées."
+        ]
+      }
+    },
+    {
+      "version": "1.11.5",
+      "date": "2026-04-15",
+      "highlights": {
+        "pt-BR": [
+          "Serialização de operações do AsrManager para evitar SIGSEGV no vocabulary rescoring."
+        ],
+        "en": [
+          "Serialized AsrManager operations to prevent SIGSEGV crashes in vocabulary rescoring."
+        ],
+        "es": [
+          "Serialización de operaciones de AsrManager para evitar SIGSEGV en el vocabulary rescoring."
+        ],
+        "fr": [
+          "Sérialisation des opérations d'AsrManager pour éviter les crashes SIGSEGV lors du vocabulary rescoring."
+        ]
+      }
+    }
+  ]
+}

@@ -16,6 +16,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var transcribeController: TranscribeWindowController?
     private var feedbackController: DictationFeedbackController?
     private var onboardingController: OnboardingWindowController?
+    private var releaseNotesController: ReleaseNotesWindowController?
     private var insertionReviewController: InsertionReviewController?
     private var appSettings: AppSettings?
     private var cancellables = Set<AnyCancellable>()
@@ -127,8 +128,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         LicenseManager.shared.reconcileEntitlementOnAppLaunch()
         appSettings.warmupCoordinator.scheduleSelectedWarmup()
         syncDownloadUI(for: bar, settings: appSettings)
-        VersionChangeDetector.handleVersionChangeIfNeeded()
+        let wasUpgrade = VersionChangeDetector.handleVersionChangeIfNeeded()
         onboardingCtrl.showIfNeeded()
+
+        let releaseNotesCtrl = ReleaseNotesWindowController()
+        releaseNotesController = releaseNotesCtrl
+        if wasUpgrade {
+            releaseNotesCtrl.showIfNeededForCurrentVersion()
+        }
     }
 
     private func makeDictationMode(

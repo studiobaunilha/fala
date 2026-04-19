@@ -2,6 +2,37 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.12] — 2026-04-19
+
+### Funcionalidades
+- **Interface em Français**: suporte completo ao francês, ao lado de Português, English e Español. Trocável em *Ajustes → Geral → Idioma da Interface*, com todas as mensagens, rótulos, descrições de modelos e erros traduzidos.
+- **Ditado por Fn/Globe (opcional)**: dois toques rápidos na tecla Fn/Globe iniciam e param a gravação, igual ao Ditado nativo do macOS. Ative em *Ajustes → Geral → Atalhos do Sistema*. Atalho original (⌥Space push-to-talk) continua funcionando em paralelo.
+- **Modal de novidades pós-atualização**: "Novidades no Fala X.Y" aparece na primeira execução depois de uma atualização, listando os principais destaques. Histórico das últimas versões fica disponível em *Ajustes → Sobre → Notas da versão*.
+
+### Correções
+- **Descrições dos modelos MLX traduzidas**: painel de AI & LLM agora exibe descrições dos Qwen/Gemma/Liquid em todos os idiomas suportados (antes leakava só em português).
+- **Gravador de atalho mais claro**: footer explica quais teclas funcionam e por que Tab e Fn/Globe sozinhos não podem ser capturados em atalhos globais do macOS.
+
+### Cobertura de localização
+- 538 strings no catálogo, 530 traduzidas em pt-BR/en/es/fr (99.4% de cobertura nos três idiomas adicionais).
+
+---
+
+## [1.11.7] — 2026-04-18
+
+### Correções
+- **Migração de ACL do chaveiro**: instalações existentes agora migram as ACLs do keychain automaticamente na leitura, eliminando prompts de senha após atualizações.
+- **Onboarding essencial reexibido**: quando a atualização invalida permissões do macOS (Acessibilidade), o onboarding reabre pra guiar a re-concessão.
+
+---
+
+## [1.11.6] — 2026-04-17
+
+### Correções
+- **Serialização de operações do AsrManager**: previne SIGSEGV no pipeline de vocabulary rescoring do Parakeet quando múltiplas transcrições são processadas em paralelo.
+
+---
+
 ## [1.11.2] — 2026-03-16
 
 ### Melhorias
