@@ -54,7 +54,7 @@ extension SettingsView {
         } footer: {
             Text(
                 L10n(
-                    "Automático segue o idioma do macOS. Hoje o Fala possui interface em Português, English e Español."
+                    "Automático segue o idioma do macOS. Hoje o Fala possui interface em Português, English, Español e Français."
                 )
             )
                 .font(.caption)

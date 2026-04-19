@@ -44,6 +44,17 @@ final class L10nTests: XCTestCase {
         XCTAssertEqual(L10n("Salvar Transcrições"), "Guardar transcripciones")
     }
 
+    func testL10nRespectsFrenchAppLanguageOverride() {
+        AppLocalization.apply(languageCode: "fr")
+
+        XCTAssertEqual(L10n("Ajustes"), "Réglages")
+        XCTAssertEqual(L10n("Licença"), "Licence")
+        XCTAssertEqual(L10n("Idioma do Aplicativo"), "Langue de l\u{2019}application")
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "Raccourcis système")
+        XCTAssertEqual(L10n("Armazenamento"), "Stockage")
+        XCTAssertEqual(L10n("Salvar Transcrições"), "Enregistrer les transcriptions")
+    }
+
     @MainActor
     func testLocalizationObserverInvalidatesWhenLanguageChanges() async {
         let observer = AppLocalizationObserver.shared

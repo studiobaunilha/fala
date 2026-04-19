@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-SUPPORTED_LANGUAGES = ("en", "es")
+SUPPORTED_LANGUAGES = ("en", "es", "fr")
 
 
 def load_catalog(catalog_path: Path) -> dict:

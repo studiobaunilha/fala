@@ -2,7 +2,7 @@ import Combine
 import Foundation
 
 public enum AppLocalization {
-    public static let supportedAppLanguageCodes = ["pt-BR", "en", "es"]
+    public static let supportedAppLanguageCodes = ["pt-BR", "en", "es", "fr"]
     public static let languageChangedNotification = Notification.Name("dev.fala.app-language-changed")
 
     private final class State: @unchecked Sendable {
@@ -92,6 +92,9 @@ public enum AppLocalization {
         if lowercased.hasPrefix("es") {
             return "es"
         }
+        if lowercased.hasPrefix("fr") {
+            return "fr"
+        }
         return nil
     }
 
@@ -150,6 +153,8 @@ public enum AppLocalization {
             return ["es", "es-419"]
         case "pt-BR":
             return ["pt-BR", "pt"]
+        case "fr":
+            return ["fr", "fr-FR"]
         default:
             return [resolvedLanguageCode]
         }

@@ -153,7 +153,8 @@ public extension AppSettings {
             LanguageOption(id: "auto", name: L10n("Automático (Sistema)")),
             LanguageOption(id: "pt-BR", name: L10n("Português")),
             LanguageOption(id: "en", name: L10n("English")),
-            LanguageOption(id: "es", name: L10n("Español"))
+            LanguageOption(id: "es", name: L10n("Español")),
+            LanguageOption(id: "fr", name: L10n("Français"))
         ]
     }
 
