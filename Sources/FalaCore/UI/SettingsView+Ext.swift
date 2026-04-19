@@ -35,7 +35,7 @@ extension SettingsView {
         } header: {
             Text(L10n("Atalhos do Sistema"))
         } footer: {
-            Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar."))
+            Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar. Use um modificador (⌘, ⌥, ⌃, ⇧) combinado com outra tecla, ou uma tecla F1–F20. Teclas como Tab e Fn/Globe não podem ser usadas sozinhas em atalhos globais do macOS."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

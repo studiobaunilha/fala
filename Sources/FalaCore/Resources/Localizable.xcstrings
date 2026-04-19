@@ -5688,22 +5688,6 @@
         }
       }
     },
-    "Pressione o atalho global para iniciar o ditado de qualquer lugar.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Press the global shortcut to start dictation from anywhere."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Presiona el atajo global para iniciar el dictado desde cualquier lugar."
-          }
-        }
-      }
-    },
     "Pro (Tolerância)": {
       "localizations": {
         "en": {
@@ -8295,6 +8279,166 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿Quieres ajustar?"
+          }
+        }
+      }
+    },
+    "Compacto e equilibrado para pós-processamento local no dia a dia.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compact and balanced for everyday local post-processing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compacto y equilibrado para el posprocesamiento local del día a día."
+          }
+        }
+      }
+    },
+    "Mais capacidade para prompts longos e reescritas complexas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More capacity for long prompts and complex rewrites."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más capacidad para prompts largos y reescrituras complejas."
+          }
+        }
+      }
+    },
+    "Boa opção compacta para limpeza, formatação e instruções objetivas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A solid compact choice for cleanup, formatting, and direct instructions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buena opción compacta para limpieza, formato e instrucciones directas."
+          }
+        }
+      }
+    },
+    "Mais contexto e consistência para Macs com mais memória disponível.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More context and consistency for Macs with more available memory."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más contexto y consistencia para Macs con más memoria disponible."
+          }
+        }
+      }
+    },
+    "Extremamente leve para Macs compactos e respostas rápidas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extremely lightweight for compact Macs and fast responses."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extremadamente ligero para Macs compactos y respuestas rápidas."
+          }
+        }
+      }
+    },
+    "Modelo maior com quantização agressiva para throughput local.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Larger model with aggressive quantization for local throughput."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo más grande con cuantización agresiva para el rendimiento local."
+          }
+        }
+      }
+    },
+    "Mantido para compatibilidade com instalações antigas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kept for compatibility with older installations."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantenido por compatibilidad con instalaciones antiguas."
+          }
+        }
+      }
+    },
+    "Opção compacta e equilibrada para pós-processamento local.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compact, balanced option for local post-processing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opción compacta y equilibrada para el posprocesamiento local."
+          }
+        }
+      }
+    },
+    "Compatibilidade para instalações existentes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibility for existing installations."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibilidad para instalaciones existentes."
+          }
+        }
+      }
+    },
+    "Pressione o atalho global para iniciar o ditado de qualquer lugar. Use um modificador (⌘, ⌥, ⌃, ⇧) combinado com outra tecla, ou uma tecla F1–F20. Teclas como Tab e Fn/Globe não podem ser usadas sozinhas em atalhos globais do macOS.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press the global shortcut to start dictation from anywhere. Use a modifier (⌘, ⌥, ⌃, ⇧) combined with another key, or an F1–F20 key. Keys like Tab and Fn/Globe can't be used on their own in macOS global shortcuts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presiona el atajo global para iniciar el dictado desde cualquier lugar. Usa un modificador (⌘, ⌥, ⌃, ⇧) combinado con otra tecla, o una tecla F1–F20. Teclas como Tab y Fn/Globo no pueden usarse solas en los atajos globales de macOS."
           }
         }
       }

@@ -112,6 +112,10 @@ public struct MLXCatalogEntry: Codable, Identifiable, Equatable, Sendable {
     public var isLegacy: Bool {
         family == .legacy
     }
+
+    public var localizedSummary: String {
+        AppLocalization.localizedString(for: summary)
+    }
 }
 
 public struct MLXCatalogValidationResult: Equatable, Sendable {

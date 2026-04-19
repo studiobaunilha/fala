@@ -29,7 +29,7 @@ public struct MLXCatalogSelectionSummaryView: View {
                     Text(summary.entry.displayName)
                         .font(Typography.title)
 
-                    Text(summary.entry.summary)
+                    Text(summary.entry.localizedSummary)
                         .font(Typography.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -138,7 +138,7 @@ public struct MLXCatalogModelRow: View {
                     }
                 }
 
-                Text(entry.summary)
+                Text(entry.localizedSummary)
                     .font(Typography.caption)
                     .foregroundStyle(.secondary)
 
