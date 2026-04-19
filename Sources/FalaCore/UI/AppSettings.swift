@@ -44,6 +44,7 @@ public final class AppSettings: ObservableObject {
     @Published public var customModePrompt: String
     @Published public var globalSystemPrompt: String
     @Published public var selectionPasteDirectly: Bool
+    @Published public var fnDoublePressActivationEnabled: Bool
 
     public let modelManager: ModelManager
     public let mlxModelManager: MLXModelManager
@@ -120,6 +121,7 @@ public final class AppSettings: ObservableObject {
         self.customModePrompt = normalizedConfig.customModePrompt
         self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
         self.selectionPasteDirectly = normalizedConfig.selectionPasteDirectly
+        self.fnDoublePressActivationEnabled = normalizedConfig.fnDoublePressActivationEnabled
 
         self.transcriber = transcriber
         self.parakeetTranscriber = parakeetTranscriber
@@ -264,6 +266,7 @@ public extension AppSettings {
         snapshot.customModePrompt = customModePrompt
         snapshot.globalSystemPrompt = globalSystemPrompt
         snapshot.selectionPasteDirectly = selectionPasteDirectly
+        snapshot.fnDoublePressActivationEnabled = fnDoublePressActivationEnabled
         return snapshot
     }
 

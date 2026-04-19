@@ -11604,6 +11604,50 @@
           }
         }
       }
+    },
+    "Ativar ditado pressionando Fn/Globe duas vezes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate dictation by pressing Fn/Globe twice"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar el dictado presionando Fn/Globo dos veces"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer la dictée en appuyant deux fois sur Fn/Globe"
+          }
+        }
+      }
+    },
+    "Dois toques em Fn/Globe alternam a gravação (iniciar/parar), como o Ditado nativo do macOS. Se o Ditado do macOS também estiver configurado para esse gesto, desative-o em Ajustes do Sistema → Teclado → Ditado para evitar conflito.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tapping Fn/Globe twice toggles recording (start/stop), just like macOS native Dictation. If macOS Dictation is also set to this gesture, disable it in System Settings → Keyboard → Dictation to avoid a conflict."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pulsar Fn/Globo dos veces alterna la grabación (iniciar/detener), como el Dictado nativo de macOS. Si el Dictado de macOS también está configurado con este gesto, desactívalo en Ajustes del Sistema → Teclado → Dictado para evitar conflictos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appuyer deux fois sur Fn/Globe bascule l'enregistrement (démarrer/arrêter), comme la Dictée native de macOS. Si la Dictée de macOS est également configurée sur ce geste, désactivez-la dans Réglages Système → Clavier → Dictée pour éviter tout conflit."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

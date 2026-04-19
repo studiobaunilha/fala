@@ -36,6 +36,7 @@ public final class DictationMode {
     var isRecording = false
     var pendingSelectionContext: String?
     var keyDownTime: Date?
+    private var fnDoublePressMonitor: FnDoublePressMonitor?
 
     /// Test-only: inject a simulated selection context.
     func setPendingSelectionForTesting(_ text: String?) {
@@ -116,6 +117,30 @@ public final class DictationMode {
         let box = WeakBox(self)
         KeyboardShortcuts.onKeyDown(for: .startDictation, action: Self.makeKeyDownAction(box: box))
         KeyboardShortcuts.onKeyUp(for: .startDictation, action: Self.makeKeyUpAction(box: box))
+
+        let monitor = FnDoublePressMonitor { [weak self] in
+            self?.toggleRecordingFromFnDoublePress()
+        }
+        monitor.start()
+        monitor.setEnabled(configProvider().fnDoublePressActivationEnabled)
+        fnDoublePressMonitor = monitor
+    }
+
+    /// Enable or disable the Fn double-press activation at runtime.
+    /// Called by the app when the user toggles the setting.
+    public func setFnDoublePressActivationEnabled(_ enabled: Bool) {
+        fnDoublePressMonitor?.setEnabled(enabled)
+    }
+
+    @MainActor
+    private func toggleRecordingFromFnDoublePress() {
+        Task { @MainActor in
+            if isRecording {
+                await stopAndTranscribe()
+            } else {
+                await startRecording()
+            }
+        }
     }
 
     // MARK: – Internal (accessible from tests via @testable import)
