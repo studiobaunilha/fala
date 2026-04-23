@@ -101,7 +101,6 @@ extension DictationMode {
         let aiConfig = config.getEffectiveSelectionCommandConfig()
         let prompt = aiConfig.prompt
         do {
-            inserter.saveToClipboard(command)
             let result = try await profiler.measure(.llmProcessing) {
                 try await llmResponse(
                     text: userText, prompt: prompt,
@@ -148,7 +147,7 @@ extension DictationMode {
             return
         }
 
-        if config.selectionPasteDirectly {
+        if config.aiResultPasteDirectly {
             feedback?.model.stage = .inserting
             await inserter.insert(result)
             feedback?.model.stage = .done
@@ -161,7 +160,7 @@ extension DictationMode {
     }
 
     /// Shows the result panel with refinement field.
-    /// After paste (or when `selectionPasteDirectly` is off), the user
+    /// After paste (or when `aiResultPasteDirectly` is off), the user
     /// gets ~5s to type a follow-up refinement command, or indefinitely if timeout is nil.
     func showRefinementPanel(for text: String, timeout: Double?) {
         feedback?.dismiss()
@@ -203,7 +202,7 @@ extension DictationMode {
             return
         }
 
-        if config.selectionPasteDirectly {
+        if config.aiResultPasteDirectly {
             feedback?.model.stage = .inserting
             await inserter.insert(result)
             feedback?.model.stage = .done

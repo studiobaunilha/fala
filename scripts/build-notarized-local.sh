@@ -32,6 +32,12 @@ info() { printf "${CYAN}▶ %s${RESET}\n" "$1"; }
 ok()   { printf "${GREEN}✓ %s${RESET}\n" "$1"; }
 fail() { printf "${RED}✘ %s${RESET}\n" "$1"; exit 1; }
 
+cleanup() {
+    rm -rf "$TMP_DIR"
+}
+
+trap cleanup EXIT
+
 # ── Preflight ─────────────────────────────────────────────────────────────────
 info "Verificando pré-requisitos…"
 
@@ -69,7 +75,12 @@ ok "Assinatura do app verificada"
 # ── 3. Cria DMG ───────────────────────────────────────────────────────────────
 info "Criando DMG…"
 DMG_PATH="$TMP_DIR/$DMG_NAME"
-hdiutil create -volname "$APP_NAME" -srcfolder "$APP_DIR" -ov -format UDZO "$DMG_PATH" 2>&1 | tail -1
+DMG_STAGE_DIR="$TMP_DIR/dmg-stage"
+rm -rf "$DMG_STAGE_DIR"
+mkdir -p "$DMG_STAGE_DIR"
+ditto "$APP_DIR" "$DMG_STAGE_DIR/${APP_NAME}.app"
+ln -s /Applications "$DMG_STAGE_DIR/Applications"
+bash "$REPO_DIR/scripts/create-dmg.sh" "$APP_NAME" "$DMG_STAGE_DIR" "$DMG_PATH"
 ok "DMG: $DMG_NAME"
 
 # ── 4. Assina DMG ─────────────────────────────────────────────────────────────
@@ -92,7 +103,6 @@ ok "Staple validado"
 # ── 7. Move pro ~/Downloads e abre Finder ────────────────────────────────────
 FINAL_DMG="$HOME/Downloads/$DMG_NAME"
 mv "$DMG_PATH" "$FINAL_DMG"
-rm -rf "$TMP_DIR"
 
 printf "\n${GREEN}${BOLD}════════════════════════════════════════${RESET}\n"
 printf "${GREEN}${BOLD}  ✓ DMG notarizado pronto${RESET}\n"

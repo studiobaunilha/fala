@@ -29,7 +29,7 @@ public struct TextInserter: TextInserting {
         }
 
         let pasteboard = NSPasteboard.general
-        let previousString = pasteboard.string(forType: .string)
+        let previousContents = PasteboardSnapshot.capture(from: pasteboard)
 
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
@@ -41,10 +41,7 @@ public struct TextInserter: TextInserting {
         // Restore previous clipboard asynchronously after paste completes.
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 350_000_000)
-            pasteboard.clearContents()
-            if let prev = previousString {
-                pasteboard.setString(prev, forType: .string)
-            }
+            previousContents.restore(to: pasteboard)
         }
     }
 

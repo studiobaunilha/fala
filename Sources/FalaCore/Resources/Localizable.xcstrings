@@ -2400,6 +2400,28 @@
         }
       }
     },
+    "Continuar e abrir Ajustes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue and open Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar y abrir Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer et ouvrir les Réglages"
+          }
+        }
+      }
+    },
     "Converte sua fala em um prompt técnico estruturado para LLMs de código.": {
       "localizations": {
         "en": {
@@ -9625,6 +9647,28 @@
         }
       }
     },
+    "Texto copiado para a área de transferência.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text copied to the clipboard."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto copiado al portapapeles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texte copié dans le presse-papiers."
+          }
+        }
+      }
+    },
     "Tolerância até": {
       "localizations": {
         "en": {
@@ -10967,6 +11011,50 @@
         }
       }
     },
+    "Colar ditado diretamente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste dictation directly"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegar dictado directamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coller la dictée directement"
+          }
+        }
+      }
+    },
+    "Colar resultados de IA diretamente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste AI results directly"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegar resultados de IA directamente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coller les résultats de l’IA directement"
+          }
+        }
+      }
+    },
     "Comportamento de IA": {
       "localizations": {
         "en": {
@@ -10989,6 +11077,50 @@
         }
       }
     },
+    "Comportamento de Inserção": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insertion Behavior"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comportamiento de inserción"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comportement d’insertion"
+          }
+        }
+      }
+    },
+    "Quando ativado, o texto do ditado é inserido imediatamente no app em foco.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When enabled, dictated text is inserted immediately into the focused app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando está activado, el texto dictado se inserta inmediatamente en la app en foco."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque cette option est activée, le texte dicté est inséré immédiatement dans l’app au premier plan."
+          }
+        }
+      }
+    },
     "Quando ativado, o resultado do comando de IA é colado diretamente.": {
       "localizations": {
         "en": {
@@ -11007,6 +11139,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lorsque cette option est activée, le résultat de la commande d’IA est collé directement."
+          }
+        }
+      }
+    },
+    "Desativado, o ditado final é copiado para a área de transferência sem colar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When disabled, the final dictation is copied to the clipboard without pasting."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando está desactivado, el dictado final se copia al portapapeles sin pegarse."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque cette option est désactivée, la dictée finale est copiée dans le presse-papiers sans être collée."
           }
         }
       }

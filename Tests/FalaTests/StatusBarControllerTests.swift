@@ -3,11 +3,13 @@ import XCTest
 
 @MainActor
 final class StatusBarControllerTests: XCTestCase {
-    func testInitialStateRendersIdleMicSymbol() {
+    func testInitialStateRendersBundledIdleIcon() throws {
         let controller = makeController()
 
-        XCTAssertEqual(controller.currentSymbolNameForTesting, "mic")
+        XCTAssertEqual(controller.currentSymbolNameForTesting, "resource:logo-fala.pdf")
         XCTAssertEqual(controller.imageAssignmentCountForTesting, 1)
+        XCTAssertEqual(controller.currentTooltipForTesting, "Fala — pronto")
+        XCTAssertNotNil(try XCTUnwrap(controller.currentImageObjectIdentifierForTesting))
     }
 
     func testPreparingStateUsesNonDownloadSymbol() {
@@ -78,6 +80,21 @@ final class StatusBarControllerTests: XCTestCase {
         )
         XCTAssertEqual(controller.imageAssignmentCountForTesting, imageAssignments)
         XCTAssertEqual(controller.currentTooltipForTesting, "Preparando Gemma 3 4B…")
+    }
+
+    func testSymbolCatalogLoadsBundledIdleIconAsTemplate() throws {
+        let catalog = StatusBarSymbolCatalog()
+
+        let image = try XCTUnwrap(
+            catalog.image(
+                .bundledResource(name: "logo-fala", fileExtension: "pdf"),
+                isTemplate: true
+            )
+        )
+
+        XCTAssertTrue(image.isTemplate)
+        XCTAssertEqual(image.size.width, 18)
+        XCTAssertEqual(image.size.height, 18)
     }
 
     private func makeController() -> StatusBarController {

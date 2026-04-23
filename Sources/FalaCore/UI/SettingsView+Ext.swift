@@ -41,8 +41,10 @@ extension SettingsView {
             Text(L10n("Atalhos do Sistema"))
         } footer: {
             VStack(alignment: .leading, spacing: 6) {
+                // swiftlint:disable:next line_length
                 Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar. Use um modificador (⌘, ⌥, ⌃, ⇧) combinado com outra tecla, ou uma tecla F1–F20. Teclas como Tab e Fn/Globe não podem ser usadas sozinhas em atalhos globais do macOS."))
                 if settings.fnDoublePressActivationEnabled {
+                    // swiftlint:disable:next line_length
                     Text(L10n("Dois toques em Fn/Globe alternam a gravação (iniciar/parar), como o Ditado nativo do macOS. Se o Ditado do macOS também estiver configurado para esse gesto, desative-o em Ajustes do Sistema → Teclado → Ditado para evitar conflito."))
                 }
             }
@@ -63,9 +65,8 @@ extension SettingsView {
             Text(L10n("Idioma do Aplicativo"))
         } footer: {
             Text(
-                L10n(
-                    "Automático segue o idioma do macOS. Hoje o Fala possui interface em Português, English, Español e Français."
-                )
+                // swiftlint:disable:next line_length
+                L10n("Automático segue o idioma do macOS. Hoje o Fala possui interface em Português, English, Español e Français.")
             )
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -85,17 +86,30 @@ extension SettingsView {
     private var aiBehaviorSection: some View {
         Section {
             Toggle(
-                L10n("Colar resultado direto"),
-                isOn: $settings.selectionPasteDirectly
+                L10n("Colar ditado diretamente"),
+                isOn: $settings.plainDictationPasteDirectly
+            )
+
+            Toggle(
+                L10n("Colar resultados de IA diretamente"),
+                isOn: $settings.aiResultPasteDirectly
             )
         } header: {
-            Text(L10n("Comportamento de IA"))
+            Text(L10n("Comportamento de Inserção"))
         } footer: {
-            Text(
-                L10n("Quando ativado, o resultado do comando de IA é colado diretamente.")
-                + " "
-                + L10n("Desativado, exibe o resultado para revisão antes de colar.")
-            )
+            VStack(alignment: .leading, spacing: 6) {
+                Text(
+                    L10n("Quando ativado, o texto do ditado é inserido imediatamente no app em foco.")
+                    + " "
+                    + L10n("Desativado, o ditado final é copiado para a área de transferência sem colar.")
+                )
+
+                Text(
+                    L10n("Quando ativado, o resultado do comando de IA é colado diretamente.")
+                    + " "
+                    + L10n("Desativado, exibe o resultado para revisão antes de colar.")
+                )
+            }
             .font(.caption)
             .foregroundStyle(.secondary)
         }

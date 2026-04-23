@@ -10,6 +10,12 @@ public enum AppState {
 
 @MainActor
 public final class StatusBarController: NSObject, NSMenuDelegate {
+    private static let idleImageDescriptor = StatusBarImageDescriptor.bundledResource(
+        name: "logo-fala",
+        fileExtension: "pdf"
+    )
+    private static let fallbackIdleImageDescriptor = StatusBarImageDescriptor.systemSymbol("mic")
+
     private let statusItem: NSStatusItem
     private let menu = NSMenu()
     // Items inserted/removed dynamically in menuWillOpen.
@@ -27,32 +33,17 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private var downloadActivity: StatusBarDownloadActivity?
     private var temporaryWarningMessage: String?
     private var temporaryWarningTask: Task<Void, Never>?
-    private var renderedSymbolName = "mic"
+    private var renderedImageIdentifier = StatusBarController.idleImageDescriptor.testingIdentifier
     private var presentationCount = 0
     private var imageAssignmentCount = 0
     private var lastPresentation: StatusBarPresentation?
     private var lastImageConfiguration: StatusBarSymbolConfiguration?
 
-    var settingsItemTitleForTesting: String {
-        settingsItem.title
-    }
-
-    var currentTooltipForTesting: String? {
-        statusItem.button?.toolTip
-    }
-
-    var currentSymbolNameForTesting: String {
-        renderedSymbolName
-    }
-
-    var renderCountForTesting: Int {
-        presentationCount
-    }
-
-    var imageAssignmentCountForTesting: Int {
-        imageAssignmentCount
-    }
-
+    var settingsItemTitleForTesting: String { settingsItem.title }
+    var currentTooltipForTesting: String? { statusItem.button?.toolTip }
+    var currentSymbolNameForTesting: String { renderedImageIdentifier }
+    var renderCountForTesting: Int { presentationCount }
+    var imageAssignmentCountForTesting: Int { imageAssignmentCount }
     var currentImageObjectIdentifierForTesting: ObjectIdentifier? {
         statusItem.button?.image.map(ObjectIdentifier.init)
     }
@@ -109,7 +100,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
                 menu.insertItem(axItem, at: quitIdx)
             }
             // Paste-direct toggle
-            pasteDirectItem?.state = settings.selectionPasteDirectly ? .on : .off
+            pasteDirectItem?.state = settings.aiResultPasteDirectly ? .on : .off
         }
     }
 
@@ -182,7 +173,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func togglePasteDirect() {
-        settings.selectionPasteDirectly.toggle()
+        settings.aiResultPasteDirectly.toggle()
         settings.save()
     }
 
@@ -198,9 +189,15 @@ private extension StatusBarController {
 
         switch currentState {
         case .recording:
-            applyIdleStatePresentation(symbolName: "mic.fill", description: L10n("Fala — gravando"))
+            applyIdleStatePresentation(
+                imageDescriptor: .systemSymbol("mic.fill"),
+                description: L10n("Fala — gravando")
+            )
         case .transcribing:
-            applyIdleStatePresentation(symbolName: "waveform", description: L10n("Fala — transcrevendo…"))
+            applyIdleStatePresentation(
+                imageDescriptor: .systemSymbol("waveform"),
+                description: L10n("Fala — transcrevendo…")
+            )
         case .idle, .loading:
             if applyDownloadPresentationIfNeeded() {
                 return
@@ -208,7 +205,7 @@ private extension StatusBarController {
 
             if let loadingMessage {
                 applyPresentation(
-                    symbolName: "clock.arrow.circlepath",
+                    imageDescriptor: .systemSymbol("clock.arrow.circlepath"),
                     accessibilityDescription: loadingMessage,
                     toolTip: loadingMessage
                 )
@@ -218,11 +215,13 @@ private extension StatusBarController {
             let description = currentState == .loading
                 ? L10n("Fala — carregando modelo…")
                 : L10n("Fala — pronto")
-            let symbolName = currentState == .loading ? "clock.arrow.circlepath" : "mic"
+            let imageDescriptor = currentState == .loading
+                ? StatusBarImageDescriptor.systemSymbol("clock.arrow.circlepath")
+                : Self.idleImageDescriptor
             applyPresentation(
-                symbolName: symbolName,
+                imageDescriptor: imageDescriptor,
                 accessibilityDescription: description,
-                toolTip: nil
+                toolTip: description
             )
         }
     }
@@ -239,7 +238,7 @@ private extension StatusBarController {
             pct
         )
         applyPresentation(
-            symbolName: "arrow.down.circle",
+            imageDescriptor: .systemSymbol("arrow.down.circle"),
             accessibilityDescription: message,
             toolTip: message
         )
@@ -248,29 +247,29 @@ private extension StatusBarController {
 
     func applyWarningPresentation(message: String) {
         applyPresentation(
-            symbolName: "exclamationmark.triangle",
+            imageDescriptor: .systemSymbol("exclamationmark.triangle"),
             accessibilityDescription: message,
             toolTip: message,
             isTemplate: true
         )
     }
 
-    func applyIdleStatePresentation(symbolName: String, description: String) {
+    func applyIdleStatePresentation(imageDescriptor: StatusBarImageDescriptor, description: String) {
         applyPresentation(
-            symbolName: symbolName,
+            imageDescriptor: imageDescriptor,
             accessibilityDescription: description,
-            toolTip: nil
+            toolTip: description
         )
     }
 
     private func applyPresentation(
-        symbolName: String,
+        imageDescriptor: StatusBarImageDescriptor,
         accessibilityDescription: String,
         toolTip: String?,
         isTemplate: Bool = true
     ) {
         let presentation = StatusBarPresentation(
-            symbolName: symbolName,
+            imageDescriptor: imageDescriptor,
             accessibilityDescription: accessibilityDescription,
             toolTip: toolTip,
             isTemplate: isTemplate
@@ -279,14 +278,15 @@ private extension StatusBarController {
 
         presentationCount += 1
         lastPresentation = presentation
-        renderedSymbolName = symbolName
+        renderedImageIdentifier = imageDescriptor.testingIdentifier
         let imageConfiguration = StatusBarSymbolConfiguration(
-            symbolName: symbolName,
+            imageDescriptor: imageDescriptor,
             isTemplate: isTemplate
         )
         if lastImageConfiguration != imageConfiguration {
             lastImageConfiguration = imageConfiguration
-            let image = symbolCatalog.image(symbolName: symbolName, isTemplate: isTemplate)
+            let image = symbolCatalog.image(imageDescriptor, isTemplate: isTemplate)
+                ?? symbolCatalog.image(Self.fallbackIdleImageDescriptor, isTemplate: true)
             statusItem.button?.image = image
             imageAssignmentCount += 1
         }
@@ -378,7 +378,7 @@ private extension StatusBarController {
         menu.addItem(transcribeItem)
 
         let pasteItem = NSMenuItem(
-            title: L10n("Colar resultado direto"),
+            title: L10n("Colar resultados de IA diretamente"),
             action: #selector(StatusBarController.togglePasteDirect), keyEquivalent: ""
         )
         pasteItem.target = self

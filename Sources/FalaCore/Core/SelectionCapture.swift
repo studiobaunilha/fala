@@ -19,7 +19,7 @@ public struct SelectionCapture {
     public func captureSelection() async -> String? {
         let pasteboard = NSPasteboard.general
         let changeCount = pasteboard.changeCount
-        let previous = pasteboard.string(forType: .string)
+        let previousContents = PasteboardSnapshot.capture(from: pasteboard)
 
         print("[Fala] SelectionCapture: simulating Cmd+C...")
         simulateCmdC()
@@ -36,10 +36,7 @@ public struct SelectionCapture {
         let captured = pasteboard.string(forType: .string)
 
         // Restore original clipboard content.
-        pasteboard.clearContents()
-        if let previous {
-            pasteboard.setString(previous, forType: .string)
-        }
+        previousContents.restore(to: pasteboard)
 
         // Only return meaningful content (not whitespace-only).
         guard let text = captured?.trimmingCharacters(in: .whitespacesAndNewlines),

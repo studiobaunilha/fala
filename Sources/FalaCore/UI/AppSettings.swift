@@ -43,7 +43,8 @@ public final class AppSettings: ObservableObject {
     @Published public var customModeName: String
     @Published public var customModePrompt: String
     @Published public var globalSystemPrompt: String
-    @Published public var selectionPasteDirectly: Bool
+    @Published public var plainDictationPasteDirectly: Bool
+    @Published public var aiResultPasteDirectly: Bool
     @Published public var fnDoublePressActivationEnabled: Bool
 
     public let modelManager: ModelManager
@@ -120,7 +121,8 @@ public final class AppSettings: ObservableObject {
         self.customModeName = normalizedConfig.customModeName
         self.customModePrompt = normalizedConfig.customModePrompt
         self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
-        self.selectionPasteDirectly = normalizedConfig.selectionPasteDirectly
+        self.plainDictationPasteDirectly = normalizedConfig.plainDictationPasteDirectly
+        self.aiResultPasteDirectly = normalizedConfig.aiResultPasteDirectly
         self.fnDoublePressActivationEnabled = normalizedConfig.fnDoublePressActivationEnabled
 
         self.transcriber = transcriber
@@ -265,9 +267,15 @@ public extension AppSettings {
         snapshot.customModeName = String(customModeName.prefix(30))
         snapshot.customModePrompt = customModePrompt
         snapshot.globalSystemPrompt = globalSystemPrompt
-        snapshot.selectionPasteDirectly = selectionPasteDirectly
+        snapshot.plainDictationPasteDirectly = plainDictationPasteDirectly
+        snapshot.aiResultPasteDirectly = aiResultPasteDirectly
         snapshot.fnDoublePressActivationEnabled = fnDoublePressActivationEnabled
         return snapshot
+    }
+
+    var selectionPasteDirectly: Bool {
+        get { aiResultPasteDirectly }
+        set { aiResultPasteDirectly = newValue }
     }
 
     var isAppleProviderUsable: Bool {

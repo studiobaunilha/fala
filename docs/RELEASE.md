@@ -21,6 +21,7 @@ graph LR
 | `Info.plist` | Define a versão e a URL do feed |
 | `appcast.xml` | Lista de versões disponíveis (hospedado no R2) |
 | `Fala-X.Y.dmg` | O app empacotado (hospedado no R2) |
+| `scripts/create-dmg.sh` | Monta o DMG com layout guiado, fundo customizado e atalho para `Applications` |
 | EdDSA key | Par de chaves para assinar releases (no Keychain) |
 | `scripts/release.sh` | Automatiza todo o fluxo |
 
@@ -61,7 +62,7 @@ O script automaticamente:
 3. Atualiza versão e build em `Info.plist`.
 4. Cria commit e tag `vX.Y`.
 5. Gera o build otimizado de release.
-6. Cria `.app` e `.dmg`.
+6. Cria `.app` e `.dmg` com fundo guiado de instalacao e janela pronta para arrastar.
 7. Assina o artefato com EdDSA.
 8. Gera e publica `appcast.xml` e `.dmg` no R2.
 9. Faz push do commit e da tag.

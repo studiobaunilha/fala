@@ -68,7 +68,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             readiness: appSettings.readiness,
             permissionProvider: appSettings.permissionProvider
         )
-        let onboardingCtrl = OnboardingWindowController(viewModel: onboardingViewModel)
+        let onboardingCtrl = OnboardingWindowController(
+            viewModel: onboardingViewModel,
+            onFinish: { settingsCtrl.show() }
+        )
         onboardingController = onboardingCtrl
 
         AppMainMenu.install(appDelegate: self)

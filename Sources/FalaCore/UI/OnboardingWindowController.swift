@@ -121,7 +121,11 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                Button(L10n("Continuar")) {
+                Button(
+                    viewModel.shouldOpenSettingsAfterContinue
+                        ? L10n("Continuar e abrir Ajustes")
+                        : L10n("Continuar")
+                ) {
                     onContinue()
                 }
                 .buttonStyle(.borderedProminent)
@@ -138,13 +142,18 @@ struct OnboardingView: View {
 public final class OnboardingWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let viewModel: OnboardingViewModel
+    private let onFinish: () -> Void
 
     var currentWindow: NSWindow? {
         window
     }
 
-    public init(viewModel: OnboardingViewModel) {
+    public init(
+        viewModel: OnboardingViewModel,
+        onFinish: @escaping () -> Void = {}
+    ) {
         self.viewModel = viewModel
+        self.onFinish = onFinish
     }
 
     public func showIfNeeded() {
@@ -163,8 +172,12 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
         let win = WindowFactory.makeWindow(
             config: config,
             content: OnboardingView(viewModel: viewModel) { [weak self] in
+                let shouldOpenSettings = self?.viewModel.shouldOpenSettingsAfterContinue ?? false
                 self?.viewModel.markCompleted()
                 self?.window?.orderOut(nil)
+                if shouldOpenSettings {
+                    self?.onFinish()
+                }
             }
         )
         win.delegate = self
@@ -179,8 +192,12 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
 
         WindowFactory.applyContent(
             OnboardingView(viewModel: viewModel) { [weak self] in
+                let shouldOpenSettings = self?.viewModel.shouldOpenSettingsAfterContinue ?? false
                 self?.viewModel.markCompleted()
                 self?.window?.orderOut(nil)
+                if shouldOpenSettings {
+                    self?.onFinish()
+                }
             },
             config: config,
             to: window

@@ -30,7 +30,7 @@ public final class DictationMode {
     private let readiness: RuntimeReadinessEvaluator?
     private let selectionCapture: SelectionCapture?
     let selectionCommandController: SelectionCommandController?
-    private let insertionReviewPresenter: (any InsertionReviewPresenting)?
+    let insertionReviewPresenter: (any InsertionReviewPresenting)?
     public let conversationMemory = ConversationMemory()
 
     var isRecording = false
@@ -328,19 +328,23 @@ public final class DictationMode {
                 }
                 finalText = selectionResult
             } else {
-                if template.requiresLLM {
-                    inserter.saveToClipboard(text)
-                }
                 finalText = await profiledProcessText(
                     text, config: config, template: template,
                     selectionContext: selectionContext, profiler: profiler
                 )
             }
 
-            if isSelectionCommand && !config.selectionPasteDirectly {
+            if isSelectionCommand && !config.aiResultPasteDirectly {
                 feedback?.model.stage = .done
                 feedback?.dismiss()
                 showRefinementPanel(for: finalText, timeout: nil)
+            } else if !isSelectionCommand && !config.plainDictationPasteDirectly {
+                feedback?.model.stage = .done
+                feedback?.dismiss()
+                inserter.saveToClipboard(finalText)
+                statusBar?.showTemporaryWarning(
+                    L10n("Texto copiado para a área de transferência.")
+                )
             } else {
                 feedback?.model.stage = .inserting
                 await profiler.measure(.textInsertion) {
@@ -359,67 +363,5 @@ public final class DictationMode {
             feedback?.dismiss()
         }
         statusBar?.setState(.idle)
-    }
-
-    func presentInsertionReviewIfNeeded(for insertedText: String) {
-        insertionReviewPresenter?.present(
-            insertedText: insertedText,
-            using: inserter
-        )
-    }
-
-    private func profiledProcessText(
-        _ text: String,
-        config: AppConfig,
-        template: DictationTemplate,
-        selectionContext: String? = nil,
-        profiler: any DictationProfiling
-    ) async -> String {
-        var finalText = profiler.measure(.replacementRules) {
-            ReplacementRule.applyAll(text, rules: config.replacementRules)
-        }
-        let modeConfig = config.getEffectiveConfig(for: template)
-        let basePrompt = modeConfig.prompt
-
-        if template.requiresLLM, !basePrompt.isEmpty {
-            let prompt = buildLLMPrompt(
-                basePrompt: basePrompt, template: template,
-                modeConfig: modeConfig, config: config
-            )
-            let useMemory = template.isConversational
-                && PromptDefaults.supportsConversationMemory(modeConfig.provider)
-            let history = useMemory
-                ? conversationMemory.messagesForAPI()
-                : []
-            let userText = Self.wrapWithSelectionContext(
-                text, selection: selectionContext
-            )
-            do {
-                let result = try await profiler.measure(.llmProcessing) {
-                    try await llmResponse(
-                        text: userText, prompt: prompt,
-                        config: config, effective: modeConfig,
-                        previousMessages: history,
-                        conversational: useMemory
-                    )
-                }
-                finalText = stripLLMPreamble(result)
-                if useMemory {
-                    let ctxKey = "\(template.conversationContextKeyPrefix)::\(modeConfig.provider)"
-                    conversationMemory.append(
-                        userText: userText, assistantResponse: finalText,
-                        contextKey: ctxKey
-                    )
-                    feedback?.model.conversationTurnCount = conversationMemory.turnCount
-                }
-            } catch let error as LLMError {
-                let msg = error.localizedDescription
-                print("[Fala] \(msg) — modo '\(template.diagnosticName)' requer LLM.")
-                statusBar?.showTemporaryWarning(msg)
-            } catch {
-                print("[Fala] LLM processing error: \(error.localizedDescription)")
-            }
-        }
-        return finalText
     }
 }

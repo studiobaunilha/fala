@@ -67,6 +67,36 @@ final class OnboardingWindowControllerTests: XCTestCase {
 
         window.orderOut(nil)
     }
+
+    func testViewModelOnlyRequestsSettingsAutoOpenOnFirstCompletion() {
+        let suiteName = "OnboardingWindowControllerTests.Settings.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            return XCTFail("Expected isolated defaults suite")
+        }
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let permissionProvider = StubPermissionProvider()
+        let config = AppConfig()
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: permissionProvider
+        )
+        let viewModel = OnboardingViewModel(
+            settings: settings,
+            readiness: settings.readiness,
+            permissionProvider: permissionProvider,
+            defaults: defaults
+        )
+
+        XCTAssertTrue(viewModel.shouldOpenSettingsAfterContinue)
+
+        viewModel.markCompleted()
+
+        XCTAssertFalse(viewModel.shouldOpenSettingsAfterContinue)
+    }
 }
 
 @MainActor

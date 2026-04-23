@@ -22,7 +22,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
     ).first?.path ?? ""
 
     public var forceWhisperNeuralEngine: Bool = false
-
     public var selectedDictationTemplate: DictationTemplate = .custom
     public var llmProvider: String = "apple"
     public var llmPrompt: String = AppConfig.localizedDefault(for: .llmPrompt)
@@ -31,26 +30,22 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public var geminiModel: String = "gemini-2.5-flash"
     public var openAIModel: String = "gpt-4o-mini"
     public var mlxModel: String = AppConfig.defaultMLXModelRepoID
-
     public var customModeName: String = AppConfig.localizedDefault(for: .customModeName)
     public var customModePrompt: String = AppConfig.localizedDefault(for: .customModePrompt)
-
     public static var defaultGlobalSystemPrompt: String {
         localizedDefault(for: .globalSystemPrompt)
     }
-
     public static let defaultWhisperModelID = "large-v3-turbo"
     public static let defaultMLXModelRepoID = "mlx-community/Qwen3-4B-4bit"
     public var globalSystemPrompt: String = AppConfig.defaultGlobalSystemPrompt
-
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
     var parakeetVocabularyTerms: [ParakeetVocabularyTerm] = []
     public var selectionCommandConfig: SelectionCommandConfig = .init()
     public var modeConfigs: [String: ModeConfig] = [:]
-    public var selectionPasteDirectly: Bool = true
+    public var plainDictationPasteDirectly: Bool = true
+    public var aiResultPasteDirectly: Bool = true
     public var fnDoublePressActivationEnabled: Bool = false
-
     private static let storageKey = "dev.fala.config"
 
     private enum CodingKeys: String, CodingKey {
@@ -81,8 +76,15 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case parakeetVocabularyTerms
         case selectionCommandConfig
         case modeConfigs
+        case plainDictationPasteDirectly
+        case aiResultPasteDirectly
         case selectionPasteDirectly
         case fnDoublePressActivationEnabled
+    }
+
+    public var selectionPasteDirectly: Bool {
+        get { aiResultPasteDirectly }
+        set { aiResultPasteDirectly = newValue }
     }
 
     public init() {}
@@ -129,7 +131,8 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(parakeetVocabularyTerms, forKey: .parakeetVocabularyTerms)
         try container.encode(selectionCommandConfig, forKey: .selectionCommandConfig)
         try container.encode(modeConfigs, forKey: .modeConfigs)
-        try container.encode(selectionPasteDirectly, forKey: .selectionPasteDirectly)
+        try container.encode(plainDictationPasteDirectly, forKey: .plainDictationPasteDirectly)
+        try container.encode(aiResultPasteDirectly, forKey: .aiResultPasteDirectly)
         try container.encode(fnDoublePressActivationEnabled, forKey: .fnDoublePressActivationEnabled)
     }
     
@@ -187,7 +190,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
             UserDefaults.standard.synchronize()
         }
     }
-
 }
 
 extension AppConfig {
@@ -210,7 +212,6 @@ extension AppConfig {
             try? container.decode(SelectionCommandConfig.self, forKey: .selectionCommandConfig)
         ) ?? SelectionCommandConfig()
         modeConfigs = (try? container.decode([String: ModeConfig].self, forKey: .modeConfigs)) ?? [:]
-
         if replacementRules.isEmpty && !replacements.isEmpty {
             replacementRules = replacements.map { key, value in
                 ReplacementRule(variants: [key], replacement: value)
@@ -224,7 +225,14 @@ extension AppConfig {
             ?? FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first?.path
             ?? ""
         forceWhisperNeuralEngine = (try? container.decode(Bool.self, forKey: .forceWhisperNeuralEngine)) ?? false
-        selectionPasteDirectly = (try? container.decode(Bool.self, forKey: .selectionPasteDirectly)) ?? true
+        plainDictationPasteDirectly = (
+            try? container.decode(Bool.self, forKey: .plainDictationPasteDirectly)
+        ) ?? true
+        aiResultPasteDirectly = (
+            try? container.decode(Bool.self, forKey: .aiResultPasteDirectly)
+        ) ?? (
+            try? container.decode(Bool.self, forKey: .selectionPasteDirectly)
+        ) ?? true
         fnDoublePressActivationEnabled = (try? container.decode(Bool.self, forKey: .fnDoublePressActivationEnabled))
             ?? false
         selectedDictationTemplate = (try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate))
@@ -266,7 +274,6 @@ extension AppConfig {
         migrateAskAISettingsIfNeeded()
         migrateGlobalSystemPromptIfNeeded()
     }
-
     static func localizedDefault(
         for preset: LocalizedDefault,
         languageCode: String = AppLocalization.resolvedLanguageCode()
@@ -306,7 +313,6 @@ extension AppConfig {
         if isKnownLocalizedDefault(storedValue, preset: preset) {
             return localizedDefault(for: preset, languageCode: appLanguage)
         }
-
         return storedValue
     }
 

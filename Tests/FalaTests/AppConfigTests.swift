@@ -156,7 +156,10 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(decoded.batchModel, "turbo")
         XCTAssertEqual(decoded.activeWhisperModel, "large-v3")
         XCTAssertEqual(decoded.outputFormat, "md")
-        XCTAssertEqual(decoded.parakeetVocabularyTerms, [ParakeetVocabularyTerm(text: "OpenAI")])
+        XCTAssertEqual(
+            decoded.parakeetVocabularyTerms,
+            [ParakeetVocabularyTerm(text: "OpenAI")]
+        )
     }
 
     func testNormalizeWhisperModelSelectionPrefersCustomBatchSelection() {
@@ -193,6 +196,9 @@ final class AppConfigTests: XCTestCase {
         XCTAssertNotNil(json?["outputFormat"])
         XCTAssertNotNil(json?["appLanguage"])
         XCTAssertNotNil(json?["transcriptionLanguage"])
+        XCTAssertNotNil(json?["plainDictationPasteDirectly"])
+        XCTAssertNotNil(json?["aiResultPasteDirectly"])
+        XCTAssertNil(json?["selectionPasteDirectly"])
     }
 
     // MARK: – Vocabulary learning

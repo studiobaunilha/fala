@@ -51,6 +51,10 @@ public final class OnboardingViewModel: ObservableObject {
         readiness.isOnboardingReady
     }
 
+    public var shouldOpenSettingsAfterContinue: Bool {
+        !hasCompletedEssentials
+    }
+
     public var isProcessingLicense: Bool {
         licenseManager.isActivating || 
         licenseManager.isRefreshingEntitlement || 
