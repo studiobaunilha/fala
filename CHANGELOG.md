@@ -2,6 +2,18 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.12.1] — 2026-04-23
+
+### Melhorias
+- **Descoberta melhor do app após o onboarding**: ao concluir a primeira configuração, o Fala abre os Ajustes automaticamente e a barra de menus ficou mais fácil de reconhecer.
+- **Ativação de ditado simplificada**: o caminho oficial agora é o atalho global configurável do app, priorizando o comportamento mais previsível no macOS.
+
+### Correções
+- **Comportamento de inserção mais claro**: o ditado normal e os resultados de IA agora têm opções separadas de colagem direta.
+- **Limpeza e formatação com IA mais útil**: os prompts padrão agora instruem a remover disfluências comuns como "uh", "um" e falsos começos quando isso não altera o sentido.
+
+---
+
 ## [1.12] — 2026-04-19
 
 ### Funcionalidades

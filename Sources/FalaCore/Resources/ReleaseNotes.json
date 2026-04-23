@@ -1,6 +1,36 @@
 {
   "releases": [
     {
+      "version": "1.12.1",
+      "date": "2026-04-23",
+      "highlights": {
+        "pt-BR": [
+          "Descoberta melhor do app após o onboarding: Ajustes abrem ao concluir e o item da barra ficou mais reconhecível.",
+          "Comportamento de inserção mais claro: o ditado normal e os resultados de IA agora têm opções separadas de colagem direta.",
+          "Limpeza e formatação com IA mais útil: o pós-processamento agora remove disfluências comuns como \"uh\", \"um\" e falsos começos quando isso não altera o sentido.",
+          "Ativação de ditado simplificada: o caminho oficial agora é o atalho global configurável do app."
+        ],
+        "en": [
+          "Better app discovery after onboarding: Settings open on completion and the menu bar item is easier to recognize.",
+          "Clearer insertion behavior: plain dictation and AI results now have separate direct-paste options.",
+          "More useful AI cleanup and formatting: post-processing now removes common filler words like \"uh\", \"um\", and false starts when meaning stays the same.",
+          "Simplified dictation activation: the official path is now Fala's configurable global shortcut."
+        ],
+        "es": [
+          "Mejor descubrimiento de la app tras el onboarding: Ajustes se abre al terminar y el ítem de la barra es más reconocible.",
+          "Comportamiento de inserción más claro: el dictado normal y los resultados de IA ahora tienen opciones separadas de pegado directo.",
+          "Limpieza y formato con IA más útiles: el posprocesamiento ahora elimina disfluencias comunes como \"uh\", \"um\" y falsos comienzos cuando no cambian el sentido.",
+          "Activación del dictado simplificada: la ruta oficial ahora es el atajo global configurable de Fala."
+        ],
+        "fr": [
+          "Meilleure découvrabilité après l’onboarding : les Réglages s’ouvrent à la fin et l’élément de la barre de menus est plus reconnaissable.",
+          "Comportement d’insertion plus clair : la dictée normale et les résultats IA ont désormais des options séparées de collage direct.",
+          "Nettoyage et mise en forme IA plus utiles : le post-traitement retire désormais les disfluences courantes comme \"uh\", \"um\" et les faux départs quand le sens reste identique.",
+          "Activation de la dictée simplifiée : le chemin officiel est désormais le raccourci global configurable de Fala."
+        ]
+      }
+    },
+    {
       "version": "1.12",
       "date": "2026-04-19",
       "highlights": {
