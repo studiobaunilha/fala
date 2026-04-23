@@ -32,24 +32,13 @@ extension SettingsView {
     private var systemShortcutSection: some View {
         Section {
             KeyboardShortcuts.Recorder(L10n("Atalho de Ditado"), name: .startDictation)
-
-            Toggle(
-                L10n("Ativar ditado pressionando Fn/Globe duas vezes"),
-                isOn: $settings.fnDoublePressActivationEnabled
-            )
         } header: {
             Text(L10n("Atalhos do Sistema"))
         } footer: {
-            VStack(alignment: .leading, spacing: 6) {
-                // swiftlint:disable:next line_length
-                Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar. Use um modificador (⌘, ⌥, ⌃, ⇧) combinado com outra tecla, ou uma tecla F1–F20. Teclas como Tab e Fn/Globe não podem ser usadas sozinhas em atalhos globais do macOS."))
-                if settings.fnDoublePressActivationEnabled {
-                    // swiftlint:disable:next line_length
-                    Text(L10n("Dois toques em Fn/Globe alternam a gravação (iniciar/parar), como o Ditado nativo do macOS. Se o Ditado do macOS também estiver configurado para esse gesto, desative-o em Ajustes do Sistema → Teclado → Ditado para evitar conflito."))
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            // swiftlint:disable:next line_length
+            Text(L10n("Pressione o atalho global para iniciar o ditado de qualquer lugar. Use um modificador (⌘, ⌥, ⌃, ⇧) combinado com outra tecla, ou uma tecla F1–F20. Teclas como Tab não podem ser usadas sozinhas em atalhos globais do macOS."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

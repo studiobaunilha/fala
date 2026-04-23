@@ -201,13 +201,6 @@ private extension AppDelegate {
             }
             .store(in: &cancellables)
 
-        settings.$fnDoublePressActivationEnabled
-            .receive(on: RunLoop.main)
-            .sink { [weak self] enabled in
-                self?.dictationMode?.setFnDoublePressActivationEnabled(enabled)
-            }
-            .store(in: &cancellables)
-
         settings.readiness.refresh()
     }
 

@@ -45,7 +45,6 @@ public final class AppSettings: ObservableObject {
     @Published public var globalSystemPrompt: String
     @Published public var plainDictationPasteDirectly: Bool
     @Published public var aiResultPasteDirectly: Bool
-    @Published public var fnDoublePressActivationEnabled: Bool
 
     public let modelManager: ModelManager
     public let mlxModelManager: MLXModelManager
@@ -123,7 +122,6 @@ public final class AppSettings: ObservableObject {
         self.globalSystemPrompt = normalizedConfig.globalSystemPrompt
         self.plainDictationPasteDirectly = normalizedConfig.plainDictationPasteDirectly
         self.aiResultPasteDirectly = normalizedConfig.aiResultPasteDirectly
-        self.fnDoublePressActivationEnabled = normalizedConfig.fnDoublePressActivationEnabled
 
         self.transcriber = transcriber
         self.parakeetTranscriber = parakeetTranscriber
@@ -269,7 +267,6 @@ public extension AppSettings {
         snapshot.globalSystemPrompt = globalSystemPrompt
         snapshot.plainDictationPasteDirectly = plainDictationPasteDirectly
         snapshot.aiResultPasteDirectly = aiResultPasteDirectly
-        snapshot.fnDoublePressActivationEnabled = fnDoublePressActivationEnabled
         return snapshot
     }
 

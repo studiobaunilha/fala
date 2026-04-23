@@ -45,7 +45,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public var modeConfigs: [String: ModeConfig] = [:]
     public var plainDictationPasteDirectly: Bool = true
     public var aiResultPasteDirectly: Bool = true
-    public var fnDoublePressActivationEnabled: Bool = false
     private static let storageKey = "dev.fala.config"
 
     private enum CodingKeys: String, CodingKey {
@@ -79,7 +78,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case plainDictationPasteDirectly
         case aiResultPasteDirectly
         case selectionPasteDirectly
-        case fnDoublePressActivationEnabled
     }
 
     public var selectionPasteDirectly: Bool {
@@ -133,7 +131,6 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(modeConfigs, forKey: .modeConfigs)
         try container.encode(plainDictationPasteDirectly, forKey: .plainDictationPasteDirectly)
         try container.encode(aiResultPasteDirectly, forKey: .aiResultPasteDirectly)
-        try container.encode(fnDoublePressActivationEnabled, forKey: .fnDoublePressActivationEnabled)
     }
     
     // MARK: – Helper Methods for Mode Config
@@ -233,8 +230,6 @@ extension AppConfig {
         ) ?? (
             try? container.decode(Bool.self, forKey: .selectionPasteDirectly)
         ) ?? true
-        fnDoublePressActivationEnabled = (try? container.decode(Bool.self, forKey: .fnDoublePressActivationEnabled))
-            ?? false
         selectedDictationTemplate = (try? container.decode(DictationTemplate.self, forKey: .selectedDictationTemplate))
             ?? .custom
     }
