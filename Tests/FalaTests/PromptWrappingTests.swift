@@ -15,6 +15,7 @@ final class PromptWrappingTests: XCTestCase {
         XCTAssertNotNil(prompt)
         // Apple prompts are concise English
         XCTAssertTrue(prompt?.contains("Format") == true)
+        XCTAssertTrue(prompt?.contains("filler words") == true)
         XCTAssertFalse(prompt?.contains("REGRA CRÍTICA") == true)
     }
 
@@ -22,6 +23,13 @@ final class PromptWrappingTests: XCTestCase {
         let prompt = PromptDefaults.resolved(for: "gemini", template: .custom)
         XCTAssertNotNil(prompt)
         XCTAssertTrue(prompt?.contains("REGRA CRÍTICA") == true)
+        XCTAssertTrue(prompt?.contains("disfluências") == true)
+    }
+
+    func testPromptDefaultsReturnsDisfluencyCleanupForMLX() {
+        let prompt = PromptDefaults.resolved(for: "mlx", template: .custom)
+        XCTAssertNotNil(prompt)
+        XCTAssertTrue(prompt?.contains("filler words") == true)
     }
 
     func testPromptDefaultsReturnsConversationalForAskAI() {

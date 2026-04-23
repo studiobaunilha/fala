@@ -28,7 +28,7 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
   - Google Gemini API
   - OpenAI GPT API
   - Apple Intelligence (via API Nativa)
-  - [Limpar & Formatar] Arruma gramática, pontuação e formatação da transcrição.
+  - [Limpar & Formatar] Arruma gramática, pontuação, formatação e remove disfluências comuns no pós-processamento com IA.
   - [Resumir] Entrega apenas os tópicos centrais falados.
   - [Traduzir] Translada dinamicamente texto em PT-BR (ou outro idioma) para Inglês de forma nativa.
   - [Desenvolvedor] Entende instruções de código contextualizado.

@@ -27,7 +27,7 @@ Fluxos principais:
 
 ### 3. Pós-processamento com Inteligência Artificial
 O Fala pode encaminhar o texto transcrito para modelos de linguagem, locais via MLX ou remotos via API, para limpeza, formatação e transformação do conteúdo.
-* [Limpar & Formatar:] Arruma gramática, pontuação e formatação da transcrição.
+* [Limpar & Formatar:] Arruma gramática, pontuação, formatação e limpa disfluências comuns no pós-processamento com IA.
 * [Resumir:] Extrai direto o assunto e tópicos chaves do áudio.
 * [Traduzir:] Dite em Português e o texto será inserido em Inglês.
 * [Desenvolvedor:] Entende instruções de código contextualizado.
