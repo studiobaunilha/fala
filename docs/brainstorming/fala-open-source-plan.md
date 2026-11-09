@@ -74,9 +74,9 @@ A main versionada do aplicativo é `bc10862`, versão 1.12.1 build 30; a árvore
 
 ## Decisões e gates pendentes
 
-Plano e licença MIT aprovados. Permanecem: acesso real à infraestrutura; conferência de histórico e metadados; versão/build a partir do feed real. MIT, por exemplo, permite que terceiros façam versões comerciais fechadas — gratuidade da distribuição oficial não proíbe isso.
+Plano e licença MIT aprovados. Permanecem: acesso pessoal à infraestrutura e ao provedor comercial; revisão independente e de exposição; recuperação da chave Sparkle original; cenários interativos e de atualização ainda não executados. A versão foi definida como 1.13 build 33 após conferir o feed real. MIT, por exemplo, permite que terceiros façam versões comerciais fechadas — gratuidade da distribuição oficial não proíbe isso.
 
-O gate de plano decorre de `AGENTS.ale.md`, seção Feature delivery sequence, item 2: “No implementing commit before the Plan is filled and approved by me.” O gate final de exposição permanece para revisar o conjunto concreto que ficará público e os textos externos. Não há código de implementação desta tarefa até esses gates correspondentes serem satisfeitos.
+O gate de plano decorre de `AGENTS.ale.md`, seção Feature delivery sequence, item 2: “No implementing commit before the Plan is filled and approved by me.” O gate final de exposição permanece para revisar o conjunto concreto que ficará público e os textos externos. A implementação foi iniciada após a aprovação do plano; a exposição continua condicionada ao gate final.
 
 ## Registro de execução — 2026-11-09
 
@@ -90,3 +90,7 @@ O gate de plano decorre de `AGENTS.ale.md`, seção Feature delivery sequence, i
 - Identidade Apple pessoal e perfil Fala Notarization disponíveis. Wrangler sem autenticação na configuração consultada; não houve login, mudança de conta, deploy ou uso de conta temporária. Checkout público da Paddle está configurado em modo live; o estado do catálogo e das transações do provedor ainda não foi acessado.
 - Foi solicitada autorização específica para subagente revisor conforme o contrato Codex da skill ad-review; resposta pendente. Nenhuma revisão da autoria foi rotulada como independente.
 - Não houve push, publicação, alteração de visibilidade ou retirada de serviços de produção.
+
+### Fechamento local do candidato
+
+O recibo detalhado está em `doc/research/0003-free-open-source-execution.md`. O DMG final recebeu notarização Accepted e ticket validado, mas a chave Sparkle original não foi encontrada no Keychain configurado. Não foi criada chave nova, gerado feed final nem realizada publicação. O preflight do script de release foi corrigido para falhar sem criar chave substituta. As perguntas sobre revisão independente, autenticação pessoal Cloudflare e localização do backup da chave permanecem pendentes.

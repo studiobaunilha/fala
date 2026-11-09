@@ -74,9 +74,10 @@ if [[ -n "$(git status --porcelain)" ]]; then
     fail "Working tree tem alterações não commitadas. Commit ou stash primeiro."
 fi
 
-# Sparkle signing key?
-if ! "$SPARKLE_BIN/generate_keys" 2>&1 | grep -q "pre-existing"; then
-    fail "Chave EdDSA não encontrada. Execute: $SPARKLE_BIN/generate_keys"
+# Check access to the existing key without generating a replacement.
+printf 'Fala signing preflight\n' > "$TMP_DIR/signing-preflight.txt"
+if ! "$SPARKLE_BIN/sign_update" -p "$TMP_DIR/signing-preflight.txt" >/dev/null 2>&1; then
+    fail "Chave EdDSA original não encontrada ou inacessível. Recupere a chave existente antes de publicar; não gere uma substituta."
 fi
 
 # wrangler?
