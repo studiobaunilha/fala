@@ -3,7 +3,6 @@ import AppKit
 
 struct TranscribeView: View {
     @ObservedObject var job: TranscriptionJob
-    @ObservedObject var licenseManager = LicenseManager.shared
     @State private var isDropTargeted = false
 
     var isWorking: Bool {

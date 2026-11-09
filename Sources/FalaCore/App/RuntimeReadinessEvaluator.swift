@@ -7,7 +7,6 @@ private enum ReadinessTranscriptionUse {
 }
 
 public enum ReadinessIssueKind: String, Equatable, Sendable {
-    case licenseInactive
     case microphonePermission
     case accessibilityPermission
     case whisperModelMissing
@@ -22,7 +21,6 @@ public enum ReadinessAction: Equatable, Sendable {
     case openSettings(SettingsSelection)
     case openMicrophoneSettings
     case openAccessibilitySettings
-    case validateLicense
 }
 
 public struct ReadinessIssue: Identifiable, Equatable, Sendable {
@@ -41,7 +39,6 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
     unowned let settings: AppSettings
     private let modelManager: ModelManager
     let mlxCatalogService: MLXCatalogService
-    private let licenseManager: LicenseManager
     private let permissionProvider: SystemPermissionProviding
     private let warmupCoordinator: WarmupCoordinator
 
@@ -51,21 +48,18 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
         settings: AppSettings,
         modelManager: ModelManager,
         mlxCatalogService: MLXCatalogService,
-        licenseManager: LicenseManager = .shared,
         permissionProvider: SystemPermissionProviding = SystemPermissionProvider(),
         warmupCoordinator: WarmupCoordinator
     ) {
         self.settings = settings
         self.modelManager = modelManager
         self.mlxCatalogService = mlxCatalogService
-        self.licenseManager = licenseManager
         self.permissionProvider = permissionProvider
         self.warmupCoordinator = warmupCoordinator
 
         settings.objectWillChange.sink { [weak self] _ in self?.refresh() }.store(in: &cancellables)
         modelManager.objectWillChange.sink { [weak self] _ in self?.refresh() }.store(in: &cancellables)
         mlxCatalogService.objectWillChange.sink { [weak self] _ in self?.refresh() }.store(in: &cancellables)
-        licenseManager.objectWillChange.sink { [weak self] _ in self?.refresh() }.store(in: &cancellables)
         warmupCoordinator.objectWillChange.sink { [weak self] _ in self?.refresh() }.store(in: &cancellables)
     }
 
@@ -76,9 +70,6 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
     public func issuesForDictation() -> [ReadinessIssue] {
         var issues = [ReadinessIssue]()
 
-        if let issue = licenseIssue() {
-            issues.append(issue)
-        }
         if let issue = microphoneIssue() {
             issues.append(issue)
         }
@@ -94,9 +85,6 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
     public func issuesForBatch(batchPrompt: String) -> [ReadinessIssue] {
         var issues = [ReadinessIssue]()
 
-        if let issue = licenseIssue() {
-            issues.append(issue)
-        }
         issues.append(contentsOf: transcriptionEngineIssues(for: .batch))
 
         if !batchPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -113,9 +101,6 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
             issues.append(issue)
         }
         if let issue = accessibilityIssue() {
-            issues.append(issue)
-        }
-        if let issue = licenseIssue() {
             issues.append(issue)
         }
 
@@ -153,28 +138,6 @@ public final class RuntimeReadinessEvaluator: ObservableObject {
 }
 
 private extension RuntimeReadinessEvaluator {
-    private func licenseIssue() -> ReadinessIssue? {
-        guard !licenseManager.isActivated else {
-            return nil
-        }
-
-        let message: String
-        if licenseManager.accessState == .needsConnection {
-            message = L10n("Conecte este Mac à internet para validar a licença ou iniciar o trial.")
-        } else {
-            message = L10n("Valide online ou ative o Fala Pro para continuar.")
-        }
-
-        return ReadinessIssue(
-            kind: .licenseInactive,
-            title: L10n("Licença ou trial necessários"),
-            message: message,
-            action: .none,
-            actionTitle: nil,
-            blocking: true
-        )
-    }
-
     private func microphoneIssue() -> ReadinessIssue? {
         switch permissionProvider.microphonePermissionState() {
         case .granted:

@@ -6,10 +6,6 @@ extension SettingsView {
             applicationIdentitySection
             updatesPreferencesSection
             releaseNotesSection
-            licenseStatusSection
-            if !licenseManager.isPro {
-                licenseActivationSection
-            }
             aboutApplicationSection
         }
         .formStyle(.grouped)

@@ -3,6 +3,8 @@ import sys
 
 # Raw strings from the application
 keys = [
+    "Fala",
+    "Avisos de terceiros",
     "A API da OpenAI requer saldo na conta de desenvolvedor.",
     "A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.",
     "Acurácia vs. Velocidade",
@@ -215,6 +217,7 @@ keys = [
 def translate_to_en(text):
     # Dictionary mapping for English
     mapping = {
+        "Avisos de terceiros": "Third-party notices",
         "A API da OpenAI requer saldo na conta de desenvolvedor.": "The OpenAI API requires balance in the developer account.",
         "A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.": "The Gemini 2.5 Flash API is fast and has a generous free tier.",
         "Acurácia vs. Velocidade": "Accuracy vs. Speed",
@@ -428,6 +431,7 @@ def translate_to_en(text):
 def translate_to_es(text):
     # Dictionary mapping for Spanish
     mapping = {
+        "Avisos de terceiros": "Avisos de terceros",
         "A API da OpenAI requer saldo na conta de desenvolvedor.": "La API de OpenAI requiere saldo en la cuenta de desarrollador.",
         "A API do Gemini 2.5 Flash é rápida e possui um nível gratuito generoso.": "La API de Gemini 2.5 Flash es rápida y tiene un nivel gratuito generoso.",
         "Acurácia vs. Velocidade": "Precisión vs. Velocidad",

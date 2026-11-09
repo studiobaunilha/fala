@@ -3,16 +3,73 @@ import XCTest
 
 @MainActor
 final class RuntimeReadinessEvaluatorTests: XCTestCase {
-    override func setUp() async throws {
-        await MainActor.run {
-            LicenseManager.shared.setTestActivated(true)
-        }
+    override func setUp() {
+        super.setUp()
+        AppLocalization.apply(languageCode: "pt-BR")
     }
 
-    override func tearDown() async throws {
-        await MainActor.run {
-            LicenseManager.shared.setTestActivated(false)
-        }
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
+
+    func testLocalDictationReadinessDoesNotRequireActivation() {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        config.selectedDictationTemplate = .raw
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: ReadinessPermissionProvider()
+        )
+
+        XCTAssertTrue(settings.readiness.issuesForDictation().isEmpty)
+    }
+
+    func testLocalFilesAndFirstRunDoNotRequireActivation() throws {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        config.selectedDictationTemplate = .raw
+        let permissions = ReadinessPermissionProvider()
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: permissions
+        )
+        let suite = "FreeFirstRun.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let onboarding = OnboardingViewModel(
+            settings: settings,
+            readiness: settings.readiness,
+            permissionProvider: permissions,
+            defaults: defaults
+        )
+
+        XCTAssertTrue(settings.readiness.issuesForBatch(batchPrompt: "").isEmpty)
+        XCTAssertTrue(onboarding.isReadyToContinue)
+        XCTAssertEqual(onboarding.steps.map(\.id), ["microphone", "accessibility", "engine", "llm"])
+    }
+
+    func testFreeDictationStillRequiresSystemPermissions() {
+        var config = AppConfig()
+        config.transcriptionEngine = "parakeet"
+        config.selectedDictationTemplate = .raw
+        let permissions = ReadinessPermissionProvider()
+        permissions.microphoneState = .denied
+        permissions.accessibilityTrusted = false
+        let settings = AppSettings(
+            config: config,
+            transcriber: Transcriber(modelName: config.dictationModel),
+            modelManager: ModelManager(),
+            permissionProvider: permissions
+        )
+
+        let issues = settings.readiness.issuesForDictation()
+        XCTAssertTrue(issues.contains { $0.kind == .microphonePermission && $0.blocking })
+        XCTAssertTrue(issues.contains { $0.kind == .accessibilityPermission && $0.blocking })
     }
 
     func testUnsupportedMLXSelectionBlocksLLMMode() {
@@ -141,8 +198,11 @@ final class RuntimeReadinessEvaluatorTests: XCTestCase {
 
 @MainActor
 private final class ReadinessPermissionProvider: SystemPermissionProviding {
+    var microphoneState: MicrophonePermissionState = .granted
+    var accessibilityTrusted = true
+
     func microphonePermissionState() -> MicrophonePermissionState {
-        .granted
+        microphoneState
     }
 
     func requestMicrophoneAccess() async -> Bool {
@@ -150,7 +210,7 @@ private final class ReadinessPermissionProvider: SystemPermissionProviding {
     }
 
     func isAccessibilityTrusted() -> Bool {
-        true
+        accessibilityTrusted
     }
 
     func openMicrophoneSettings() {}

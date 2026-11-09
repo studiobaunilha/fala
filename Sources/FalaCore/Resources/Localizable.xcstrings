@@ -177,28 +177,6 @@
         }
       }
     },
-    "A licença ou o trial deste Mac já estão válidos.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This Mac already has a valid license or trial."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este Mac ya tiene una licencia o trial válidos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ce Mac dispose déjà d'une licence ou d'un essai valide."
-          }
-        }
-      }
-    },
     "Aprender correção?": {
       "localizations": {
         "en": {
@@ -419,28 +397,6 @@
         }
       }
     },
-    "Acesso expirado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Access expired"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Acceso vencido"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accès expiré"
-          }
-        }
-      }
-    },
     "Acurácia vs. Velocidade": {
       "localizations": {
         "en": {
@@ -503,28 +459,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "En attente dans la file"
-          }
-        }
-      }
-    },
-    "Ainda não comprou o Fala Pro?": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Haven't bought Fala Pro yet?"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Aún no compraste Fala Pro?"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vous n'avez pas encore acheté Fala Pro ?"
           }
         }
       }
@@ -1079,72 +1013,6 @@
         }
       }
     },
-    "Ativado para": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activated for"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activado para"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activé pour"
-          }
-        }
-      }
-    },
-    "Ativar": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activate"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activer"
-          }
-        }
-      }
-    },
-    "Ativar Fala Pro": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activate Fala Pro"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activar Fala Pro"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activer Fala Pro"
-          }
-        }
-      }
-    },
     "Ative em Ajustes do Sistema → Apple Intelligence e Siri.": {
       "localizations": {
         "en": {
@@ -1185,28 +1053,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Activez l'accès au microphone dans les Réglages Système pour utiliser la dictée."
-          }
-        }
-      }
-    },
-    "Ative o Fala Pro nos Ajustes para voltar a transcrever arquivos.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activate Fala Pro in Settings to transcribe files again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activa Fala Pro en Ajustes para volver a transcribir archivos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activez Fala Pro dans les Réglages pour transcrire à nouveau des fichiers."
           }
         }
       }
@@ -1981,28 +1827,6 @@
         }
       }
     },
-    "Código de Ativação": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activation Code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Código de activación"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code d'activation"
-          }
-        }
-      }
-    },
     "Colar": {
       "localizations": {
         "en": {
@@ -2021,51 +1845,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Coller"
-          }
-        }
-      }
-    },
-    "Cole o código de ativação recebido após a compra para liberar o Fala Pro neste Mac.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste the activation code received after purchase to unlock Fala Pro on this Mac."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pega el código de activación recibido después de la compra para desbloquear Fala Pro en esta Mac."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Collez le code d'activation reçu après l'achat pour débloquer Fala Pro sur ce Mac."
-          }
-        }
-      }
-    },
-    "Cole seu código de ativação": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste your activation code"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pega tu código de activación"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Collez votre code d'activation"
           }
         }
       }
@@ -2114,28 +1893,6 @@
         }
       }
     },
-    "Comprar Agora": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buy Now"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Comprar ahora"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Acheter maintenant"
-          }
-        }
-      }
-    },
     "Conclua o básico uma vez para o app já abrir pronto para ditado e transcrição.": {
       "localizations": {
         "en": {
@@ -2176,116 +1933,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Terminés : %d · Échecs : %d · Annulés : %d"
-          }
-        }
-      }
-    },
-    "Conecte este Mac à internet para validar a licença ou iniciar o trial.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect this Mac to the internet to validate the license or start the trial."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conecta este Mac a internet para validar la licencia o iniciar el trial."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connectez ce Mac à Internet pour valider la licence ou démarrer l'essai."
-          }
-        }
-      }
-    },
-    "Conecte este Mac à internet para validar o trial ou renovar sua licença.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect this Mac to the internet to validate the trial or renew your license."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conecta esta Mac a internet para validar el trial o renovar tu licencia."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connectez ce Mac à Internet pour valider l'essai ou renouveler votre licence."
-          }
-        }
-      }
-    },
-    "Conexão necessária": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connection required"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conexión requerida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connexion requise"
-          }
-        }
-      }
-    },
-    "Conexão Necessária": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connection Required"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conexión requerida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connexion requise"
-          }
-        }
-      }
-    },
-    "Conexão necessária: Conecte este Mac para validar a licença nos Ajustes.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connection required: Connect this Mac to validate the license in Settings."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conexión requerida: conecta esta Mac para validar la licencia en Ajustes."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connexion requise : connectez ce Mac pour valider la licence dans les Réglages."
           }
         }
       }
@@ -2818,28 +2465,6 @@
         }
       }
     },
-    "Dias restantes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Days remaining"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Días restantes"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jours restants"
-          }
-        }
-      }
-    },
     "Disponível": {
       "localizations": {
         "en": {
@@ -3368,28 +2993,6 @@
         }
       }
     },
-    "Este Mac está autorizado para usar os recursos Pro do Fala.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This Mac is authorized to use Fala Pro features."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta Mac está autorizada para usar las funciones Pro de Fala."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ce Mac est autorisé à utiliser les fonctionnalités Fala Pro."
-          }
-        }
-      }
-    },
     "Este Mac não suporta Apple Intelligence.": {
       "localizations": {
         "en": {
@@ -3518,28 +3121,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ex. : Corrigez la ponctuation et la grammaire…"
-          }
-        }
-      }
-    },
-    "Expirado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expired"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expirado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expiré"
           }
         }
       }
@@ -3738,94 +3319,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fala — transcription…"
-          }
-        }
-      }
-    },
-    "Fala Pro": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro"
-          }
-        }
-      }
-    },
-    "Fala Pro ativo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro active"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro activo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro actif"
-          }
-        }
-      }
-    },
-    "Fala Pro em período de tolerância": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro in grace period"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro en período de gracia"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro en période de tolérance"
-          }
-        }
-      }
-    },
-    "Fala Pro Necessário: Ative o Fala Pro nos Ajustes.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro Required: Activate Fala Pro in Settings."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro requerido: activa Fala Pro en Ajustes."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fala Pro requis : activez Fala Pro dans les Réglages."
           }
         }
       }
@@ -4926,72 +4419,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Léger et simple. Meilleur que Tiny, mais toujours axé sur l’économie d’espace."
-          }
-        }
-      }
-    },
-    "Licença": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "License"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licencia"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licence"
-          }
-        }
-      }
-    },
-    "Licença ou trial": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "License or Trial"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licencia o trial"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licence ou essai"
-          }
-        }
-      }
-    },
-    "Licença ou trial necessários": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "License or Trial Required"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licencia o trial requeridos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Licence ou essai requis"
           }
         }
       }
@@ -6140,28 +5567,6 @@
         }
       }
     },
-    "Modo Trial (%d dias restantes)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trial Mode (%d days remaining)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modo de prueba (%d días restantes)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mode d’essai (%d jours restants)"
-          }
-        }
-      }
-    },
     "Modos": {
       "localizations": {
         "en": {
@@ -6356,28 +5761,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Impossible de charger le modèle local '%@'"
-          }
-        }
-      }
-    },
-    "Não licenciado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlicensed"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin licencia"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non sous licence"
           }
         }
       }
@@ -6601,28 +5984,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fala a besoin d’accéder au microphone pour la dictée et pour terminer la configuration initiale."
-          }
-        }
-      }
-    },
-    "O lease offline expirou, mas o app ainda está liberado temporariamente enquanto tenta renovar online.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The offline lease expired, but the app is still temporarily unlocked while it tries to renew online."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El lease sin conexión venció, pero la app sigue desbloqueada temporalmente mientras intenta renovarlo en línea."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le bail hors ligne a expiré, mais l’app reste temporairement débloquée pendant qu’elle tente de le renouveler en ligne."
           }
         }
       }
@@ -6909,28 +6270,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un texte long nécessite Whisper Medium. Changer de moteur ?"
-          }
-        }
-      }
-    },
-    "O trial ou o lease offline expirou. Faça uma validação online ou ative o Fala Pro.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The trial or offline lease expired. Perform an online validation or activate Fala Pro."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El trial o el lease sin conexión venció. Haz una validación en línea o activa Fala Pro."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La période d’essai ou le bail hors ligne a expiré. Effectuez une validation en ligne ou activez Fala Pro."
           }
         }
       }
@@ -7510,28 +6849,6 @@
         }
       }
     },
-    "Período de Teste Esgotado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trial Period Ended"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Período de prueba agotado"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Période d’essai terminée"
-          }
-        }
-      }
-    },
     "Permita acessibilidade": {
       "localizations": {
         "en": {
@@ -7818,50 +7135,6 @@
         }
       }
     },
-    "Pro (Tolerância)": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro (Grace Period)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro (Periodo de gracia)"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro (Période de tolérance)"
-          }
-        }
-      }
-    },
-    "Pro Ativo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro Active"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro Activo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro actif"
-          }
-        }
-      }
-    },
     "Processamento": {
       "localizations": {
         "en": {
@@ -8082,28 +7355,6 @@
         }
       }
     },
-    "Pronto para ativar": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ready to activate"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listo para activar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prêt à activer"
-          }
-        }
-      }
-    },
     "Pronto para transcrever": {
       "localizations": {
         "en": {
@@ -8276,50 +7527,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fournisseur par défaut"
-          }
-        }
-      }
-    },
-    "Próxima tentativa automática": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next Automatic Retry"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Próximo intento automático"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prochaine tentative automatique"
-          }
-        }
-      }
-    },
-    "Próxima validação online": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Next online validation"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Próxima validación en línea"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prochaine validation en ligne"
           }
         }
       }
@@ -8540,28 +7747,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Retirer"
-          }
-        }
-      }
-    },
-    "Remover ativação": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remove activation"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eliminar activación"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retirer l’activation"
           }
         }
       }
@@ -8899,28 +8084,6 @@
         }
       }
     },
-    "Se este Mac ainda não iniciou o trial verificado, o botão “Validar online agora” também tenta iniciar o período de avaliação automaticamente.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "If this Mac has not started the verified trial yet, the “Validate online now” button also tries to start the trial automatically."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Si esta Mac aún no inició el trial verificado, el botón “Validar en línea ahora” también intenta iniciar el período de prueba automáticamente."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Si ce Mac n’a pas encore démarré l’essai vérifié, le bouton « Valider en ligne maintenant » tente également de démarrer la période d’essai automatiquement."
-          }
-        }
-      }
-    },
     "Selecionar": {
       "localizations": {
         "en": {
@@ -9141,28 +8304,6 @@
         }
       }
     },
-    "Seu trial está válido neste Mac e exige revalidação online periódica.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your trial is valid on this Mac and requires periodic online revalidation."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu trial es válido en esta Mac y requiere revalidación periódica en línea."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre essai est valide sur ce Mac et nécessite une revalidation en ligne périodique."
-          }
-        }
-      }
-    },
     "Sobre": {
       "localizations": {
         "en": {
@@ -9269,28 +8410,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Studio Baunilha"
-          }
-        }
-      }
-    },
-    "Studio Baunilha. Todos os direitos reservados.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studio Baunilha. All rights reserved."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studio Baunilha. Todos los derechos reservados."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Studio Baunilha. Tous droits réservés."
           }
         }
       }
@@ -9665,28 +8784,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Texte copié dans le presse-papiers."
-          }
-        }
-      }
-    },
-    "Tolerância até": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grace period until"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Período de gracia hasta"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Période de grâce jusqu’au"
           }
         }
       }
@@ -10087,72 +9184,6 @@
         }
       }
     },
-    "Trial Ativo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Active Trial"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trial activo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Essai actif"
-          }
-        }
-      }
-    },
-    "Trial termina em": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trial ends on"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El trial termina el"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L’essai se termine le"
-          }
-        }
-      }
-    },
-    "Trial verificado ativo": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verified trial active"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trial verificado activo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Essai vérifié actif"
-          }
-        }
-      }
-    },
     "Trocar o motor de transcrição de %@ para %@ exige reiniciar o app.": {
       "localizations": {
         "en": {
@@ -10237,28 +9268,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Passez à MLX, Gemini ou OpenAI pour utiliser ce mode sur ce Mac."
-          }
-        }
-      }
-    },
-    "Última tentativa automática": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last Automatic Attempt"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Último intento automático"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dernière tentative automatique"
           }
         }
       }
@@ -10461,72 +9470,6 @@
         }
       }
     },
-    "Validar online agora": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validate online now"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validar en línea ahora"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valider en ligne maintenant"
-          }
-        }
-      }
-    },
-    "Validar online ou iniciar trial": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validate online or start trial"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validar en línea o iniciar trial"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valider en ligne ou démarrer l’essai"
-          }
-        }
-      }
-    },
-    "Valide online ou ative o Fala Pro para continuar.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validate online or activate Fala Pro to continue."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valida en línea o activa Fala Pro para continuar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Validez en ligne ou activez Fala Pro pour continuer."
-          }
-        }
-      }
-    },
     "Variante": {
       "localizations": {
         "en": {
@@ -10655,28 +9598,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vous êtes un assistant intelligent. Le message de l’utilisateur est une question ou une demande transcrite à partir de la voix. Répondez de manière claire, utile et concise."
-          }
-        }
-      }
-    },
-    "Você pode colar um código de ativação ou conectar este Mac para iniciar o trial verificado.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can paste an activation code or connect this Mac to start the verified trial."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Puedes pegar un código de activación o conectar esta Mac para iniciar el trial verificado."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vous pouvez coller un code d’activation ou connecter ce Mac pour démarrer l’essai vérifié."
           }
         }
       }
@@ -11887,6 +10808,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Version %@"
+          }
+        }
+      }
+    },
+    "Avisos de terceiros": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Third-party notices"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de terceros"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions des tiers"
           }
         }
       }

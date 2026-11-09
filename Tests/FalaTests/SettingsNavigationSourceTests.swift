@@ -36,10 +36,9 @@ final class SettingsNavigationSourceTests: XCTestCase {
         XCTAssertTrue(extSource.contains("fileExportSection"))
         XCTAssertTrue(extSource.contains("replacementRulesSection"))
 
-        // About panel aggregates identity, updates, license and about sections
+        // About panel aggregates identity, updates and about sections
         XCTAssertTrue(aboutPanelSource.contains("applicationIdentitySection"))
         XCTAssertTrue(aboutPanelSource.contains("updatesPreferencesSection"))
-        XCTAssertTrue(aboutPanelSource.contains("licenseStatusSection"))
         XCTAssertTrue(aboutPanelSource.contains("aboutApplicationSection"))
     }
 }

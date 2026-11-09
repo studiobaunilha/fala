@@ -29,6 +29,7 @@ APP_NAME="Fala"
 TMP_DIR=$(mktemp -d)
 DRY_RUN=false
 BUMP="${1:-}"
+NOTARY_PROFILE="${FALA_NOTARY_PROFILE:-Fala Notarization}"
 
 # Colors
 BOLD='\033[1m'
@@ -85,8 +86,8 @@ fi
 
 # Notarization keychain profile? (only needed for real releases)
 if ! $DRY_RUN; then
-    if ! xcrun notarytool history --keychain-profile "fala-notary" &>/dev/null; then
-        fail "Keychain profile 'fala-notary' não encontrado ou inválido. Configure com: xcrun notarytool store-credentials \"fala-notary\""
+    if ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" &>/dev/null; then
+        fail "Keychain profile '$NOTARY_PROFILE' não encontrado ou inválido."
     fi
 fi
 
@@ -160,7 +161,7 @@ ok "DMG assinado"
 # Notarization requires an app-specific password stored in the keychain (e.g., as 'fala-notary').
 if ! $DRY_RUN; then
     info "Notarizando $APP_NAME..."
-    xcrun notarytool submit "$DMG_PATH" --keychain-profile "fala-notary" --wait
+    xcrun notarytool submit "$DMG_PATH" --keychain-profile "$NOTARY_PROFILE" --wait
     ok "Ticket de notarização aprovado"
 
     info "Grampeando (stapling) o ticket ao DMG…"

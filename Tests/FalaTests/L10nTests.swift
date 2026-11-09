@@ -8,10 +8,10 @@ final class L10nTests: XCTestCase {
     }
 
     func testL10nResolvesStringsWithModuleBundle() {
-        AppLocalization.apply(languageCode: "auto")
-        XCTAssertEqual(L10n("Usar Padrão Global"), "Usar Padrão Global")
-        XCTAssertEqual(L10n("Atalhos do Sistema"), "Atalhos do Sistema")
-        XCTAssertEqual(L10n("Armazenamento"), "Armazenamento")
+        AppLocalization.apply(languageCode: "en")
+        XCTAssertEqual(L10n("Usar Padrão Global"), "Use Global Default")
+        XCTAssertEqual(L10n("Atalhos do Sistema"), "System Shortcuts")
+        XCTAssertEqual(L10n("Armazenamento"), "Storage")
     }
 
     func testL10nRespectsExplicitPortugueseAppLanguageOverride() {
@@ -26,7 +26,7 @@ final class L10nTests: XCTestCase {
         AppLocalization.apply(languageCode: "en")
 
         XCTAssertEqual(L10n("Ajustes"), "Settings")
-        XCTAssertEqual(L10n("Licença"), "License")
+        XCTAssertEqual(L10n("Sobre"), "About")
         XCTAssertEqual(L10n("Idioma do Aplicativo"), "App Language")
         XCTAssertEqual(L10n("Atalhos do Sistema"), "System Shortcuts")
         XCTAssertEqual(L10n("Armazenamento"), "Storage")
@@ -37,7 +37,7 @@ final class L10nTests: XCTestCase {
         AppLocalization.apply(languageCode: "es")
 
         XCTAssertEqual(L10n("Ajustes"), "Ajustes")
-        XCTAssertEqual(L10n("Licença"), "Licencia")
+        XCTAssertEqual(L10n("Sobre"), "Acerca de")
         XCTAssertEqual(L10n("Idioma do Aplicativo"), "Idioma de la aplicación")
         XCTAssertEqual(L10n("Atalhos do Sistema"), "Atajos del Sistema")
         XCTAssertEqual(L10n("Armazenamento"), "Almacenamiento")
@@ -48,7 +48,7 @@ final class L10nTests: XCTestCase {
         AppLocalization.apply(languageCode: "fr")
 
         XCTAssertEqual(L10n("Ajustes"), "Réglages")
-        XCTAssertEqual(L10n("Licença"), "Licence")
+        XCTAssertEqual(L10n("Sobre"), "À propos")
         XCTAssertEqual(L10n("Idioma do Aplicativo"), "Langue de l\u{2019}application")
         XCTAssertEqual(L10n("Atalhos do Sistema"), "Raccourcis système")
         XCTAssertEqual(L10n("Armazenamento"), "Stockage")

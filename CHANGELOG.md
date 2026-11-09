@@ -2,6 +2,15 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.13] — 2026-11-09
+
+### Distribuição
+
+- Aplicativo gratuito e código-fonte sob licença MIT.
+- Remoção de ativação, trial, validação comercial online e limite de dispositivos.
+- Avisos das dependências incluídos no aplicativo, mantendo suas próprias licenças.
+- Preservação das permissões do macOS, configuração de modelos e atualizações assinadas.
+
 ## [1.12.1] — 2026-04-23
 
 ### Melhorias

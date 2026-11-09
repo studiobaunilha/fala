@@ -5,17 +5,17 @@ import XCTest
 @MainActor
 class TranscriptionJobTestCase: XCTestCase {
     override func setUp() async throws {
+        AppLocalization.apply(languageCode: "pt-BR")
         await MainActor.run {
             AnimationConfig.enabled = false
-            LicenseManager.shared.setTestActivated(true)
         }
     }
 
-    override func tearDown() async throws {
-        await MainActor.run {
-            LicenseManager.shared.setTestActivated(false)
-        }
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
     }
+
 }
 
 @MainActor

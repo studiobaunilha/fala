@@ -7,7 +7,6 @@ enum DiagnosticLogCollector {
         let transcriptionEngine: String
         let llmProvider: String
         let llmModel: String
-        let licenseStatus: String
         let recentMetrics: [MetricsHistoryEntry]
         let timestamp: Date
     }
@@ -21,7 +20,6 @@ enum DiagnosticLogCollector {
             transcriptionEngine: config.transcriptionEngine,
             llmProvider: config.llmProvider,
             llmModel: llmModel(for: config),
-            licenseStatus: licenseStatus(for: LicenseManager.shared.accessState),
             recentMetrics: MetricsHistoryStore.shared.entries,
             timestamp: Date()
         )
@@ -41,7 +39,6 @@ enum DiagnosticLogCollector {
         lines.append("Transcription Engine: \(report.transcriptionEngine)")
         lines.append("LLM Provider: \(report.llmProvider)")
         lines.append("LLM Model: \(report.llmModel)")
-        lines.append("License: \(report.licenseStatus)")
         lines.append("")
         lines.append("--- Recent Transcriptions (\(report.recentMetrics.count)) ---")
 
@@ -65,17 +62,6 @@ enum DiagnosticLogCollector {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         return "\(version) (\(build))"
-    }
-
-    private static func licenseStatus(for state: LicenseAccessState) -> String {
-        switch state {
-        case .proActive: "pro"
-        case .proGracePeriod: "pro (grace period)"
-        case .trialActive: "trial"
-        case .needsConnection: "needs connection"
-        case .expired: "expired"
-        case .unlicensed: "unlicensed"
-        }
     }
 
     private static func llmModel(for config: AppConfig) -> String {

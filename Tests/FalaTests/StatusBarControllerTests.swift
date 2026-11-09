@@ -3,6 +3,16 @@ import XCTest
 
 @MainActor
 final class StatusBarControllerTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        AppLocalization.apply(languageCode: "pt-BR")
+    }
+
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
+
     func testInitialStateRendersBundledIdleIcon() throws {
         let controller = makeController()
 

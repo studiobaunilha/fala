@@ -168,7 +168,7 @@ private extension ConversationMemoryTests {
         config.selectedDictationTemplate = template
         config.llmProvider = "openai"
         config.openAIKey = "test-key"
-        LicenseManager.shared.setTestActivated(true)
+
         let mode = DictationMode(
             recorder: recorder,
             transcriber: transcriber,

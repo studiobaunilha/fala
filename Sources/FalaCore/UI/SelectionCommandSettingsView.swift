@@ -279,11 +279,6 @@ private extension SelectionCommandSettingsView {
             }
         case .openAccessibilitySettings:
             settings.permissionProvider.openAccessibilitySettings()
-        case .validateLicense:
-            Task {
-                await LicenseManager.shared.refreshEntitlement()
-                settings.readiness.refresh()
-            }
         }
     }
 }

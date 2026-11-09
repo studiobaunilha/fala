@@ -146,7 +146,7 @@ final class SettingsCleanupSourceTests: XCTestCase {
             "CHANGELOG.md",
             "docs/SPEC.md",
             "docs/RELEASE.md",
-            "docs/LICENSING_BACKEND_CONTRACT.md"
+            "docs/WEBSITE_SPEC.md"
         ].map { repoRoot.appendingPathComponent($0) }
 
         let bannedSnippets = ["✅", "⚠️", "🚀", "💡", "🛠"]

@@ -51,3 +51,7 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
 ## 5. Permissões do Sistema Operacional
 - `NSMicrophoneUsageDescription`: Gravação de voz local do usuário.
 - `Accessibility (Acessibilidade)`: Necessário para a API `CGEventPost` gerenciar o clipboard dinamicamente e efetuar a injeção (colagem `Cmd+V`) do texto transcrito nas aplicações nativas focadas.
+
+## Distribuição e código-fonte
+
+O aplicativo é gratuito e seu código é publicado sob licença MIT. Nenhum recurso depende de ativação comercial, trial, renovação ou limite de dispositivos. Permissões do sistema, modelos instalados e configuração de provedores continuam sendo requisitos de execução. Assinatura Apple e atualizações Sparkle permanecem mecanismos de segurança.

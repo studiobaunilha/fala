@@ -23,7 +23,6 @@ public final class CrashReporter: NSObject, MXMetricManagerSubscriber, @unchecke
                 llmProvider: config.llmProvider,
                 llmModel: config.llmProvider == "mlx" ? config.mlxModel :
                     (config.llmProvider == "openai" ? config.openAIModel : config.geminiModel),
-                licenseStatus: "Unknown (Crash Recovery)",
                 recentMetrics: [],
                 timestamp: Date()
             )

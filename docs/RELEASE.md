@@ -134,3 +134,11 @@ Cloudflare R2 (bucket: fala-updates)
 | Assinatura inválida | A chave pública no `Info.plist` deve ser a mesma do par que assinou |
 | Upload falha | Verifique `wrangler whoami` — pode precisar `wrangler login` |
 | `make release-dry` | Testa tudo sem fazer upload — use para validar |
+
+## Distribuição gratuita e aberta
+
+O release oficial do Fala é gratuito. Antes da exposição pública, confira a licença MIT, os avisos das dependências e a ausência de credenciais ou conteúdo privado no fonte, histórico, tags e metadados que serão abertos. O site do estúdio continua separado.
+
+Assinatura Apple, notarização e assinatura EdDSA continuam obrigatórias no pacote oficial. `scripts/release.sh` usa o perfil pessoal `Fala Notarization`, substituível por `FALA_NOTARY_PROFILE`; a seleção não muda o login global da máquina.
+
+Uma atualização antiga deve continuar tendo caminho para instalar a versão gratuita antes de retirar o backend comercial. Encerrar novas compras no provedor é uma operação separada da remoção dos botões do site. Preserve os registros existentes.

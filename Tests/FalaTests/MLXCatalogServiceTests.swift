@@ -3,6 +3,16 @@ import XCTest
 
 @MainActor
 final class MLXCatalogServiceTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        AppLocalization.apply(languageCode: "pt-BR")
+    }
+
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
+
     func testSectionsFollowFamilyOrderAndHideLegacyByDefault() {
         let service = makeService(hardwareClass: .balanced)
 

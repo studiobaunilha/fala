@@ -4,6 +4,16 @@ import XCTest
 
 @MainActor
 final class AppRestartCoordinatorTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        AppLocalization.apply(languageCode: "pt-BR")
+    }
+
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
+
     func testApplicationRelauncherRequestsNewApplicationInstance() {
         let workspace = StubWorkspaceLauncher()
         let relauncher = ApplicationRelauncher(

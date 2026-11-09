@@ -39,3 +39,6 @@ Icon
 # Profiling
 *.profraw
 
+
+# Local review packets may include private context and unpublished diffs.
+.agentic/reviews/

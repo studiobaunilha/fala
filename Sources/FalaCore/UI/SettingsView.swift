@@ -9,11 +9,9 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var modelManager: ModelManager
     @ObservedObject var navigationState: SettingsNavigationState
-    @ObservedObject var licenseManager = LicenseManager.shared
     @ObservedObject private var localizationObserver = AppLocalizationObserver.shared
     @State var newIncorrect: String = ""
     @State var newCorrect: String = ""
-    @State var activationCode: String = ""
     @FocusState var focusedField: SettingsFocusedField?
     
     // Key testing state

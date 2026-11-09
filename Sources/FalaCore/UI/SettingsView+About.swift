@@ -28,7 +28,7 @@ extension SettingsView {
                         }
                     }
 
-                    if let githubURL = URL(string: "https://github.com/studiobaunilha") {
+                    if let githubURL = URL(string: "https://github.com/studiobaunilha/fala") {
                         Link(destination: githubURL) {
                             HStack(spacing: Spacing.sm) {
                                 Image(systemName: "chevron.left.forwardslash.chevron.right")
@@ -36,13 +36,13 @@ extension SettingsView {
                             }
                         }
                     }
+                    if let noticesURL = Bundle.module.url(forResource: "ThirdPartyNotices", withExtension: "txt") {
+                        Link(L10n("Avisos de terceiros"), destination: noticesURL)
+                    }
                 }
                 .buttonStyle(.link)
 
-                Text(
-                    "© \(Calendar.current.component(.year, from: Date())) "
-                        + L10n("Studio Baunilha. Todos os direitos reservados.")
-                )
+                Text("© \(Calendar.current.component(.year, from: Date())) Studio Baunilha · MIT")
                 .font(.caption2)
                 .foregroundColor(.secondary)
             }

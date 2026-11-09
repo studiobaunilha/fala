@@ -1,55 +1,46 @@
 # Fala
 
-![Fala](./MyIcon.iconset/icon_128x128.png)
+O Fala é um aplicativo nativo de ditado e transcrição para macOS com Apple Silicon. A distribuição oficial é gratuita e o código do projeto está sob a [licença MIT](LICENSE), sem ativação, período de avaliação ou limite comercial de dispositivos.
 
-O **Fala** é uma ferramenta nativa de transcrição de áudio e ditado inteligente para macOS. Foi construída do zero para **Apple Silicon (M1 ou superior)**, com foco em performance, privacidade e integração fluida com o sistema.
+A transcrição principal roda localmente no Mac. O pós-processamento pode usar modelos locais ou provedores de API configurados pelo usuário. Esses provedores opcionais podem cobrar pelo uso de suas próprias APIs.
 
-A transcrição principal roda localmente no dispositivo. Recursos opcionais de pós-processamento podem usar modelos locais ou provedores de API configurados pelo usuário.
+## Uso
 
----
+- Ditado: mantenha o atalho pressionado, fale e solte para transcrever e inserir o texto no aplicativo em foco.
+- Arquivos: selecione áudio ou vídeo para transcrever, revisar e exportar como texto ou Markdown.
+- Pós-processamento: use instruções para limpar, formatar, resumir ou traduzir o texto com um provedor configurado.
+- Seleção e IA: aplique uma instrução digitada ou falada ao texto selecionado.
+- Personalização: configure modelos, idioma, prompts e regras de substituição.
 
-## 1. O que o Fala resolve?
-O Fala reduz o atrito entre gravar, transcrever, revisar e reutilizar conteúdo de áudio no macOS.
+O aplicativo precisa das permissões de microfone e acessibilidade para ditado e inserção de texto. O download inicial dos modelos exige internet; depois disso, os fluxos com modelos locais não dependem de um servidor comercial.
 
-Fluxos principais:
-1. **Ditado em qualquer app:** Segure o atalho global, fale normalmente e solte para transcrever e inserir o texto no campo ativo.
-2. **Transcrição de arquivos:** Selecione um áudio ou vídeo local para transcrever, revisar, resumir ou exportar.
+## Instalação
 
-## 2. Principais Funcionalidades
+Consulte o [site oficial](https://studio.baunilha.dev/fala) para o pacote de instalação. Use o DMG oficial para instalar em `Applications`. As atualizações são distribuídas pelo atualizador Sparkle integrado.
 
-### 1. 100% Offline e Privado no seu Mac
-* Utiliza o Apple Neural Engine em conjunto com `WhisperKit` e `FluidAudio` para inferência local de transcrição.
-* Compatibilidade testada em toda a linha **Apple Silicon (M1, M2, M3, M4)**.
+Requisitos desta base: macOS 14 ou superior e Apple Silicon. O consumo de memória e o tamanho dos downloads variam com os modelos selecionados.
 
-### 2. Modos de Uso Inteligentes
-* **Ditado (Tempo Real):** Atalho global (*Push-to-talk*). Pressionou, falou, soltou, colou. O texto é inserido nativamente onde o cursor estiver focado.
-* **Batch (Arquivos):** Transcreva gravações de reuniões, aulas, entrevistas ou vídeos. Suporta vários formatos (`.mp3`, `.m4a`, `.wav`, etc).
+## Compilar e verificar
 
-### 3. Pós-processamento com Inteligência Artificial
-O Fala pode encaminhar o texto transcrito para modelos de linguagem, locais via MLX ou remotos via API, para limpeza, formatação e transformação do conteúdo.
-* [Limpar & Formatar:] Arruma gramática, pontuação, formatação e limpa disfluências comuns no pós-processamento com IA.
-* [Resumir:] Extrai direto o assunto e tópicos chaves do áudio.
-* [Traduzir:] Dite em Português e o texto será inserido em Inglês.
-* [Desenvolvedor:] Entende instruções de código contextualizado.
+Use Xcode com as ferramentas de linha de comando e o componente Metal, além do SwiftLint. Confira os termos dos modelos antes de redistribuir seus arquivos.
 
-### 4. Controle Total na sua Mão
-* **Acurácia vs Velocidade:** Ajuste fino sobre o motor Whisper (via *Greedy Decoding*). Otimize caso precise de transcrições instantâneas ou extremamente apuradas.
-* **Auto-Substituição:** Crie suas regras de dicionário. ("píar" vira "PR", "Jira" vira "JIRA"). 
-* **Prompts por modo e provedor:** Ajuste o comportamento dos modos com prompts específicos para o fluxo e o provedor configurado.
+```bash
+git clone https://github.com/studiobaunilha/fala.git
+cd fala
+make check
+bash scripts/build-app.sh release --app-dir "$PWD/.build/release-artifacts/Fala.app"
+```
 
----
+A compilação local não exige chave comercial. O empacotamento usa uma identidade Apple disponível ou assinatura local conforme `scripts/codesign-identity.sh`. A distribuição oficial exige Developer ID, notarização e assinatura Sparkle; suas credenciais privadas não fazem parte do repositório. O processo oficial está em [docs/RELEASE.md](docs/RELEASE.md).
 
-## 3. Requisitos Técnicos
-- **Sistema Operacional:** macOS 14.0 (Sonoma) ou superior.
-- **Hardware:** Mac com Processador **Apple Silicon (M1, M1 Pro, M2, M3, M4, etc)**.
-- *Nota:* Baixar modelos pesados de LLM ou Whisper (Large-v3) pode requerer >= 16GB de Memória RAM Unificada para máxima fluidez, embora modelos menores (Medium, Parakeet) rodem perfeitamente em 8GB de RAM.
-
-## 4. CLI de Diagnóstico
-
-Para investigar latência na transcrição de arquivos sem depender da UI, o modo batch por linha de comando aceita `--profile`:
+## Diagnóstico por linha de comando
 
 ```bash
 fala transcribe /caminho/para/audio.m4a --profile
 ```
 
-O comando imprime uma linha com tempos de preparo de áudio, warmup do modelo, transcrição e total, além de indicar se o arquivo entrou em fast path `WAV` ou conversão real.
+O modo `--profile` informa os tempos de preparo, carregamento do modelo e transcrição. Para conferir somente a preparação de áudio, adicione `--prepare-only`.
+
+## Licenças
+
+A MIT rege o código de titularidade do projeto e permite uso, modificação e redistribuição, inclusive comercial, preservando seus avisos. Bibliotecas e modelos de terceiros mantêm seus próprios termos. Os [avisos de terceiros](Sources/FalaCore/Resources/ThirdPartyNotices.txt) também acompanham o aplicativo em Sobre.

@@ -157,39 +157,13 @@ extension TranscribeView {
                         .buttonStyle(.borderedProminent)
                     }
                 }
-            } else if licenseManager.isActivated {
-                VStack(spacing: Spacing.md) {
-                    Button(primaryActionTitle) {
-                        job.transcribe()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .frame(maxWidth: .infinity)
-                    
-                    if licenseManager.isTrialActive {
-                        Text(
-                            String(
-                                format: L10n("Modo Trial (%d dias restantes)"),
-                                licenseManager.trialDaysRemaining
-                            )
-                        )
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
             } else {
-                NoticeCard(
-                    title: licenseManager.accessState == .needsConnection
-                        ? L10n("Conexão Necessária")
-                        : L10n("Período de Teste Esgotado"),
-                    message: licenseManager.accessState == .needsConnection
-                        ? L10n(
-                            "Conecte este Mac e valide a licença nos Ajustes para voltar a transcrever arquivos."
-                        )
-                        : L10n("Ative o Fala Pro nos Ajustes para voltar a transcrever arquivos."),
-                    tone: .error,
-                    textAlignment: .center
-                )
+                Button(primaryActionTitle) {
+                    job.transcribe()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .frame(maxWidth: .infinity)
             }
 
         case .converting:
@@ -317,11 +291,6 @@ extension TranscribeView {
             }
         case .openAccessibilitySettings:
             job.appSettings.permissionProvider.openAccessibilitySettings()
-        case .validateLicense:
-            Task {
-                await licenseManager.refreshEntitlement()
-                job.appSettings.readiness.refresh()
-            }
         }
     }
 }

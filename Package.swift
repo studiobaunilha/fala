@@ -75,6 +75,7 @@ let package = Package(
                 .process("Resources/Localizable.xcstrings"),
                 .process("Resources/MLXCatalog.json"),
                 .process("Resources/ReleaseNotes.json"),
+                .process("Resources/ThirdPartyNotices.txt"),
                 .process("Resources/logo-fala.pdf")
             ],
             swiftSettings: localWarningsAsErrorsSwiftSettings

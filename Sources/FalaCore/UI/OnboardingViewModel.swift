@@ -4,10 +4,8 @@ import Combine
 @MainActor
 public final class OnboardingViewModel: ObservableObject {
     @Published public private(set) var hasCompletedEssentials = false
-    @Published public var activationCode: String = ""
 
     private let settings: AppSettings
-    public let licenseManager: LicenseManager
     private let readiness: RuntimeReadinessEvaluator
     private let permissionProvider: SystemPermissionProviding
     private let defaults: UserDefaults
@@ -17,25 +15,16 @@ public final class OnboardingViewModel: ObservableObject {
     public init(
         settings: AppSettings,
         readiness: RuntimeReadinessEvaluator,
-        licenseManager: LicenseManager = .shared,
         permissionProvider: SystemPermissionProviding,
         defaults: UserDefaults = .standard
     ) {
         self.settings = settings
         self.readiness = readiness
-        self.licenseManager = licenseManager
         self.permissionProvider = permissionProvider
         self.defaults = defaults
         self.hasCompletedEssentials = defaults.bool(forKey: completionKey)
 
         readiness.objectWillChange
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.objectWillChange.send()
-            }
-            .store(in: &cancellables)
-
-        licenseManager.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -55,27 +44,6 @@ public final class OnboardingViewModel: ObservableObject {
         !hasCompletedEssentials
     }
 
-    public var isProcessingLicense: Bool {
-        licenseManager.isActivating || 
-        licenseManager.isRefreshingEntitlement || 
-        licenseManager.isReconcilingOnLaunch
-    }
-
-    public func activateLicense() {
-        guard !activationCode.isEmpty else { return }
-        Task {
-            await licenseManager.activate(activationCode: activationCode)
-            refresh()
-        }
-    }
-
-    public func startTrial() {
-        Task {
-            await licenseManager.refreshEntitlement()
-            refresh()
-        }
-    }
-
     public var steps: [OnboardingStep] {
         let issues = readiness.issuesForOnboarding()
         return [
@@ -91,13 +59,6 @@ public final class OnboardingViewModel: ObservableObject {
                 title: L10n("Acessibilidade"),
                 fallbackMessage: L10n("Permita acessibilidade para inserir texto no app em foco."),
                 issueKind: .accessibilityPermission,
-                issues: issues
-            ),
-            step(
-                id: "license",
-                title: L10n("Licença ou trial"),
-                fallbackMessage: L10n("A licença ou o trial deste Mac já estão válidos."),
-                issueKind: .licenseInactive,
                 issues: issues
             ),
             step(
@@ -149,11 +110,6 @@ public final class OnboardingViewModel: ObservableObject {
         case .openAccessibilitySettings:
             permissionProvider.openAccessibilitySettings()
             refresh()
-        case .validateLicense:
-            Task {
-                await licenseManager.refreshEntitlement()
-                refresh()
-            }
         }
     }
 

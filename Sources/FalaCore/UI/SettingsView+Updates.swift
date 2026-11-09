@@ -13,7 +13,7 @@ extension SettingsView {
                 }
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    Text(L10n("Fala Pro"))
+                    Text(L10n("Fala"))
                         .font(.title2)
                         .fontWeight(.bold)
 

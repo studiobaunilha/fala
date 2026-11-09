@@ -13,21 +13,12 @@ public struct OnboardingStep: Identifiable, Equatable {
 private struct OnboardingStepCard: View {
     let step: OnboardingStep
     let onAction: (ReadinessIssue) -> Void
-    @ObservedObject var viewModel: OnboardingViewModel
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.lg) {
-            ZStack {
-                Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(step.completed ? FalaColors.success : FalaColors.warning)
-                    .font(.title2)
-                    .opacity(showProgress ? 0 : 1)
-                
-                if showProgress {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            }
+            Image(systemName: step.completed ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(step.completed ? FalaColors.success : FalaColors.warning)
+                .font(.title2)
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(step.title)
@@ -35,11 +26,8 @@ private struct OnboardingStepCard: View {
                 Text(step.message)
                     .foregroundStyle(.secondary)
 
-                if step.id == "license" && !step.completed && !showProgress {
-                    licenseInputView
-                } else if let issue = step.issue,
-                          let actionTitle = issue.actionTitle,
-                          !showProgress {
+                if let issue = step.issue,
+                   let actionTitle = issue.actionTitle {
                     Button(actionTitle) {
                         onAction(issue)
                     }
@@ -53,39 +41,6 @@ private struct OnboardingStepCard: View {
         .padding(Spacing.xl)
         .background(Color(nsColor: .textBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.xl))
-    }
-
-    private var showProgress: Bool {
-        step.id == "license" && viewModel.isProcessingLicense
-    }
-
-    private var licenseInputView: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            HStack {
-                TextField(L10n("Cole seu código de ativação"), text: $viewModel.activationCode)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-                
-                Button(L10n("Ativar")) {
-                    viewModel.activateLicense()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.activationCode.isEmpty)
-            }
-            
-            Button(L10n("Validar online ou iniciar trial")) {
-                viewModel.startTrial()
-            }
-            .buttonStyle(.link)
-            .controlSize(.small)
-            
-            if let error = viewModel.licenseManager.errorMessage {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(FalaColors.error)
-            }
-        }
-        .padding(.top, Spacing.xs)
     }
 }
 
@@ -109,7 +64,7 @@ struct OnboardingView: View {
                 ForEach(viewModel.steps) { step in
                     OnboardingStepCard(step: step, onAction: { issue in
                         viewModel.performAction(for: issue)
-                    }, viewModel: viewModel)
+                    })
                 }
             }
 

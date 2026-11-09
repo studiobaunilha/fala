@@ -78,10 +78,6 @@ extension SettingsView {
                 Text(localizedProviderNameForSupport(settings.llmProvider))
                     .foregroundStyle(.secondary)
             }
-            LabeledContent(L10n("Licença")) {
-                Text(localizedLicenseStatus)
-                    .foregroundStyle(.secondary)
-            }
 
             if let lastMetrics = metricsHistory.entries.last {
                 LabeledContent(L10n("Última transcrição")) {
@@ -143,23 +139,6 @@ extension SettingsView {
 
     private var metricsHistory: MetricsHistoryStore {
         MetricsHistoryStore.shared
-    }
-
-    private var localizedLicenseStatus: String {
-        switch licenseManager.accessState {
-        case .proActive:
-            return L10n("Pro Ativo")
-        case .proGracePeriod:
-            return L10n("Pro (Tolerância)")
-        case .trialActive:
-            return L10n("Trial Ativo")
-        case .needsConnection:
-            return L10n("Conexão Necessária")
-        case .expired:
-            return L10n("Expirado")
-        case .unlicensed:
-            return L10n("Não licenciado")
-        }
     }
 
     private func localizedProviderNameForSupport(_ key: String) -> String {

@@ -1,6 +1,32 @@
 {
   "releases": [
     {
+      "version": "1.13",
+      "date": "2026-11-09",
+      "highlights": {
+        "pt-BR": [
+          "Fala gratuito e de código aberto sob licença MIT.",
+          "Removidos ativação, trial, validação comercial online e limite de dispositivos.",
+          "Permissões do macOS, configuração de modelos e atualizações assinadas continuam disponíveis."
+        ],
+        "en": [
+          "Fala is free and open source under the MIT license.",
+          "Removed activation, trials, online commercial validation and device limits.",
+          "macOS permissions, model configuration and signed updates remain available."
+        ],
+        "es": [
+          "Fala es gratuito y de código abierto bajo la licencia MIT.",
+          "Se eliminaron la activación, las pruebas, la validación comercial en línea y los límites de dispositivos.",
+          "Se mantienen los permisos de macOS, la configuración de modelos y las actualizaciones firmadas."
+        ],
+        "fr": [
+          "Fala est gratuit et open source sous licence MIT.",
+          "Suppression de l’activation, des essais, de la validation commerciale en ligne et des limites d’appareils.",
+          "Les autorisations macOS, la configuration des modèles et les mises à jour signées restent disponibles."
+        ]
+      }
+    },
+    {
       "version": "1.12.1",
       "date": "2026-04-23",
       "highlights": {

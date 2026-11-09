@@ -7,6 +7,7 @@ final class AppSettingsTests: XCTestCase {
     private var testConfigURL: URL!
 
     override func setUp() async throws {
+        AppLocalization.apply(languageCode: "pt-BR")
         await MainActor.run { AnimationConfig.enabled = false }
         
         // Use a dedicated URL for testing to avoid polluting actual user config
@@ -15,6 +16,7 @@ final class AppSettingsTests: XCTestCase {
     }
     
     override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
         try? FileManager.default.removeItem(at: testConfigURL)
         super.tearDown()
     }

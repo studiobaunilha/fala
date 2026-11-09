@@ -7,13 +7,6 @@ final class OnboardingWindowControllerTests: XCTestCase {
     override func setUp() async throws {
         await MainActor.run {
             AnimationConfig.enabled = false
-            LicenseManager.shared.setTestActivated(true)
-        }
-    }
-
-    override func tearDown() async throws {
-        await MainActor.run {
-            LicenseManager.shared.setTestActivated(false)
         }
     }
 

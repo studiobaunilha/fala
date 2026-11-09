@@ -11,12 +11,14 @@ final class BatchCLIIntegrationTests: XCTestCase {
 
     private func builtCLIURL() throws -> URL {
         let buildRoot = repoRoot.appendingPathComponent(".build")
-        let candidates = try FileManager.default.contentsOfDirectory(
+        var candidates = try FileManager.default.contentsOfDirectory(
             at: buildRoot,
             includingPropertiesForKeys: nil
         )
             .filter { $0.lastPathComponent.contains("apple-macosx") }
             .map { $0.appendingPathComponent("debug").appendingPathComponent("Fala") }
+
+        candidates.append(buildRoot.appendingPathComponent("out/Products/Debug/Fala"))
 
         guard let executable = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
             XCTFail("Built CLI executable not found under .build")

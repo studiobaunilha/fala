@@ -2,6 +2,15 @@ import XCTest
 @testable import FalaCore
 
 final class PromptWrappingTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        AppLocalization.apply(languageCode: "pt-BR")
+    }
+
+    override func tearDown() {
+        AppLocalization.apply(languageCode: "auto")
+        super.tearDown()
+    }
 
     // MARK: - PromptDefaults
 

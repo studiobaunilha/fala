@@ -124,15 +124,6 @@ public final class DictationMode {
         if let issue = readiness?.primaryIssueForDictation() {
             statusBar?.showTemporaryWarning(issue.message)
             return
-        } else if readiness == nil, !LicenseManager.shared.isActivated {
-            let blockedMessage: String
-            if LicenseManager.shared.accessState == .needsConnection {
-                blockedMessage = L10n("Conexão necessária: Conecte este Mac para validar a licença nos Ajustes.")
-            } else {
-                blockedMessage = L10n("Fala Pro Necessário: Ative o Fala Pro nos Ajustes.")
-            }
-            statusBar?.showTemporaryWarning(blockedMessage)
-            return
         }
         do {
             let config = configProvider()
