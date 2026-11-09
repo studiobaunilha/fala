@@ -244,7 +244,7 @@ else
 
     # Push commit + tag
     info "Fazendo push…"
-    git push origin main --tags 2>/dev/null || printf "  ${GREY}(push falhou ou remote não configurado — faça manualmente)${RESET}\n"
+    git push origin HEAD:refs/heads/main "refs/tags/v${VERSION}"
 
     printf "\n${GREEN}${BOLD}════════════════════════════════════════${RESET}\n"
     printf "${GREEN}${BOLD}  ✓ Fala v${VERSION} publicado!${RESET}\n"

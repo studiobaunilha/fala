@@ -7,16 +7,17 @@
 # Não bumpa versão, não commita, não faz upload. Só gera um .dmg notarizado em /tmp
 # pronto pra instalar localmente.
 #
-# Requisitos (ver scripts/release.sh e memory reference_apple_dev_credentials.md):
+# Requisitos (ver scripts/release.sh):
 #   - Xcode.app instalado
 #   - Identidade "Developer ID Application" no Keychain
-#   - Keychain profile `fala-notary` configurado via `xcrun notarytool store-credentials`
+#   - Keychain profile `Fala Notarization` (ou FALA_NOTARY_PROFILE) configurado via `xcrun notarytool store-credentials`
 
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 XCODE="$(bash "$REPO_DIR/scripts/xcode-dir.sh")"
 PLIST="Sources/Fala/Resources/Info.plist"
+NOTARY_PROFILE="${FALA_NOTARY_PROFILE:-Fala Notarization}"
 APP_NAME="Fala"
 TMP_DIR=$(mktemp -d)
 
@@ -41,8 +42,8 @@ trap cleanup EXIT
 # ── Preflight ─────────────────────────────────────────────────────────────────
 info "Verificando pré-requisitos…"
 
-if ! xcrun notarytool history --keychain-profile "fala-notary" &>/dev/null; then
-    fail "Keychain profile 'fala-notary' não encontrado. Ver memory reference_apple_dev_credentials.md."
+if ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" &>/dev/null; then
+    fail "Keychain profile '$NOTARY_PROFILE' não encontrado."
 fi
 
 if ! security find-identity -v -p codesigning | grep -q "Developer ID Application:"; then
@@ -91,7 +92,7 @@ ok "DMG assinado"
 
 # ── 5. Notariza ───────────────────────────────────────────────────────────────
 info "Notarizando (pode levar 1-5 min)…"
-xcrun notarytool submit "$DMG_PATH" --keychain-profile "fala-notary" --wait
+xcrun notarytool submit "$DMG_PATH" --keychain-profile "$NOTARY_PROFILE" --wait
 ok "Ticket aprovado"
 
 # ── 6. Grampeia ticket ────────────────────────────────────────────────────────
