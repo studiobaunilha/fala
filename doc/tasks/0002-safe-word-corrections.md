@@ -1,6 +1,6 @@
 # Task 0002: Apply literal corrections without corrupting other words
 
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-11-10
 **Scope ref:** README.md
 **Evidence ref:** doc/research/0007-ground-word-corrections.md
@@ -42,6 +42,10 @@ A name correction must not rewrite a matching sequence inside an unrelated word.
 - Baseline CV.5 open question: prior offline output logs did not retain the exact sandbox command. Remediation: a new execution wrapper retained argv, policy/hash, target, a limited fixture environment whitelist, return codes, two executed model cases and two packaged CLI transcript sinks. The same policy denied a localhost connection with PermissionError while an unsandboxed control connected; the new receipt reports new observations, not reconstructed historical commands. Production app/DMG bytes remain unchanged. Delta audit remains pending.
 - Baseline CV.7 major concern: generic “before implementation” wording/checklists were not supported by the central commit ancestry. The cross-pass accepted the available author/integration ancestry, but the concern is conservatively remediated: wording now states only “recorded alongside”, without a before-work assertion or rewritten history. Delta audit remains pending. Baseline CV.2/CV.3/CV.6/CV.8 passed; CV.4 did not claim a deployed fix. Cross-pass had no other findings. The separate HK audit closed HK.1 with actual canonical commit execution and HK.2 as N/A; no hooks changed during remediation.
 
+- 2026-11-10 — Published Fala 1.14/build35 from source `fdcc5469aa7dcff2f88f54136d6e146372850cb0` under immutable signed tag `v1.14` (tag object `e1e91f2b83aa374b8ca3cde0d5a400ab82bb9206`, SSH signature verified). Public versioned download: https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev/Fala-1.14.dmg; latest: https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev/Fala-latest.dmg; updater feed: https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev/appcast.xml. Readback verified both DMG downloads against SHA256 `c9ca0e6608b78db94fd549ce6eef11b7805869ea94415d60063895527cb1aecc`, 19199639 bytes, and the feed against SHA256 `d250018ed56ecb3aaa3f91fa02d54ed91acd58e70b84b67199302fb786e6be2e`. Sparkle signatures on both public downloads verified against the installed application's public key. The installed application was not changed. Publication receipt: `.build/release-artifacts/1.14/publication-final.json` (local operational record).
+- Final independent integration delta audits at `fdcc5469aa7dcff2f88f54136d6e146372850cb0`: baseline gpt-6.1-sol and gpt-6-astra in-host proxy report no findings; all eight CV rules accounted. Earlier F1 (CV.1/CV.5 active-rule AI-failure sink), F2 (CV.5 offline invocation evidence) and F3 (CV.7 generic temporal wording) are resolved by the observed test, recorded execution wrapper and narrowed wording respectively. HK.1 passed and HK.2 was N/A; source/gate coverage remained closed. The real process-checker FAIL was retained; publication used an explicitly approved host-recognition exception limited to this delivery's native Codex evidence. No checker was changed or PASS fabricated.
+- Task closed: the correction implementation is publicly delivered; unrelated batch recovery and speaker-label evaluation remain open follow-up tasks. Earlier “delta audit pending” entries above record their historical state and are superseded by this final closure.
+
 ## Definition of Done
 
 All Acceptance Criteria checked, plus:
@@ -49,4 +53,4 @@ All Acceptance Criteria checked, plus:
 - [x] Local tests pass (or N/A documented in Notes)
 - [x] Code review completed (human or fresh-context reviewer per WORKFLOW §10)
 - [x] No orphan `TODO`/`FIXME` introduced
-- [ ] Status updated to `done` and Notes log closes the task
+- [x] Status updated to `done` and Notes log closes the task
