@@ -110,3 +110,7 @@ Conferido o catálogo live da Paddle e sua correspondência com o preço configu
 ### Teste local e autorização do percurso de atualização — 2026-11-10
 
 Ditado e inserção de texto confirmados manualmente na versão 1.13 no computador principal. A instalação anterior foi preservada. A publicação do pacote e feed foi autorizada para verificar a atualização real a partir da versão antiga; o backend de licenças será mantido até a confirmação desse percurso. Essa autorização altera a sequência do teste de atualização, sem marcar como concluídos os cenários ainda não executados.
+
+### Publicação do aplicativo para testar o atualizador — 2026-11-10
+
+Fonte do Fala publicado sob MIT em `studiobaunilha/fala`, com tag `v1.13`. Pacote1.13/build33, link de download estável e feed publicados; download público, hash e assinatura contra a chave da versão antiga foram verificados. O repositório do site segue privado. A instalação/reabertura pelo atualizador está aguardando a verificação do proprietário; o runtime antigo de licenças e a Paddle ainda não foram retirados. As alterações do site serão publicadas após confirmar esse percurso.

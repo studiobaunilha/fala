@@ -1,12 +1,12 @@
 # Free and open-source execution record
 
-Status: local implementation completed; release gates remain open. No public availability claim.
+Status: application source and 1.13 update published and publicly read back; owner update test, website rollout and provider shutdown remain open.
 
 ## Revisions and isolation
 
 - Application built from `ecd6fdb1f24e4c88089099a2046c5c497e6c7439`, based on `bc10862`; branch `codex/free-open-source` in the isolated app checkout. Subsequent signing-preflight and record changes do not change the app sources or this binary.
 - Website: `d6d90fe9ae6d3094513b77369c53b1ce9096fc68`, based on `4ac5e2f`; separate personal checkout and branch.
-- The original application's unrelated uncommitted changes were preserved. Neither repository was pushed or made public. No production database or payment records were changed.
+- The original application's unrelated uncommitted changes were preserved. At the initial local-validation stage neither repository had been pushed or made public. The application publication is recorded below; the website repository remains private. No production database or payment records were changed.
 - The accepted distribution decision is `doc/adr/0001-free-open-source.md`. The frozen evaluation remains `doc/research/0002-prism-free-open-source-release.md`, SHA-256 `f239b31c4edcef626cf196f053390186d10286f37cd5768d946364fe594e2018`.
 
 ## Observed checks
@@ -101,3 +101,11 @@ At target `5e59227050cd0ebbc8352b4eaab0d8a8e6fd7e66`, the independent exposure r
 Critical claims verification also reported **no findings** for CV.1–CV.8 at that target, using a separate configured reviewer model (`gpt-6-astra`) as an in-host hardening pass; no cross-provider diversity is claimed. Actual gate output, source/package identities, transcripts, input enumeration and four independent no-findings receipts were inspected. Older temporary site logs were unavailable, so source-identical Worker/build gates were rerun and retained under the private ignored review directory: six tests passed;65 pages built. Historical transient outputs were not fabricated.
 
 The explicit public-ref secret-pattern scan used `gitleaks git --log-opts="HEAD --tags" --redact`; the tool reported284 scanned commits and no findings, while Git reachability enumeration reported290. These are different predicates and are not equated. The earlier all-ref scanner output297 includes non-public local refs. Publication will use explicit main and release-tag refspecs. These bounded checks do not assert absolute absence of private data or vulnerabilities.
+
+## Published update readback — 2026-11-10
+
+The application source was pushed explicitly to main and tag `v1.13` at `e85c6909507123fbda6a0fad14b738497dde8896`, then `studiobaunilha/fala` was made public as authorized. Anonymous GitHub repository access returned200 and the tag's LICENSE bytes matched the approved MIT file. The separate `studiobaunilha/site` repository was confirmed PRIVATE. No local checkpoint refs were pushed.
+
+Published R2 objects: `Fala-1.13.dmg`, `Fala-latest.dmg`, and `appcast.xml`. Canonical public feed and latest-download requests returned200. The downloaded DMG SHA-256 is `13d85e58474191a2588001937c2bdd549c395ec259602392619f079353daa2f3` (18292635bytes), matching the tested/stapled package. Feed version1.13/build33, enclosure length and signature matched those bytes. Ed25519 verification succeeded using the public key read from the retained installed1.12.1 application. Its configured feed and update key matched the candidate, and new build33 is greater than installed build32. Feed and latest-download cache-control read back as `no-cache, max-age=0, must-revalidate`.
+
+The previous feed and latest-download object were backed up locally before replacement. The old licensing backend and live website runtime remain operational until the owner confirms the update from the old version. The real updater installation/relaunch is awaiting owner observation; publishing the feed does not claim it already completed. Website copy/deployment and closure of new sales/webhooks are separate pending steps. No database or purchase records were deleted.
