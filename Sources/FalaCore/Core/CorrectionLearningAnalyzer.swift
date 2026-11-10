@@ -26,6 +26,12 @@ struct CorrectionLearningAnalyzer {
             return nil
         }
 
+        // Only persist a rule that can reproduce the edit without losing symbols or changing other occurrences.
+        let candidate = ReplacementRule(variants: [diff.original], replacement: diff.corrected)
+        guard ReplacementRule.applyAll(oldText, rules: [candidate]) == newText else {
+            return nil
+        }
+
         return LearnedCorrection(
             original: diff.original,
             corrected: diff.corrected
@@ -66,9 +72,26 @@ struct CorrectionLearningAnalyzer {
 
         guard !oldDiff.isEmpty, !newDiff.isEmpty else { return nil }
         guard oldDiff.count <= 3, newDiff.count <= 3 else { return nil }
+        // An unchanged word inside the span separates independent edits, not one correction.
+        let oldKeys = Set(oldDiff.map(\.normalized))
+        let newKeys = Set(newDiff.map(\.normalized))
+        guard oldDiff.dropFirst().dropLast().allSatisfy({ !newKeys.contains($0.normalized) }),
+              newDiff.dropFirst().dropLast().allSatisfy({ !oldKeys.contains($0.normalized) }) else {
+            return nil
+        }
 
-        let original = oldDiff.map(\.raw).joined(separator: " ")
-        let corrected = newDiff.map(\.raw).joined(separator: " ")
+        guard let oldFirst = oldDiff.first, let oldLast = oldDiff.last,
+              let newFirst = newDiff.first, let newLast = newDiff.last else {
+            return nil
+        }
+        let original = (oldText as NSString).substring(with: NSRange(
+            location: oldFirst.range.location,
+            length: NSMaxRange(oldLast.range) - oldFirst.range.location
+        ))
+        let corrected = (newText as NSString).substring(with: NSRange(
+            location: newFirst.range.location,
+            length: NSMaxRange(newLast.range) - newFirst.range.location
+        ))
 
         guard original.count <= 40, corrected.count <= 40 else {
             return nil
@@ -102,7 +125,7 @@ struct CorrectionLearningAnalyzer {
     }
 
     private func wordTokens(in text: String) -> [WordToken] {
-        let pattern = #"[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*"#
+        let pattern = #"[\p{L}\p{N}][\p{L}\p{M}\p{N}]*(?:['’-][\p{L}\p{N}][\p{L}\p{M}\p{N}]*)*"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return []
         }
@@ -117,7 +140,8 @@ struct CorrectionLearningAnalyzer {
                 normalized: raw.folding(
                     options: [.caseInsensitive, .diacriticInsensitive],
                     locale: .current
-                )
+                ),
+                range: match.range
             )
         }
     }
@@ -126,4 +150,5 @@ struct CorrectionLearningAnalyzer {
 private struct WordToken {
     let raw: String
     let normalized: String
+    let range: NSRange
 }

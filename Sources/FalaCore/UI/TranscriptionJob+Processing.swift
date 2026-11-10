@@ -319,8 +319,7 @@ extension TranscriptionJob {
         guard !Task.isCancelled else {
             return nil
         }
-        var cleaned = cleanText(rawText)
-        cleaned = ReplacementRule.applyAll(cleaned, rules: context.config.replacementRules)
+        let cleaned = cleanText(rawText)
         guard !cleaned.isEmpty else {
             return nil
         }
@@ -334,8 +333,12 @@ extension TranscriptionJob {
         guard !Task.isCancelled else {
             return nil
         }
-        appendToFile(url: context.outputURL, text: outcome.text)
-        return outcome
+        let finalOutcome = LLMApplicationOutcome(
+            text: ReplacementRule.applyAll(outcome.text, rules: context.config.replacementRules),
+            warning: outcome.warning
+        )
+        appendToFile(url: context.outputURL, text: finalOutcome.text)
+        return finalOutcome
     }
 }
 

@@ -15,9 +15,7 @@ extension DictationMode {
         selectionContext: String? = nil,
         profiler: any DictationProfiling
     ) async -> String {
-        var finalText = profiler.measure(.replacementRules) {
-            ReplacementRule.applyAll(text, rules: config.replacementRules)
-        }
+        var finalText = text
         let modeConfig = config.getEffectiveConfig(for: template)
         let basePrompt = modeConfig.prompt
 
@@ -60,6 +58,9 @@ extension DictationMode {
                 print("[Fala] LLM processing error: \(error.localizedDescription)")
             }
         }
-        return finalText
+        // Apply once after AI cleanup so it cannot discard corrections or trigger a second replacement cascade.
+        return profiler.measure(.replacementRules) {
+            ReplacementRule.applyAll(finalText, rules: config.replacementRules)
+        }
     }
 }

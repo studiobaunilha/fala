@@ -147,4 +147,44 @@ final class CorrectionLearningAnalyzerTests: XCTestCase {
         XCTAssertEqual(learned?.original, "git hub")
         XCTAssertEqual(learned?.corrected, "GitHub")
     }
+
+    func testLearnedPhrasePreservesItsActualInternalPunctuation() {
+        let learned = analyzer.learnedCorrection(
+            from: "Fale com acme, inc hoje",
+            to: "Fale com ACME hoje",
+            insertedText: "Fale com acme, inc hoje"
+        )
+
+        XCTAssertEqual(learned?.original, "acme, inc")
+        XCTAssertEqual(learned?.corrected, "ACME")
+        let rules = [ReplacementRule(variants: [learned?.original ?? ""], replacement: learned?.corrected ?? "")]
+        XCTAssertEqual(ReplacementRule.applyAll("Fale com acme, inc hoje", rules: rules), "Fale com ACME hoje")
+    }
+
+    func testSeparateEditsDoNotBecomeOneAutomaticReplacementRule() {
+        XCTAssertNil(analyzer.learnedCorrection(
+            from: "Nico e Ana chegaram",
+            to: "Niko e Anna chegaram",
+            insertedText: "Nico e Ana chegaram"
+        ))
+    }
+
+    func testLearnedCorrectionKeepsCombiningMarksInOriginalWord() {
+        let learned = analyzer.learnedCorrection(
+            from: "Fale com cafe\u{301} hoje",
+            to: "Fale com CaféCentral hoje",
+            insertedText: "Fale com cafe\u{301} hoje"
+        )
+
+        XCTAssertEqual(learned?.original, "cafe\u{301}")
+        XCTAssertEqual(learned?.corrected, "CaféCentral")
+    }
+
+    func testLearningRejectsATermWhoseTrailingSymbolsWouldBeLost() {
+        XCTAssertNil(analyzer.learnedCorrection(
+            from: "Use c mais hoje",
+            to: "Use C++ hoje",
+            insertedText: "Use c mais hoje"
+        ))
+    }
 }
