@@ -94,3 +94,7 @@ O gate de plano decorre de `AGENTS.ale.md`, seção Feature delivery sequence, i
 ### Fechamento local do candidato
 
 O recibo detalhado está em `doc/research/0003-free-open-source-execution.md`. O DMG final recebeu notarização Accepted e ticket validado, mas a chave Sparkle original não foi encontrada no Keychain configurado. Não foi criada chave nova, gerado feed final nem realizada publicação. O preflight do script de release foi corrigido para falhar sem criar chave substituta. As perguntas sobre revisão independente, autenticação pessoal Cloudflare e localização do backup da chave permanecem pendentes.
+
+### Assinatura de atualização — 2026-11-10
+
+Resolvida a assinatura Sparkle: o instalador exato foi assinado na máquina original e a assinatura foi verificada localmente contra a chave pública já embutida no Fala. A chave privada permaneceu no Keychain original, sem exportação, cópia ou troca. O candidato de appcast está preparado localmente; ainda não houve publicação. Continuam pendentes a revisão independente, os cenários interativos/migração e o acesso de publicação/provedor.

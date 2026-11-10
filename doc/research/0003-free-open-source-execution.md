@@ -34,7 +34,7 @@ Fixture: `https://raw.githubusercontent.com/ggml-org/whisper.cpp/master/samples/
 - Size: 18292635 bytes.
 - SHA-256 after stapling: `13d85e58474191a2588001937c2bdd549c395ec259602392619f079353daa2f3`.
 - Apple notarization: Accepted, submission `ff30edff-15cc-4bf9-8c3b-210b6da2c0e8`. Staple and ticket validation passed. Earlier accepted package is superseded and is not evidence for these bytes.
-- Sparkle: NOT SIGNED. `sign_update` exited 1 because the existing ed25519 signing key was not found; service-scoped Keychain metadata lookup also returned item-not-found. No key was generated, exported or rotated. No final appcast was created.
+- Sparkle: originally blocked because the key was absent from this Mac. Resolved on 2026-11-10: the exact stapled DMG was signed on the original signing Mac; independent local Ed25519 verification succeeded against the unchanged `SUPublicEDKey` in the application. The key stayed in its original Keychain; no private key was exported, copied or rotated. A local appcast candidate was generated and has not been uploaded.
 - Developer ID signing and Apple notarization do not replace the missing Sparkle update signature.
 
 The source notice resource, signed app and staged app were compared before generating this DMG. A subsequent binary/resource change invalidates this package receipt and requires repackaging.
@@ -54,7 +54,7 @@ Apple's onboarding guidance was read from `https://developer.apple.com/design/hu
 ## Open release gates
 
 1. Fresh-context review of app runtime, distribution and website; critical claims hardening. Four bounded review packets were prepared, but no independent reviewer has run.
-2. Recover the original Sparkle private key through a secure local path, sign the exact stapled DMG, and verify against the existing `SUPublicEDKey`; preserve that key.
+2. Resolved on 2026-11-10: remote signing with the original key and independent local verification succeeded. Preserve the exact package and signature; a changed package requires a new signature.
 3. Real packaged first-run, hardware dictation and selected-text commands; update from an installation with absent/expired commercial state in an isolated environment. Window/unit tests and offline CLI do not retire these scenarios.
 4. Authenticate personal Cloudflare in an isolated configuration and verify the intended account; inspect the live Paddle catalog and pending events before stopping sales/removing runtime. Current public checkout configuration is live. Removing local site buttons is not provider closure.
 5. Complete content/exposure review and final exact-set scan, then present the concrete publication packet and receive final exposure authorization. Preserve the private studio-site repository.
@@ -63,3 +63,9 @@ Apple's onboarding guidance was read from `https://developer.apple.com/design/hu
 A release executable launched from a read-only working directory prints an LLVM profile-file diagnostic while `--help` exits 0. A trial coverage flag did not retire it and was removed; no ineffective workaround was shipped. Its provenance was not established. This observation is retained separately from licensing behavior.
 
 Local logs and ignored review packets are working evidence, not permanent public attachments. This tracked record preserves the observations, identities and limitations needed to reproduce or reassess them.
+
+## Update-signing verification — 2026-11-10
+
+The original signing host accepted the configured personal SSH identity after local authorization. The transferred DMG matched the SHA-256 recorded above. SSH-session signing was denied by the macOS Keychain; invoking the existing signing tool from native Terminal on that host succeeded (exit 0). Only the public signature was retrieved. Local verification used Python cryptography Ed25519PublicKey and the existing application public key; verification succeeded on all 18292635 bytes. No private key bytes were displayed or transferred.
+
+Public signature: `Zd7XYLBwf+UTNCDOUXzYAthuy9D9VB65QHzTr0qPYI0CBz8vnKLnIYLnzEpTQUGelkspu+bQDPK+KpOkf6BYAQ==`. Installer SHA-256 remains `13d85e58474191a2588001937c2bdd549c395ec259602392619f079353daa2f3`. The appcast candidate's enclosure length, version 1.13/build 33 and signature refer to these same bytes. Native Terminal signing on the original host is now an observed distribution path; the local release script still requires a locally available key, so it was not run as a substitute. This resolves update-signature authenticity, not the still-unexecuted old-client update scenario or public delivery checks.
