@@ -51,7 +51,7 @@ extension TranscriptionJob {
 
     static func makeParakeetBatchTranscriber(config: AppConfig) -> BatchPreloadableTranscriber {
         let transcriber = ParakeetTranscriber(
-            runtime: DefaultParakeetRuntimeManager(),
+            runtime: DefaultParakeetRuntimeManager(model: config.parakeetModel),
             vocabularyProvider: {
                 config.parakeetVocabularyStore
             }

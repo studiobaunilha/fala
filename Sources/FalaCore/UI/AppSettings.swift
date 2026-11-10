@@ -17,6 +17,7 @@ final class SettingsNavigationState: ObservableObject {
 public final class AppSettings: ObservableObject {
     @Published public var appLanguage: String
     @Published public var transcriptionEngine: String
+    @Published public var parakeetModel: ParakeetModel
     @Published public var dictationModel: String
     @Published public var batchModel: String
     @Published public var transcriptionLanguage: String
@@ -77,7 +78,7 @@ public final class AppSettings: ObservableObject {
         config: AppConfig,
         transcriber: Transcriber,
         modelManager: ModelManager,
-        parakeetTranscriber: ParakeetTranscriber = ParakeetTranscriber(),
+        parakeetTranscriber: ParakeetTranscriber? = nil,
         mlxModelManager: MLXModelManager = MLXModelManager(),
         mlxDownloadWarmupGate: MLXDownloadWarmupGate = MLXDownloadWarmupGate(),
         restartCoordinator: AppRestartCoordinator = AppRestartCoordinator(),
@@ -96,6 +97,7 @@ public final class AppSettings: ObservableObject {
         self.config = normalizedConfig
         self.appLanguage = normalizedConfig.appLanguage
         self.transcriptionEngine = normalizedConfig.transcriptionEngine
+        self.parakeetModel = normalizedConfig.parakeetModel
         self.dictationModel = normalizedConfig.dictationModel
         self.batchModel = normalizedConfig.batchModel
         self.transcriptionLanguage = normalizedConfig.transcriptionLanguage
@@ -124,7 +126,7 @@ public final class AppSettings: ObservableObject {
         self.aiResultPasteDirectly = normalizedConfig.aiResultPasteDirectly
 
         self.transcriber = transcriber
-        self.parakeetTranscriber = parakeetTranscriber
+        self.parakeetTranscriber = parakeetTranscriber ?? ParakeetTranscriber(model: normalizedConfig.parakeetModel)
         self.modelManager = modelManager
         self.mlxModelManager = mlxModelManager
         self.mlxCatalogService = catalogService
@@ -242,6 +244,7 @@ public extension AppSettings {
         var snapshot = config
         snapshot.appLanguage = appLanguage
         snapshot.transcriptionEngine = transcriptionEngine
+        snapshot.parakeetModel = parakeetModel
         snapshot.dictationModel = dictationModel
         snapshot.batchModel = batchModel
         snapshot.transcriptionLanguage = transcriptionLanguage

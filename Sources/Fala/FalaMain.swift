@@ -59,6 +59,7 @@ private extension FalaMain {
     TRANSCRIBE OPTIONS
       --format <txt|md>    Output format (default: from config, fallback: txt)
       --model  <name>      WhisperKit model (default: large-v3-turbo)
+      --parakeet-model <ultra|v3>  Use this Parakeet model for this invocation only
       --profile           Print timing diagnostics for audio prep and model warmup
       --prepare-only      Normalize audio and exit before model warmup/transcription
 

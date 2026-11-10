@@ -1,6 +1,6 @@
 import Foundation
 
-/// Transcribes audio using Parakeet TDT v3 via FluidAudio (CoreML/ANE).
+/// Transcribes audio using the selected Parakeet model via FluidAudio (CoreML/ANE).
 /// Conforms to `AudioTranscribing` to be a drop-in alternative to the Whisper `Transcriber`.
 ///
 public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
@@ -28,8 +28,8 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     private let lock = NSLock()
     public let supportsTranslation = false
 
-    public init() {
-        self.runtime = DefaultParakeetRuntimeManager()
+    public init(model: ParakeetModel = AppConfig.load().parakeetModel) {
+        self.runtime = DefaultParakeetRuntimeManager(model: model)
         self.vocabularyProvider = {
             AppConfig.load().parakeetVocabularyStore
         }
@@ -53,7 +53,7 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
         return .cold
     }
 
-    /// Loads the Parakeet V3 model if not already loaded.
+    /// Loads the selected model if not already loaded.
     public func loadIfNeeded(progress: (@Sendable (Double) -> Void)? = nil) async throws {
         if lock.withLock({ didLoad }) { return }
         if let loadingTask = lock.withLock({ loadingTask }) {

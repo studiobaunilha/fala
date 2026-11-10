@@ -10833,6 +10833,94 @@
           }
         }
       }
+    },
+    "Modelo Parakeet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Parakeet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modèle Parakeet"
+          }
+        }
+      }
+    },
+    "Trocar o modelo Parakeet de %@ para %@ exige reiniciar o app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing the Parakeet model from %@ to %@ requires restarting the app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar el modelo Parakeet de %@ a %@ requiere reiniciar la app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer du modèle Parakeet %@ à %@ nécessite de redémarrer l’application."
+          }
+        }
+      }
+    },
+    "Ultra é o padrão. O V3 continua disponível. O primeiro uso pode baixar o modelo escolhido.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultra is the default. V3 remains available. The selected model may download on first use."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultra es el predeterminado. V3 sigue disponible. El modelo elegido puede descargarse en el primer uso."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultra est le modèle par défaut. V3 reste disponible. Le modèle choisi peut être téléchargé à la première utilisation."
+          }
+        }
+      }
+    },
+    "Modelo Parakeet inválido: %@. Use ultra ou v3.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Parakeet model: %@. Use ultra or v3."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modelo Parakeet no válido: %@. Usa ultra o v3."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modèle Parakeet non valide : %@. Utilisez ultra ou v3."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

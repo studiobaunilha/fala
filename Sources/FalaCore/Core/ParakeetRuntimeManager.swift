@@ -10,75 +10,86 @@ protocol ParakeetRuntimeManaging: Sendable {
 }
 
 final class DefaultParakeetRuntimeManager: ParakeetRuntimeManaging, @unchecked Sendable {
+    static let vocabularyThresholds = VocabularyBoostingSession.Thresholds(cbw: 0, minSimilarity: 0.7)
     private let manager: AsrManager
+    private let model: ParakeetModel
     private var isInitialized = false
     private var ctcModels: CtcModels?
-    private let lock = NSLock()
-    /// Serializes all AsrManager operations (transcribe, configure, disable vocabulary boosting)
-    /// to prevent concurrent access that causes SIGSEGV in FluidAudio's unsynchronized state.
+    private var vocabularySession: VocabularyBoostingSession?
+    // Actor reentrancy must not interleave vocabulary configuration with an inference request.
     private let operationLock = AsyncSemaphore(value: 1)
 
-    init(manager: AsrManager = AsrManager()) {
+    init(model: ParakeetModel = .ultra, manager: AsrManager = AsrManager()) {
+        self.model = model
         self.manager = manager
     }
 
     func initializeIfNeeded() async throws {
-        if lock.withLock({ isInitialized }) {
-            return
-        }
-
-        let downloaded = try await AsrModels.downloadAndLoad(version: .v3)
-        try await manager.initialize(models: downloaded)
-        lock.withLock {
-            isInitialized = true
-        }
+        await operationLock.wait()
+        defer { operationLock.signal() }
+        guard !isInitialized else { return }
+        let version: AsrModelVersion = model == .ultra ? .ultra : .v3
+        let downloaded = try await AsrModels.downloadAndLoad(version: version)
+        try await manager.loadModels(downloaded)
+        isInitialized = true
     }
 
     func configureVocabularyBoosting(_ vocabulary: CustomVocabularyContext) async throws {
         try await initializeIfNeeded()
-        let ctcModels = try await loadCtcModelsIfNeeded()
         await operationLock.wait()
         defer { operationLock.signal() }
-        try await manager.configureVocabularyBoosting(
+        let models: CtcModels
+        if let ctcModels {
+            models = ctcModels
+        } else {
+            models = try await CtcModels.downloadAndLoad()
+            ctcModels = models
+        }
+        // Upstream's dictation preset requires stronger acoustic evidence to avoid false corrections.
+        vocabularySession = try await VocabularyBoostingSession(
             vocabulary: vocabulary,
-            ctcModels: ctcModels
+            ctcModels: models,
+            thresholds: Self.vocabularyThresholds
         )
     }
 
     func disableVocabularyBoosting() async {
         await operationLock.wait()
         defer { operationLock.signal() }
-        manager.disableVocabularyBoosting()
+        vocabularySession = nil
     }
 
     func transcribe(samples: [Float]) async throws -> String {
-        try await initializeIfNeeded()
         await operationLock.wait()
         defer { operationLock.signal() }
-        let result = try await manager.transcribe(samples, source: .microphone)
-        return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return try await transcribeLocked(samples: samples)
     }
 
     func transcribe(audioURL: URL) async throws -> String {
-        try await initializeIfNeeded()
         await operationLock.wait()
         defer { operationLock.signal() }
-        let result = try await manager.transcribe(audioURL, source: .microphone)
+        if vocabularySession != nil {
+            let samples = try AudioConverter.toFloat16k(from: audioURL) { try Task.checkCancellation() }
+            return try await transcribeLocked(samples: samples)
+        }
+        var state = try TdtDecoderState()
+        let result = try await manager.transcribe(audioURL, decoderState: &state)
         return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-}
 
-private extension DefaultParakeetRuntimeManager {
-    func loadCtcModelsIfNeeded() async throws -> CtcModels {
-        if let ctcModels = lock.withLock({ ctcModels }) {
-            return ctcModels
+    private func transcribeLocked(samples: [Float]) async throws -> String {
+        try Task.checkCancellation()
+        var state = try TdtDecoderState()
+        let result = try await manager.transcribe(samples, decoderState: &state)
+        guard let vocabularySession,
+              let timings = result.tokenTimings,
+              let rescored = await vocabularySession.rescore(
+                text: result.text, tokenTimings: timings, audioSamples: samples
+              )
+        else {
+            return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-
-        let loadedModels = try await CtcModels.downloadAndLoad()
-        lock.withLock {
-            ctcModels = loadedModels
-        }
-        return loadedModels
+        return rescored.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 

@@ -9,6 +9,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
     }
 
     public var transcriptionEngine: String = "parakeet" // "whisper" or "parakeet"
+    public var parakeetModel: ParakeetModel = .ultra
     public var dictationModel: String = AppConfig.defaultWhisperModelID
     public var batchModel: String     = AppConfig.defaultWhisperModelID
     public var outputFormat: String   = "txt"
@@ -49,6 +50,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case transcriptionEngine
+        case parakeetModel
         case dictationModel
         case batchModel
         case outputFormat
@@ -104,6 +106,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(transcriptionEngine, forKey: .transcriptionEngine)
+        try container.encode(parakeetModel, forKey: .parakeetModel)
         try container.encode(dictationModel, forKey: .dictationModel)
         try container.encode(batchModel, forKey: .batchModel)
         try container.encode(outputFormat, forKey: .outputFormat)
@@ -192,6 +195,7 @@ public struct AppConfig: Codable, Sendable, Equatable {
 extension AppConfig {
     private mutating func decodeCoreFields(from container: KeyedDecodingContainer<CodingKeys>) {
         transcriptionEngine = (try? container.decode(String.self, forKey: .transcriptionEngine)) ?? "parakeet"
+        parakeetModel = (try? container.decode(ParakeetModel.self, forKey: .parakeetModel)) ?? .ultra
         dictationModel = (try? container.decode(String.self, forKey: .dictationModel)) ?? Self.defaultWhisperModelID
         batchModel = (try? container.decode(String.self, forKey: .batchModel)) ?? Self.defaultWhisperModelID
         outputFormat = (try? container.decode(String.self, forKey: .outputFormat)) ?? "txt"

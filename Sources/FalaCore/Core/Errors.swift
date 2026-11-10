@@ -70,12 +70,15 @@ public enum BatchError: Error, LocalizedError {
     case noInputFile
     case unsupportedFormat(String)
     case outputWriteFailed
+    case invalidParakeetModel(String)
 
     public var errorDescription: String? {
         switch self {
         case .noInputFile: L10n("No input file specified")
         case .unsupportedFormat(let ext): String(format: L10n("Unsupported format: %@"), ext)
         case .outputWriteFailed: L10n("Failed to write output file")
+        case .invalidParakeetModel(let model):
+            String(format: L10n("Modelo Parakeet inválido: %@. Use ultra ou v3."), model)
         }
     }
 }

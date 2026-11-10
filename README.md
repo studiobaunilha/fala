@@ -22,7 +22,7 @@ Requisitos desta base: macOS 14 ou superior e Apple Silicon. O consumo de memór
 
 ## Compilar e verificar
 
-Use Xcode com as ferramentas de linha de comando e o componente Metal, além do SwiftLint. Confira os termos dos modelos antes de redistribuir seus arquivos.
+Use Xcode com Swift 6.2 ou superior, as ferramentas de linha de comando e o componente Metal, além do SwiftLint. Confira os termos dos modelos antes de redistribuir seus arquivos.
 
 ```bash
 git clone https://github.com/studiobaunilha/fala.git

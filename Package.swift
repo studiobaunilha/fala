@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 import Foundation
 
@@ -55,7 +55,7 @@ let package = Package(
         .package(url: "https://github.com/argmaxinc/WhisperKit.git", from: "0.9.0"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts.git", exact: "1.15.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", from: "2.29.1"),
-        .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.7.9"),
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.18.3", traits: []),
         .package(url: "https://github.com/sparkle-project/Sparkle.git", exact: "2.9.3"),
     ],
     targets: [

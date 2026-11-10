@@ -92,7 +92,7 @@ extension TranscribeView {
                     .disabled(isWorking)
                 } else {
                     LabeledContent(L10n("Motor")) {
-                        Text(L10n("Parakeet V3"))
+                        Text(job.appSettings.parakeetModel.displayName)
                             .foregroundStyle(.secondary)
                     }
                 }

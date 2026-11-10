@@ -1,7 +1,7 @@
 import Foundation
 
 /// CLI batch transcription mode.
-/// Usage: fala transcribe <file> [--format txt|md] [--model <name>] [--profile] [--prepare-only]
+/// Usage: fala transcribe <file> [--format txt|md] [--model <name>] [--parakeet-model ultra|v3]
 public enum BatchMode {
     public static let supportedExtensions: Set<String> = ["m4a", "mp3", "wav", "mp4", "aac", "flac", "ogg"]
 
@@ -17,7 +17,7 @@ public enum BatchMode {
         }
 
         let config = AppConfig.load()
-        let opts = parseOptions(arguments, config: config)
+        let opts = try parseOptions(arguments, config: config)
         let profiler = CLIBatchExecutionProfiler(inputURL: inputURL)
         var outcome: BatchExecutionOutcome = .failed
 
@@ -75,16 +75,18 @@ public enum BatchMode {
         options: BatchOptions,
         profiler: CLIBatchExecutionProfiler
     ) async throws {
-        print("Model: \(options.model)")
+        let usesParakeet = options.parakeetModel != nil || config.transcriptionEngine == "parakeet"
+        let parakeetModel = options.parakeetModel ?? config.parakeetModel
+        print("Model: \(usesParakeet ? parakeetModel.displayName : options.model)")
         print("Transcribing \(inputURL.lastPathComponent)…")
 
         let outputURL = inputURL
             .deletingPathExtension()
             .appendingPathExtension(options.format)
 
-        let transcriber: any AudioTranscribing = if config.transcriptionEngine == "parakeet" {
+        let transcriber: any AudioTranscribing = if usesParakeet {
             ParakeetTranscriber(
-                runtime: DefaultParakeetRuntimeManager(),
+                runtime: DefaultParakeetRuntimeManager(model: parakeetModel),
                 vocabularyProvider: {
                     config.parakeetVocabularyStore
                 }
@@ -124,16 +126,18 @@ public enum BatchMode {
         var template: DictationTemplate
         var profile: Bool
         var prepareOnly: Bool
+        var parakeetModel: ParakeetModel?
     }
 
-    /// Parses `--format`, `--model`, `--mode`, and diagnostics flags from CLI arguments.
-    static func parseOptions(_ arguments: [String], config: AppConfig) -> BatchOptions {
+    /// A Parakeet override selects that engine for this invocation without changing saved preferences.
+    static func parseOptions(_ arguments: [String], config: AppConfig) throws -> BatchOptions {
         var opts = BatchOptions(
             format: config.outputFormat,
             model: config.activeWhisperModel,
             template: config.selectedDictationTemplate,
             profile: false,
-            prepareOnly: false
+            prepareOnly: false,
+            parakeetModel: nil
         )
         var idx = 1
         while idx < arguments.count {
@@ -144,12 +148,12 @@ public enum BatchMode {
             case "--model":
                 idx += 1
                 if idx < arguments.count { opts.model = arguments[idx] }
+            case "--parakeet-model":
+                idx += 1
+                opts.parakeetModel = try parseParakeetModel(arguments, at: idx)
             case "--mode":
                 idx += 1
-                if idx < arguments.count,
-                   let parsed = DictationTemplate(rawValue: arguments[idx]) {
-                    opts.template = parsed
-                }
+                opts.template = parseTemplate(arguments, at: idx) ?? opts.template
             case "--profile":
                 opts.profile = true
             case "--prepare-only":
@@ -160,6 +164,19 @@ public enum BatchMode {
             idx += 1
         }
         return opts
+    }
+
+    private static func parseParakeetModel(_ arguments: [String], at index: Int) throws -> ParakeetModel {
+        let value = index < arguments.count ? arguments[index] : ""
+        guard let model = ParakeetModel(rawValue: value) else {
+            throw BatchError.invalidParakeetModel(value)
+        }
+        return model
+    }
+
+    private static func parseTemplate(_ arguments: [String], at index: Int) -> DictationTemplate? {
+        guard index < arguments.count else { return nil }
+        return DictationTemplate(rawValue: arguments[index])
     }
 
     private static func emitTimingLog(

@@ -68,7 +68,7 @@ public final class WarmupCoordinator: ObservableObject {
         transcriptionTask = Task { [weak self] in
             guard let self else { return }
             let label = config.transcriptionEngine == "parakeet"
-                ? L10n("Parakeet V3")
+                ? config.parakeetModel.displayName
                 : config.activeWhisperModel
 
             await MainActor.run {

@@ -4,6 +4,9 @@ extension SettingsView {
     var modelsView: some View {
         Form {
             transcriptionEngineSection
+            if settings.transcriptionEngine == "parakeet" {
+                parakeetModelSection
+            }
             transcriptionLanguageSection
 
             if settings.transcriptionEngine == "whisper" {
@@ -19,6 +22,24 @@ extension SettingsView {
 }
 
 private extension SettingsView {
+    var parakeetModelSection: some View {
+        Section {
+            Picker(
+                L10n("Modelo Parakeet"),
+                selection: Binding(
+                    get: { settings.parakeetModel },
+                    set: { settings.requestParakeetModelChange($0) }
+                )
+            ) {
+                ForEach(ParakeetModel.allCases, id: \.self) { model in
+                    Text(model.displayName).tag(model)
+                }
+            }
+        } footer: {
+            Text(L10n("Ultra é o padrão. O V3 continua disponível. O primeiro uso pode baixar o modelo escolhido."))
+        }
+    }
+
     var transcriptionEngineSection: some View {
         Section {
             Text(
@@ -31,7 +52,7 @@ private extension SettingsView {
             .foregroundStyle(.secondary)
 
             TranscriptionEngineOptionCard(
-                title: L10n("Parakeet V3"),
+                title: settings.parakeetModel.displayName,
                 subtitle: L10n("Recomendado para a maioria"),
                 summary: L10n(
                     // swiftlint:disable:next line_length

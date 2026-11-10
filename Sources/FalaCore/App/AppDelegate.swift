@@ -45,7 +45,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             prompt: "",
             disableNeuralEngine: disableNeuralEngine
         )
-        let parakeetTranscriber = ParakeetTranscriber()
+        let parakeetTranscriber = ParakeetTranscriber(model: config.parakeetModel)
         let modelManager = ModelManager()
         modelManager.scanLocal()
         let appSettings = AppSettings(
