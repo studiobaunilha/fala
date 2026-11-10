@@ -36,10 +36,10 @@ A main versionada do aplicativo é `bc10862`, versão 1.12.1 build 30; a árvore
 - [ ] Preparar LICENSE conforme decisão, avisos das dependências, instruções de build sem segredos e documentação coerente; revisar ativos e histórico candidato à publicação. Usar `ad-community-docs` se for necessário documentar contribuição e reporte de vulnerabilidades, sem inventar compromissos de suporte.
 - [x] Implementar download gratuito no site, remover scripts Paddle, preços e controles comerciais, atualizar textos e termos afetados, preservar informação aplicável a compras antigas e testar links legados em todas as localidades.
 - [x] Preparar a retirada do backend comercial, bindings e variáveis exclusivos; testar respostas sem DB ou chaves comerciais. Preservar os dados existentes fora do runtime retirado.
-- [ ] Verificar conta e permissões de Cloudflare e Apple em modo de leitura; localizar a ferramenta Wrangler e resolver o acesso 403 aos endpoints necessários. Conferir o estado real de produtos e links Paddle; não inferir encerramento de venda apenas pela remoção do botão.
+- [x] Verificar conta e permissões de Cloudflare e Apple em modo de leitura; localizar a ferramenta Wrangler e resolver o acesso 403 aos endpoints necessários. Conferir o estado real de produtos e links Paddle; não inferir encerramento de venda apenas pela remoção do botão.
 - [ ] Rodar testes, lint, localização, build do pacote e do site; executar os cenários reais da avaliação e reter evidências com SHA e hash dos artefatos.
 - [ ] Fazer `ad-review` independente do diff e especificação; aplicar `ad-audit` apenas aos riscos não cobertos de cobrança, segurança, exposição de dados e publicação. Registrar cobertura e disposições; revisar somente deltas após correções.
-- [ ] Preparar a versão minor seguinte, conforme convenção do projeto, notas de release e pacote final. Conferir versionamento contra o feed real antes de escolher build; não assumir que o build versionado é o maior já distribuído.
+- [x] Preparar a versão minor seguinte, conforme convenção do projeto, notas de release e pacote final. Conferir versionamento contra o feed real antes de escolher build; não assumir que o build versionado é o maior já distribuído.
 - [ ] Submeter o pacote concreto de publicação com diffs finais, licença, fontes a expor, versão, hashes, testes e textos externos já revisados. Cumprir o gate final do proprietário estabelecido no fluxo.
 - [ ] Encerrar novas compras no provedor conferido, publicar código revisado e versão gratuita, conferir download e atualização e então publicar o site com anúncio de disponibilidade. Distinguir a parada de novas compras da remoção posterior de webhooks ainda necessários a eventos pendentes.
 - [ ] Retirar o runtime comercial após passar o teste de atualização; conferir download, repositório, release, site, links antigos e ausência de chamadas comerciais em produção. Registrar os identificadores de deploy e resultado, sem segredos.
@@ -102,3 +102,7 @@ Resolvida a assinatura Sparkle: o instalador exato foi assinado na máquina orig
 ### Revisão independente — 2026-11-10
 
 Concluída a revisão independente por três revisores sem histórico de autoria: aplicativo, distribuição e duas partes do site. As quatro partes não tiveram achados nos eixos de padrões e requisitos. O registro detalhado e os limites estão em `doc/research/0003-free-open-source-execution.md`. Acesso pessoal à Cloudflare confirmado em modo de leitura para o site e os downloads; continuam pendentes os testes interativos/migração, conferência da Paddle, revisão final de exposição e publicação.
+
+### Provedor e teste em outro Mac — 2026-11-10
+
+Conferido o catálogo live da Paddle e sua correspondência com o preço configurado no site, além das telas relevantes de transações, assinaturas e notificações. Nenhuma configuração comercial foi alterada. O instalador exato também foi aberto em outro Mac e passou novamente na transcrição de fixture com rede negada; a instalação antiga foi preservada. Ditado/inserção com microfone e comandos sobre texto selecionado continuam pendentes, assim como migração de estado comercial ausente/expirado e exposição pública.
