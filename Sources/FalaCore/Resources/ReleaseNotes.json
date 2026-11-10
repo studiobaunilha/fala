@@ -1,6 +1,36 @@
 {
   "releases": [
     {
+      "version": "1.14",
+      "date": "2026-11-10",
+      "highlights": {
+        "pt-BR": [
+          "O Parakeet agora usa o Ultra por padrão. O v3 continua disponível nos Ajustes.",
+          "As substituições de nomes e frases não alteram mais trechos dentro de outras palavras.",
+          "No ditado, as substituições são aplicadas uma única vez ao texto final, inclusive quando a limpeza por IA falha.",
+          "O aprendizado ignora regras que não conseguem reproduzir fielmente a edição."
+        ],
+        "en": [
+          "Parakeet now defaults to Ultra. You can still select v3 in Settings.",
+          "Name and phrase replacements no longer alter matching text inside larger words.",
+          "Dictation applies replacements once to the final text, including when AI cleanup fails.",
+          "Correction learning skips rules that cannot reproduce your edit faithfully."
+        ],
+        "es": [
+          "Parakeet ahora usa Ultra de forma predeterminada. Puedes seguir seleccionando v3 en Ajustes.",
+          "Las sustituciones de nombres y frases ya no alteran fragmentos dentro de otras palabras.",
+          "En el dictado, las sustituciones se aplican una sola vez al texto final, incluso si la limpieza con IA falla.",
+          "El aprendizaje omite las reglas que no pueden reproducir fielmente la edición."
+        ],
+        "fr": [
+          "Parakeet utilise désormais Ultra par défaut. Vous pouvez toujours sélectionner v3 dans les Réglages.",
+          "Les remplacements de noms et de phrases ne modifient plus les fragments contenus dans des mots plus longs.",
+          "Pour la dictée, les remplacements sont appliqués une seule fois au texte final, même si le nettoyage par IA échoue.",
+          "L’apprentissage ignore les règles qui ne peuvent pas reproduire fidèlement la modification."
+        ]
+      }
+    },
+    {
       "version": "1.13.1",
       "date": "2026-11-10",
       "highlights": {

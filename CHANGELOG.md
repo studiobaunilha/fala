@@ -2,6 +2,15 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.14] - 2026-11-10
+
+### Changed
+
+- Parakeet now defaults to Ultra. You can still select v3 in Settings.
+- Name and phrase replacements no longer alter matching text inside larger words.
+- Dictation applies replacements once to the final text, including when AI cleanup fails.
+- Correction learning skips rules that cannot reproduce your edit faithfully.
+
 ## [1.13.1] - 2026-11-10
 
 ### Fixed
