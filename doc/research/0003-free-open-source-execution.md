@@ -53,7 +53,7 @@ Apple's onboarding guidance was read from `https://developer.apple.com/design/hu
 
 ## Open release gates
 
-1. Fresh-context review of app runtime, distribution and website; critical claims hardening. Four bounded review packets were prepared, but no independent reviewer has run.
+1. Resolved code-review portion on 2026-11-10: three fresh-context reviewers completed four bounded Standards/Spec slices with zero findings. Critical claims hardening and final exposure-content review remain separate audit gates.
 2. Resolved on 2026-11-10: remote signing with the original key and independent local verification succeeded. Preserve the exact package and signature; a changed package requires a new signature.
 3. Real packaged first-run, hardware dictation and selected-text commands; update from an installation with absent/expired commercial state in an isolated environment. Window/unit tests and offline CLI do not retire these scenarios.
 4. Authenticate personal Cloudflare in an isolated configuration and verify the intended account; inspect the live Paddle catalog and pending events before stopping sales/removing runtime. Current public checkout configuration is live. Removing local site buttons is not provider closure.
@@ -69,3 +69,13 @@ Local logs and ignored review packets are working evidence, not permanent public
 The original signing host accepted the configured personal SSH identity after local authorization. The transferred DMG matched the SHA-256 recorded above. SSH-session signing was denied by the macOS Keychain; invoking the existing signing tool from native Terminal on that host succeeded (exit 0). Only the public signature was retrieved. Local verification used Python cryptography Ed25519PublicKey and the existing application public key; verification succeeded on all 18292635 bytes. No private key bytes were displayed or transferred.
 
 Public signature: `Zd7XYLBwf+UTNCDOUXzYAthuy9D9VB65QHzTr0qPYI0CBz8vnKLnIYLnzEpTQUGelkspu+bQDPK+KpOkf6BYAQ==`. Installer SHA-256 remains `13d85e58474191a2588001937c2bdd549c395ec259602392619f079353daa2f3`. The appcast candidate's enclosure length, version 1.13/build 33 and signature refer to these same bytes. Native Terminal signing on the original host is now an observed distribution path; the local release script still requires a locally available key, so it was not run as a substitute. This resolves update-signature authenticity, not the still-unexecuted old-client update scenario or public delivery checks.
+
+## Independent code review — 2026-11-10
+
+Three fresh-context reviewers received only bounded diff, applicable standards and specification/evidence packets. App target: `cf0ce7ac98270b0b83856314f54ef8b518a6c964`; website target: `d6d90fe9ae6d3094513b77369c53b1ce9096fc68`. Four slices were each below 50 files: application runtime/tests (46), distribution/resources/docs/scripts (21), website server (19) and website pages/scripts/localizations/legal (37). Commit-count integrity checks passed (six app commits, one website commit). Review roles were read-only and the reviewer-reported git status was clean before and after. No build/test gate was repeated by a reviewer.
+
+Each slice reported, verbatim, **“no real issues found in this axis”** on both Standards and Spec axes: zero Blockers, zero Concerns, no surviving findings to fix. The orchestrator persisted the returned verdict text immediately because reviewer roles prohibit writes. Paired local receipts: `.agentic/reviews/2026-11-10-review-app-runtime-verdicts.md`, `...app-distribution-verdicts.md`, and the website checkout's `...site-server-verdicts.md` / `...site-pages-verdicts.md`. No reviewer emitted overall approval or a claim of publication readiness.
+
+The reviewers explicitly retained the packaged first-run, real dictation/selection, absent/expired-client migration, provider-closure and public-delivery gates. The configured binary minimum macOS was independently read as 14.0 with `xcrun vtool -show-build`; this does not assert empirical compatibility on every macOS 14 system.
+
+Personal Cloudflare access was also confirmed read-only for worker `studiobaunilha` and release bucket `fala-updates`, using a configuration separate from the work account. Current deployed worker version read back as `c9f053ec-fd3a-4641-a5f7-b1c7267804a9`. No upload, deploy, visibility change or commercial data operation occurred.
