@@ -29,3 +29,11 @@ A separate packaging regression is testable through Foundation's public Bundle A
 Use the minimal released dependency correction, Sparkle2.9.3, and explicit app/executable plist metadata in a maintenance build. Avoid broad App Management or filesystem permission changes. The old installed updater cannot receive a framework fix until it installs a new app; bootstrap recovery must be verified separately (a safe cache-path repair or one manual signed-app replacement if required). Do not claim a change to the new package repairs an already-running old helper.
 
 Evidence strength: primary release + versioned reference + exact consumer error and signature/metadata measurements. Confidence: proceed-with-mitigation; native update test still required. Version1.13.1/build34 will use new package/signature receipts; never overwrite immutable1.13 bytes or tag. Existing first-run/expired-state/selection limits remain explicit. Site/payment retirement remains deferred until recovery is verified.
+
+## Corrective candidate verification
+
+Commit `cca50372d42efa7206a4595211ee7baa21c13604` contains the eight-file correction. The public Bundle API regression failed before the metadata change and passed afterward. The mandatory full gate passed286 XCTest cases and strict lint with zero violations in184 Swift files. The release bundle was checked: app1.13.1/build34, explicit APPL/executable metadata, embedded Sparkle2.9.3 and strict Developer ID signature verification. Third-party notice version was updated; the upstream license text is unchanged and remains included.
+
+Fresh-context correction review at that target reported **no findings** on Standards or Spec axes. It explicitly retained the old-helper bootstrap limitation. This was a delta review, not another review of the original licensing removal.
+
+Apple notarization Accepted, submission `01679f61-8418-4bb9-b5ab-c41d325e6cf6`; staple validation passed. The exact stapled DMG is18293578bytes, SHA-256 `2b20e54eac770f0eddda6d80d351ff1ce058155f6b8e871a3c00fada484e6746`. It was signed on the original signing host without exporting the private key, and its Ed25519 signature was independently verified against the retained installed application's public key. These checks verify the maintenance candidate, not successful installation by the old updater; that native result is still pending.
