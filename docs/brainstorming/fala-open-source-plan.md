@@ -106,3 +106,7 @@ Concluída a revisão independente por três revisores sem histórico de autoria
 ### Provedor e teste em outro Mac — 2026-11-10
 
 Conferido o catálogo live da Paddle e sua correspondência com o preço configurado no site, além das telas relevantes de transações, assinaturas e notificações. Nenhuma configuração comercial foi alterada. O instalador exato também foi aberto em outro Mac e passou novamente na transcrição de fixture com rede negada; a instalação antiga foi preservada. Ditado/inserção com microfone e comandos sobre texto selecionado continuam pendentes, assim como migração de estado comercial ausente/expirado e exposição pública.
+
+### Teste local e autorização do percurso de atualização — 2026-11-10
+
+Ditado e inserção de texto confirmados manualmente na versão 1.13 no computador principal. A instalação anterior foi preservada. A publicação do pacote e feed foi autorizada para verificar a atualização real a partir da versão antiga; o backend de licenças será mantido até a confirmação desse percurso. Essa autorização altera a sequência do teste de atualização, sem marcar como concluídos os cenários ainda não executados.
