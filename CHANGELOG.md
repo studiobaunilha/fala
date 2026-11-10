@@ -2,6 +2,12 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.13.1] - 2026-11-10
+
+### Fixed
+- Update installer compatibility for the application's identifier on macOS, using Sparkle 2.9.3.
+- Explicit application bundle and executable metadata for distribution.
+
 ## [1.13] — 2026-11-09
 
 ### Distribuição

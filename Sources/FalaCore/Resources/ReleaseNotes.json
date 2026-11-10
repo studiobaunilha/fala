@@ -1,6 +1,24 @@
 {
   "releases": [
     {
+      "version": "1.13.1",
+      "date": "2026-11-10",
+      "highlights": {
+        "pt-BR": [
+          "Melhorias de compatibilidade do instalador de atualizações com o macOS."
+        ],
+        "en": [
+          "Improved update installer compatibility with macOS."
+        ],
+        "es": [
+          "Mejoras de compatibilidad del instalador de actualizaciones con macOS."
+        ],
+        "fr": [
+          "Amélioration de la compatibilité du programme de mise à jour avec macOS."
+        ]
+      }
+    },
+    {
       "version": "1.13",
       "date": "2026-11-09",
       "highlights": {
