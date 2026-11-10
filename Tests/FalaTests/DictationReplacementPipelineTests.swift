@@ -64,6 +64,40 @@ final class DictationReplacementPipelineTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(inserter.insertedTexts, ["Eu comunico com Niko."])
     }
 
+    @MainActor
+    func testAIFailureStillInsertsConfiguredCorrectionOnce() async throws {
+        let recorder = MockRecorder()
+        let transcriber = MockTranscriber()
+        let inserter = MockInserter()
+        let audioURL = try makeTone()
+        recorder.stopResult = .success(audioURL)
+        defer { try? FileManager.default.removeItem(at: audioURL) }
+
+        var config = AppConfig()
+        config.selectedDictationTemplate = .custom
+        config.customModePrompt = "Keep the text and add a period."
+        config.llmProvider = "mlx"
+        config.replacementRules = [
+            ReplacementRule(variants: ["Nico"], replacement: "Niko"),
+            ReplacementRule(variants: ["Niko"], replacement: "Nicolau")
+        ]
+        let mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            config: config,
+            llmProcessor: { _, _, _, _ in
+                throw LLMError.mlxModelNotDownloaded(AppConfig.defaultMLXModelRepoID)
+            }
+        )
+        await transcriber.setResult("Eu comunico com Nico")
+        await mode.startRecording()
+        await mode.stopAndTranscribe()
+
+        XCTAssertEqual(inserter.insertedTexts, ["Eu comunico com Niko"])
+        XCTAssertTrue(inserter.savedToClipboardTexts.isEmpty)
+    }
+
     private func makeTone() throws -> URL {
         let sampleRate: Double = 16_000
         let format = try XCTUnwrap(AVAudioFormat(
