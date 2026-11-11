@@ -53,10 +53,19 @@ extension TranscriptionJob {
         let transcriber = ParakeetTranscriber(
             runtime: DefaultParakeetRuntimeManager(model: config.parakeetModel),
             vocabularyProvider: {
-                config.parakeetVocabularyStore
+                config.effectiveVocabularyContext.store
             }
         )
-        return BatchPreloadableTranscriber(
+        return batchAdapter(transcriber: transcriber, vocabularyScoper: { vocabulary in
+            batchAdapter(transcriber: transcriber.scoped(to: vocabulary))
+        })
+    }
+
+    private nonisolated static func batchAdapter(
+        transcriber: any AudioTranscribing,
+        vocabularyScoper: (@Sendable (ParakeetVocabularyStore) -> BatchPreloadableTranscriber)? = nil
+    ) -> BatchPreloadableTranscriber {
+        BatchPreloadableTranscriber(
             loadState: {
                 await transcriber.loadState()
             },
@@ -72,7 +81,8 @@ extension TranscriptionJob {
                     task: task,
                     progress: progress
                 )
-            }
+            },
+            vocabularyScoper: vocabularyScoper
         )
     }
 }

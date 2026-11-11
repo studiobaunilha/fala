@@ -46,6 +46,7 @@ public final class TranscriptionJob: ObservableObject {
 
     // Dependency
     @Published public var appSettings: AppSettings
+    var vocabularyRunConfig: AppConfig?
     var currentTask: Task<Void, Never>?
     var preparationTask: Task<Void, Never>?
     var processingTask: Task<BatchProcessingResult, Never>?
@@ -137,18 +138,23 @@ public final class TranscriptionJob: ObservableObject {
 
         processingWarning = nil
         lastExecutionMetrics = nil
-        prepareForUse()
-        if let issue = appSettings.readiness.primaryIssueForBatch(batchPrompt: batchPostPrompt) {
-            withAnimation(AnimationConfig.standard) {
-                state = .error(issue.message)
+        beginVocabularyRunSnapshot()
+        if !canRetryWithoutTranscription {
+            prepareForUse()
+            if let issue = readinessIssueForNextRun {
+                withAnimation(AnimationConfig.standard) {
+                    state = .error(issue.message)
+                }
+                endVocabularyRunSnapshot()
+                return
             }
-            return
         }
 
         for itemID in processableItemIDs {
             updateQueueItemStatus(itemID, status: .pending)
         }
         currentTask = Task {
+            defer { endVocabularyRunSnapshot() }
             await runQueueTask(itemIDs: processableItemIDs)
         }
     }

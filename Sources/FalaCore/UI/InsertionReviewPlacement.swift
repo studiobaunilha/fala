@@ -3,6 +3,7 @@ import AppKit
 enum InsertionReviewPlacement {
     static let collapsedSize = NSSize(width: 280, height: 54)
     static let expandedSize = NSSize(width: 360, height: 220)
+    static let proposalSize = NSSize(width: 400, height: 280)
     static let trailingInset: CGFloat = 24
     static let bottomInset: CGFloat = 24
 

@@ -62,6 +62,7 @@ struct BatchWhisperTranscriber: AudioTranscribing {
 }
 
 struct BatchPreloadableTranscriber: AudioTranscribing {
+    private let vocabularyScoper: (@Sendable (ParakeetVocabularyStore) -> BatchPreloadableTranscriber)?
     let supportsTranslation: Bool
     private let loadStateHandler: @Sendable () async -> TranscriberLoadState
     private let loadIfNeededHandler: @Sendable ((@Sendable (Double) -> Void)?) async throws -> Void
@@ -78,13 +79,19 @@ struct BatchPreloadableTranscriber: AudioTranscribing {
             String,
             String,
             (@Sendable (TranscriberProgress) -> Void)?
-        ) async throws -> String
+        ) async throws -> String,
+        vocabularyScoper: (@Sendable (ParakeetVocabularyStore) -> BatchPreloadableTranscriber)? = nil
     ) {
+        self.vocabularyScoper = vocabularyScoper
         self.supportsTranslation = supportsTranslation
         self.loadStateHandler = loadState
         self.loadIfNeededHandler = loadIfNeeded
         self.transcribeSamplesHandler = transcribeSamples
         self.transcribeAudioPathHandler = transcribeAudioPath
+    }
+
+    func scoped(to vocabulary: ParakeetVocabularyStore) -> Self {
+        vocabularyScoper?(vocabulary) ?? self
     }
 
     func loadState() async -> TranscriberLoadState {
@@ -152,7 +159,7 @@ final class BatchTranscriberPool {
         language: String
     ) async -> any AudioTranscribing {
         if config.transcriptionEngine == "parakeet" {
-            return resolveParakeetTranscriber()
+            return resolveParakeetTranscriber().scoped(to: config.effectiveVocabularyContext.store)
         }
 
         return await resolveWhisperTranscriber(

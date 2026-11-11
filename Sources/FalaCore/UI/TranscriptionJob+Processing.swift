@@ -173,27 +173,6 @@ extension TranscriptionJob {
         )
     }
 
-    nonisolated func initializeOutputFile(url: URL, format: String) throws {
-        let content = format == "md"
-            ? "# \(url.deletingPathExtension().lastPathComponent)\n\n"
-            : ""
-        try content.write(to: url, atomically: true, encoding: .utf8)
-    }
-
-    nonisolated func appendToFile(url: URL, text: String) {
-        if let handle = try? FileHandle(forWritingTo: url) {
-            handle.seekToEndOfFile()
-            if let data = (text + "\n").data(using: .utf8) {
-                handle.write(data)
-            }
-            try? handle.close()
-        }
-    }
-    
-    nonisolated func overwriteFile(url: URL, text: String) {
-        try? text.write(to: url, atomically: true, encoding: .utf8)
-    }
-    
     nonisolated func cleanText(_ text: String) -> String {
         return text.replacingOccurrences(of: "<\\|.*?\\|>", with: "", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -231,23 +210,18 @@ extension TranscriptionJob {
         batchPromptOverride: String? = nil
     ) -> Task<BatchProcessingResult, Never> {
         Task {
-            var fullConfirmedText = ""
+            var result = BatchProcessingResult()
             var currentWindowId = 0
             var currentWindowRawText = ""
-            var warning: BatchProcessingWarning?
 
             for await progress in stream {
                 guard !Task.isCancelled else {
-                    return processingResult(
-                        fullConfirmedText: fullConfirmedText,
-                        warning: warning
-                    )
+                    return result
                 }
                 if progress.windowId > currentWindowId {
-                    (fullConfirmedText, warning) = await mergeConfirmedWindowText(
+                    result = await mergeConfirmedWindowText(
                         currentWindowRawText,
-                        fullConfirmedText: fullConfirmedText,
-                        warning: warning,
+                        result: result,
                         context: context,
                         promptOverride: batchPromptOverride
                     )
@@ -260,62 +234,42 @@ extension TranscriptionJob {
             }
 
             guard !Task.isCancelled else {
-                return processingResult(
-                    fullConfirmedText: fullConfirmedText,
-                    warning: warning
-                )
+                return result
             }
-            (fullConfirmedText, warning) = await mergeConfirmedWindowText(
+            result = await mergeConfirmedWindowText(
                 currentWindowRawText,
-                fullConfirmedText: fullConfirmedText,
-                warning: warning,
+                result: result,
                 context: context,
                 promptOverride: batchPromptOverride
             )
 
-            return processingResult(
-                fullConfirmedText: fullConfirmedText,
-                warning: warning
-            )
+            return result
         }
     }
 
     private func mergeConfirmedWindowText(
         _ rawText: String,
-        fullConfirmedText: String,
-        warning: BatchProcessingWarning?,
+        result: BatchProcessingResult,
         context: ProcessingContext,
         promptOverride: String?
-    ) async -> (String, BatchProcessingWarning?) {
+    ) async -> BatchProcessingResult {
         guard let outcome = await processConfirmedWindowText(
             rawText,
             context: context,
             promptOverride: promptOverride
         ) else {
-            return (fullConfirmedText, warning)
+            return result
         }
-
-        return (
-            fullConfirmedText + outcome.text + "\n",
-            warning ?? outcome.warning
-        )
-    }
-
-    private func processingResult(
-        fullConfirmedText: String,
-        warning: BatchProcessingWarning?
-    ) -> BatchProcessingResult {
-        BatchProcessingResult(
-            fullConfirmedText: fullConfirmedText,
-            warning: warning
-        )
+        var merged = result
+        merged.append(outcome)
+        return merged
     }
 
     func processConfirmedWindowText(
         _ rawText: String,
         context: ProcessingContext,
         promptOverride: String?
-    ) async -> LLMApplicationOutcome? {
+    ) async -> BatchWindowProcessingOutcome? {
         guard !Task.isCancelled else {
             return nil
         }
@@ -337,8 +291,17 @@ extension TranscriptionJob {
             text: ReplacementRule.applyAll(outcome.text, rules: context.config.replacementRules),
             warning: outcome.warning
         )
-        appendToFile(url: context.outputURL, text: finalOutcome.text)
-        return finalOutcome
+        var saveErrorDescription: String?
+        do {
+            try appendToFile(url: context.outputURL, text: finalOutcome.text)
+        } catch {
+            saveErrorDescription = error.localizedDescription
+        }
+        return BatchWindowProcessingOutcome(
+            text: finalOutcome.text,
+            warning: finalOutcome.warning,
+            saveErrorDescription: saveErrorDescription
+        )
     }
 }
 

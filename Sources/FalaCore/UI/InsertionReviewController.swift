@@ -13,12 +13,16 @@ public final class InsertionReviewController: InsertionReviewPresenting {
     private let targetApplicationProvider: () -> NSRunningApplication?
     private let reactivateApplication: (NSRunningApplication) async -> Bool
     private let presentReview: ((InsertionReviewView) -> Void)?
+    private let presentProposal: ((InsertionCorrectionProposalView) -> Void)?
+    private let scheduleDismissal: ((TimeInterval, DispatchWorkItem) -> Void)?
 
     private var panel: NSPanel?
     private var dismissWorkItem: DispatchWorkItem?
     private var targetApplication: NSRunningApplication?
     private var currentInsertedText = ""
     private var currentInserter: (any TextInserting)?
+    private var reviewID: UUID?
+    private var pendingCorrection: CorrectionLearningAnalyzer.LearnedCorrection?
 
     public convenience init(learnCorrection: @escaping (String, String) -> Void) {
         self.init(
@@ -38,12 +42,16 @@ public final class InsertionReviewController: InsertionReviewPresenting {
         learnCorrection: @escaping (String, String) -> Void,
         targetApplicationProvider: @escaping () -> NSRunningApplication?,
         reactivateApplication: @escaping (NSRunningApplication) async -> Bool,
-        presentReview: ((InsertionReviewView) -> Void)?
+        presentReview: ((InsertionReviewView) -> Void)?,
+        presentProposal: ((InsertionCorrectionProposalView) -> Void)? = nil,
+        scheduleDismissal: ((TimeInterval, DispatchWorkItem) -> Void)? = nil
     ) {
         self.learnCorrection = learnCorrection
         self.targetApplicationProvider = targetApplicationProvider
         self.reactivateApplication = reactivateApplication
         self.presentReview = presentReview
+        self.presentProposal = presentProposal
+        self.scheduleDismissal = scheduleDismissal
     }
 
     public func present(insertedText: String, using inserter: any TextInserting) {
@@ -53,6 +61,8 @@ public final class InsertionReviewController: InsertionReviewPresenting {
         guard !trimmedText.isEmpty else { return }
 
         dismiss()
+        let id = UUID()
+        reviewID = id
 
         currentInsertedText = trimmedText
         currentInserter = inserter
@@ -61,18 +71,23 @@ public final class InsertionReviewController: InsertionReviewPresenting {
         let review = InsertionReviewView(
                 insertedText: trimmedText,
                 onUndo: { [weak self] in
+            guard self?.reviewID == id else { return }
             self?.handleUndo()
                 },
                 onApplyEdit: { [weak self] editedText in
+            guard self?.reviewID == id else { return }
             self?.handleApplyEdit(editedText)
                 },
                 onDismiss: { [weak self] in
+            guard self?.reviewID == id else { return }
             self?.dismiss()
                 },
                 onHoverChanged: { [weak self] hovering in
+            guard self?.reviewID == id else { return }
             self?.handleHoverChanged(hovering)
                 },
                 onEditingChanged: { [weak self] editing in
+            guard self?.reviewID == id else { return }
             self?.handleEditingChanged(editing)
                 }
         )
@@ -85,17 +100,23 @@ public final class InsertionReviewController: InsertionReviewPresenting {
             self.panel = panel
             panel.orderFrontRegardless()
         }
-        scheduleDismiss(after: 6.0)
+        if reviewID == id { scheduleDismiss(after: 6.0) }
     }
 
     public func dismiss() {
+        reviewID = nil
+        pendingCorrection = nil
+        hidePanel()
+        currentInsertedText = ""
+        currentInserter = nil
+        targetApplication = nil
+    }
+
+    private func hidePanel() {
         dismissWorkItem?.cancel()
         dismissWorkItem = nil
         panel?.orderOut(nil)
         panel = nil
-        currentInsertedText = ""
-        currentInserter = nil
-        targetApplication = nil
     }
 
     private func handleHoverChanged(_ hovering: Bool) {
@@ -125,6 +146,9 @@ public final class InsertionReviewController: InsertionReviewPresenting {
         }
     }
 
+}
+
+extension InsertionReviewController {
     private func handleUndo() {
         guard let inserter = currentInserter else {
             dismiss()
@@ -133,10 +157,17 @@ public final class InsertionReviewController: InsertionReviewPresenting {
 
         let targetApplication = targetApplication
         dismiss()
+        let id = UUID()
+        reviewID = id
 
         Task { @MainActor in
-            guard await reactivateTargetApplication(targetApplication) else { return }
+            guard reviewID == id else { return }
+            guard await reactivateTargetApplication(targetApplication), reviewID == id else {
+                if reviewID == id { dismiss() }
+                return
+            }
             await inserter.undoLastInsertion()
+            if reviewID == id { dismiss() }
         }
     }
 
@@ -153,19 +184,58 @@ public final class InsertionReviewController: InsertionReviewPresenting {
 
         let targetApplication = targetApplication
         dismiss()
+        let id = UUID()
+        reviewID = id
 
         Task { @MainActor in
-            guard await reactivateTargetApplication(targetApplication) else { return }
+            guard reviewID == id else { return }
+            guard await reactivateTargetApplication(targetApplication), reviewID == id else {
+                if reviewID == id { dismiss() }
+                return
+            }
             await inserter.replaceLastInsertion(with: trimmedEditedText)
+            guard reviewID == id else { return }
 
             if let learned = analyzer.learnedCorrection(
                 from: originalText,
                 to: trimmedEditedText,
                 insertedText: originalText
             ) {
-                learnCorrection(learned.original, learned.corrected)
+                showProposal(learned, id: id)
+            } else {
+                dismiss()
             }
         }
+    }
+
+    private func showProposal(_ correction: CorrectionLearningAnalyzer.LearnedCorrection, id: UUID) {
+        pendingCorrection = correction
+        let proposal = InsertionCorrectionProposalView(
+            correction: correction,
+            onApprove: { [weak self] in
+                guard let self, self.reviewID == id, let pending = self.pendingCorrection else { return }
+                self.dismiss()
+                self.learnCorrection(pending.original, pending.corrected)
+            },
+            onReject: { [weak self] in
+                guard self?.reviewID == id else { return }
+                self?.dismiss()
+            },
+            onHoverChanged: { [weak self] hovering in
+                guard self?.reviewID == id else { return }
+                self?.handleHoverChanged(hovering)
+            }
+        )
+        if let presentProposal {
+            presentProposal(proposal)
+        } else {
+            let panel = makePanel()
+            panel.contentView = NSHostingView(rootView: proposal)
+            position(panel: panel, size: InsertionReviewPlacement.proposalSize)
+            self.panel = panel
+            panel.makeKeyAndOrderFront(nil)
+        }
+        if reviewID == id { scheduleDismiss(after: 12.0) }
     }
 
     private func reactivateTargetApplication(_ targetApplication: NSRunningApplication?) async -> Bool {
@@ -175,14 +245,17 @@ public final class InsertionReviewController: InsertionReviewPresenting {
 
     private func scheduleDismiss(after seconds: TimeInterval) {
         dismissWorkItem?.cancel()
+        let id = reviewID
         let workItem = DispatchWorkItem { [weak self] in
+            guard self?.reviewID == id else { return }
             self?.dismiss()
         }
         dismissWorkItem = workItem
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + seconds,
-            execute: workItem
-        )
+        if let scheduleDismissal {
+            scheduleDismissal(seconds, workItem)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: workItem)
+        }
     }
 
     private func makePanel() -> NSPanel {

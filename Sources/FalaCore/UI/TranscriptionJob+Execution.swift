@@ -104,8 +104,12 @@ extension TranscriptionJob {
             profiler: profiler,
             processingTask: processingTask
         )
-        processingWarning = processingResult.warning
         try Task.checkCancellation()
+        if let detail = processingResult.saveErrorDescription {
+            retainTranscript(processingResult, for: itemID)
+            throw BatchOutputSaveError(detail: detail)
+        }
+        processingWarning = processingResult.warning
 
         return processingResult.warning
     }

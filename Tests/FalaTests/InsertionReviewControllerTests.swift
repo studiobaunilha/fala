@@ -8,7 +8,7 @@ final class InsertionReviewControllerTests: XCTestCase {
         try await checkAction(edit: false, targetAvailable: true, activationSucceeds: true)
     }
 
-    func testEditReactivatesCapturedTargetBeforeReplacingAndLearning() async throws {
+    func testEditReactivatesCapturedTargetAndAppliesWithoutLearning() async throws {
         try await checkAction(edit: true, targetAvailable: true, activationSucceeds: true)
     }
 
@@ -54,7 +54,8 @@ final class InsertionReviewControllerTests: XCTestCase {
                 events.append("activate")
                 return activationSucceeds
             },
-            presentReview: { view = $0 }
+            presentReview: { view = $0 },
+            presentProposal: { _ in }
         )
         defer { controller.dismiss() }
         controller.present(insertedText: "Eu comunico com Nico", using: inserter)
@@ -69,7 +70,7 @@ final class InsertionReviewControllerTests: XCTestCase {
         await fulfillment(of: [operation], timeout: shouldOperate ? 1 : 0.1)
         if shouldOperate {
             XCTAssertEqual(events, ["activate", edit ? "replace:Eu comunico com Niko" : "undo"])
-            XCTAssertEqual(learned, edit ? ["Nico→Niko"] : [])
+            XCTAssertTrue(learned.isEmpty, "Applying an edit must not save a reusable rule")
         } else {
             XCTAssertEqual(events, targetAvailable && !dismissOnly ? ["activate"] : [])
             XCTAssertTrue(learned.isEmpty)

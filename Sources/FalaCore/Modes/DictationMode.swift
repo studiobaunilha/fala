@@ -28,12 +28,14 @@ public final class DictationMode {
     private let transcriberPrewarmer: TranscriberPrewarmer?
     let llmProcessor: LLMProcessor?
     private let readiness: RuntimeReadinessEvaluator?
-    private let selectionCapture: SelectionCapture?
+    private let selectionCapturer: (() async -> String?)?
     let selectionCommandController: SelectionCommandController?
     let insertionReviewPresenter: (any InsertionReviewPresenting)?
     public let conversationMemory = ConversationMemory()
 
     var isRecording = false
+    private(set) var recordingVocabularyConfig: AppConfig?
+    private var recordingID: UUID?
     var pendingSelectionContext: String?
     var keyDownTime: Date?
 
@@ -67,6 +69,7 @@ public final class DictationMode {
         llmProcessor: LLMProcessor? = nil,
         readiness: RuntimeReadinessEvaluator? = nil,
         selectionCapture: SelectionCapture? = nil,
+        selectionCapturer: (() async -> String?)? = nil,
         selectionCommandController: SelectionCommandController? = nil,
         insertionReviewPresenter: (any InsertionReviewPresenting)? = nil
     ) {
@@ -81,7 +84,9 @@ public final class DictationMode {
         self.transcriberPrewarmer = transcriberPrewarmer
         self.llmProcessor = llmProcessor
         self.readiness = readiness
-        self.selectionCapture = selectionCapture
+        self.selectionCapturer = selectionCapturer ?? selectionCapture.map { capture in
+            { await capture.captureSelection() }
+        }
         self.selectionCommandController = selectionCommandController
         self.insertionReviewPresenter = insertionReviewPresenter
     }
@@ -125,8 +130,11 @@ public final class DictationMode {
             statusBar?.showTemporaryWarning(issue.message)
             return
         }
+        let operationID = UUID()
+        recordingID = operationID
         do {
             let config = configProvider()
+            recordingVocabularyConfig = config
             keyDownTime = Date()
 
             // Set immediately — before any await — so keyUp can always
@@ -136,17 +144,22 @@ public final class DictationMode {
             // Capture selected text before recording for AI modes.
             // Must happen before startRecording() so the simulated Cmd+C
             // doesn't interfere with audio capture.
-            if let capture = selectionCapture {
-                pendingSelectionContext = await capture.captureSelection()
+            var capturedSelection = pendingSelectionContext
+            if let selectionCapturer {
+                capturedSelection = await selectionCapturer()
             }
 
             // If stopAndTranscribe() already ran during the await above
             // (quick tap), skip the rest — the panel is already showing.
-            guard isRecording else { return }
+            guard isRecording, recordingID == operationID else { return }
+            try Task.checkCancellation()
+            pendingSelectionContext = capturedSelection
 
             // Wire RMS levels to the floating feedback panel
             if let feedback {
                 feedback.model.reset()
+                feedback.model.vocabularyContextName = config.vocabularyContextsEnabled
+                    ? config.effectiveVocabularyContext.displayName : ""
                 feedback.model.template = config.selectedDictationTemplate
                 feedback.model.conversationTurnCount = conversationMemory.turnCount
                 recorder.setRMSHandler { [weak feedback] rms in
@@ -166,13 +179,20 @@ public final class DictationMode {
                 ? .selectionCommand : .recording
             feedback?.show()
         } catch {
-            isRecording = false
+            if recordingID == operationID {
+                isRecording = false
+                recordingVocabularyConfig = nil
+                recordingID = nil
+            }
             print("[Fala] Recording start failed: \(error.localizedDescription)")
         }
     }
 
     // swiftlint:disable:next function_body_length cyclomatic_complexity
     func stopAndTranscribe() async {
+        let capturedVocabularyConfig = recordingVocabularyConfig
+        recordingVocabularyConfig = nil
+        recordingID = nil
         isRecording = false
         recorder.setRMSHandler(nil)
 
@@ -222,7 +242,8 @@ public final class DictationMode {
 
             let (config, activeTranscriber, template, effectiveConfig) =
                 profiler.measure(.transcriberSetup) {
-                    let cfg = configProvider()
+                    var cfg = configProvider()
+                    cfg.applyVocabularySnapshot(from: capturedVocabularyConfig)
                     let transcriber = transcriberResolver(cfg)
                     let tmpl = cfg.selectedDictationTemplate
                     let eff = cfg.getEffectiveConfig(for: tmpl)

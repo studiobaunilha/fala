@@ -42,6 +42,11 @@ public struct AppConfig: Codable, Sendable, Equatable {
     public var replacements: [String: String] = [:]
     public var replacementRules: [ReplacementRule] = []
     var parakeetVocabularyTerms: [ParakeetVocabularyTerm] = []
+    var vocabularyContextsEnabled = false
+    var vocabularyContexts: [VocabularyContext] = []
+    var selectedVocabularyContextID: UUID?
+    // Operation-local snapshot; never persisted or added to text prompts.
+    var capturedVocabularyContext: VocabularyContextSnapshot?
     public var selectionCommandConfig: SelectionCommandConfig = .init()
     public var modeConfigs: [String: ModeConfig] = [:]
     public var plainDictationPasteDirectly: Bool = true
@@ -75,6 +80,9 @@ public struct AppConfig: Codable, Sendable, Equatable {
         case replacements
         case replacementRules
         case parakeetVocabularyTerms
+        case vocabularyContextsEnabled
+        case vocabularyContexts
+        case selectedVocabularyContextID
         case selectionCommandConfig
         case modeConfigs
         case plainDictationPasteDirectly
@@ -130,50 +138,15 @@ public struct AppConfig: Codable, Sendable, Equatable {
         try container.encode(replacements, forKey: .replacements)
         try container.encode(replacementRules, forKey: .replacementRules)
         try container.encode(parakeetVocabularyTerms, forKey: .parakeetVocabularyTerms)
+        try container.encode(vocabularyContextsEnabled, forKey: .vocabularyContextsEnabled)
+        try container.encode(vocabularyContexts, forKey: .vocabularyContexts)
+        try container.encodeIfPresent(selectedVocabularyContextID, forKey: .selectedVocabularyContextID)
         try container.encode(selectionCommandConfig, forKey: .selectionCommandConfig)
         try container.encode(modeConfigs, forKey: .modeConfigs)
         try container.encode(plainDictationPasteDirectly, forKey: .plainDictationPasteDirectly)
         try container.encode(aiResultPasteDirectly, forKey: .aiResultPasteDirectly)
     }
     
-    // MARK: – Helper Methods for Mode Config
-    
-    public struct EffectiveConfig: Sendable {
-        public let provider: String
-        public let model: String
-        public let prompt: String
-    }
-    
-    public func getEffectiveConfig(for template: DictationTemplate) -> EffectiveConfig {
-        let modeConfig = modeConfigs[template.rawValue]
-
-        let provider = modeConfig?.provider ?? llmProvider
-
-        let model = resolvedLLMModel(for: provider, preferredModel: modeConfig?.model)
-
-        // Prompt resolution hierarchy:
-        // 1. Per-provider override from providerPrompts
-        // 2. General prompt from mode config
-        // 3. For .custom: customModePrompt field
-        // 4. PromptDefaults optimized for provider + template
-        // 5. template.defaultSystemPrompt (legacy fallback)
-        // 6. Empty string (prevents LLM on raw/translate)
-        let prompt: String
-        if let providerPrompt = modeConfig?.providerPrompts?[provider], !providerPrompt.isEmpty {
-            prompt = providerPrompt
-        } else if let modePrompt = modeConfig?.prompt {
-            prompt = modePrompt
-        } else if template == .custom {
-            prompt = customModePrompt
-        } else if let defaultPrompt = PromptDefaults.resolved(for: provider, template: template, model: model) {
-            prompt = defaultPrompt
-        } else {
-            prompt = template.defaultSystemPrompt ?? ""
-        }
-
-        return EffectiveConfig(provider: provider, model: model, prompt: prompt)
-    }
-
     // MARK: – Persistence (UserDefaults)
 
     public static func load() -> AppConfig {
@@ -209,6 +182,9 @@ extension AppConfig {
         parakeetVocabularyTerms = (
             try? container.decode([ParakeetVocabularyTerm].self, forKey: .parakeetVocabularyTerms)
         ) ?? []
+        vocabularyContextsEnabled = (try? container.decode(Bool.self, forKey: .vocabularyContextsEnabled)) ?? false
+        vocabularyContexts = (try? container.decode([VocabularyContext].self, forKey: .vocabularyContexts)) ?? []
+        selectedVocabularyContextID = try? container.decode(UUID.self, forKey: .selectedVocabularyContextID)
         selectionCommandConfig = (
             try? container.decode(SelectionCommandConfig.self, forKey: .selectionCommandConfig)
         ) ?? SelectionCommandConfig()

@@ -17,13 +17,13 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     private static let fallbackIdleImageDescriptor = StatusBarImageDescriptor.systemSymbol("mic")
 
     private let statusItem: NSStatusItem
-    private let menu = NSMenu()
+    let menu = NSMenu()
     // Items inserted/removed dynamically in menuWillOpen.
     private let axItem: NSMenuItem
     private let axSeparator = NSMenuItem.separator()
     private let settingsItem: NSMenuItem
     private let symbolCatalog = StatusBarSymbolCatalog()
-    private let settings: AppSettings
+    let settings: AppSettings
     private var onSettings: (() -> Void)?
     private var onTranscribe: (() -> Void)?
     private var modeItems: [NSMenuItem] = []
@@ -68,9 +68,7 @@ public final class StatusBarController: NSObject, NSMenuDelegate {
     // Re-evaluate Accessibility trust and Mode selection every time the menu opens.
     public func menuWillOpen(_ menu: NSMenu) {
         MainActor.assumeIsolated {
-            if settings.readiness.quickMenuModes().count != modeItems.count {
-                rebuildMenu()
-            }
+            rebuildMenu()
 
             // Update Checkmarks and dynamic titles for Modes
             let currentMode = settings.selectedDictationTemplate
@@ -324,6 +322,7 @@ private extension StatusBarController {
         refreshMenuLabels()
         buildStaticMenuItems()
         buildModeItems()
+        buildVocabularyContextMenu()
         buildTrailingMenuItems()
         menu.delegate = self
         statusItem.menu = menu

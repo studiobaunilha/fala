@@ -28,6 +28,7 @@ public final class DictationFeedbackModel: ObservableObject {
     @Published public var rmsHistory: [Float] = Array(repeating: 0, count: 12)
     @Published public var isVisible: Bool = false
     @Published public var conversationTurnCount: Int = 0
+    @Published var vocabularyContextName = ""
 
     private static let historySize = 12
     private static let updateCadence = Duration.milliseconds(33)

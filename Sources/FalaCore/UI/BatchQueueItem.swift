@@ -44,6 +44,11 @@ public struct BatchQueueItem: Identifiable, Equatable, Sendable {
     var metrics: BatchExecutionMetrics?
     public var startedAt: Date?
     public var status: Status
+    var retainedTranscript: BatchRetainedTranscript?
+
+    public var recoverableText: String? {
+        retainedTranscript?.text
+    }
 
     public var displayName: String {
         let trimmedCustomName = customName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

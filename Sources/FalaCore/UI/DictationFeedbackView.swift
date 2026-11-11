@@ -85,6 +85,17 @@ struct DictationFeedbackView: View {
             width: DictationFeedbackLayout.width,
             height: DictationFeedbackLayout.height
         )
+        .overlay(alignment: .bottom) {
+            if !model.vocabularyContextName.isEmpty {
+                Text(model.vocabularyContextName)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .lineLimit(1)
+                    .frame(maxWidth: 190)
+                    .padding(.bottom, 4)
+                    .accessibilityLabel(L10n("Contexto:") + " " + model.vocabularyContextName)
+            }
+        }
         .clipShape(panelShape)
         .overlay {
             GlowBorder(isActive: model.stage == .recording || model.stage == .selectionCommand)

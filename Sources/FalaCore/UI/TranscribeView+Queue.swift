@@ -8,6 +8,7 @@ extension TranscribeView {
                     item: $item,
                     isWorking: isWorking,
                     onReveal: { job.revealOutput(for: item.id) },
+                    onCopyRecovery: { job.copyRecoveredTranscript(for: item.id) },
                     onRemove: {
                         withAnimation(AnimationConfig.standard) {
                             job.removeQueueItem(item.id)
@@ -165,6 +166,7 @@ private struct BatchQueueRowView: View {
     @Binding var item: BatchQueueItem
     let isWorking: Bool
     let onReveal: () -> Void
+    let onCopyRecovery: () -> Void
     let onRemove: () -> Void
     @State private var showingDetails = false
 
@@ -194,6 +196,12 @@ private struct BatchQueueRowView: View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
             titleView
             statusView
+
+            if item.recoverableText != nil {
+                Text(L10n("O texto está disponível nesta fila para copiar ou tentar salvar novamente."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             if item.displayName != defaultDisplayName {
                 Text(item.inputURL.lastPathComponent)
@@ -241,12 +249,19 @@ private struct BatchQueueRowView: View {
             .buttonStyle(.link)
             .controlSize(.small)
         } else if !isWorking {
-            Button(role: .destructive) {
-                onRemove()
-            } label: {
-                Image(systemName: "trash")
+            HStack {
+                if item.recoverableText != nil {
+                    Button(L10n("Copiar"), action: onCopyRecovery)
+                        .buttonStyle(.link)
+                        .controlSize(.small)
+                }
+                Button(role: .destructive) {
+                    onRemove()
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
     }
 

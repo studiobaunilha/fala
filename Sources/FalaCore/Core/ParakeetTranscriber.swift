@@ -26,12 +26,13 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
     private var didLoad = false
     private var vocabularyBoostingState: VocabularyBoostingState = .idle
     private let lock = NSLock()
+    private let operationLock = AsyncSemaphore(value: 1)
     public let supportsTranslation = false
 
     public init(model: ParakeetModel = AppConfig.load().parakeetModel) {
         self.runtime = DefaultParakeetRuntimeManager(model: model)
         self.vocabularyProvider = {
-            AppConfig.load().parakeetVocabularyStore
+            AppConfig.load().effectiveVocabularyContext.store
         }
     }
 
@@ -93,9 +94,7 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
 
     /// Transcribes a [Float] array at 16 kHz mono.
     public func transcribe(samples: [Float], task: String = "transcribe") async throws -> String {
-        try await loadIfNeeded()
-        await refreshVocabularyBoostingIfNeeded()
-        return try await runtime.transcribe(samples: samples)
+        try await transcribe(samples: samples, vocabulary: vocabularyProvider())
     }
 
     /// Transcribes a WAV/audio file by path.
@@ -104,19 +103,40 @@ public final class ParakeetTranscriber: AudioTranscribing, @unchecked Sendable {
         task: String = "transcribe",
         progress: (@Sendable (TranscriberProgress) -> Void)? = nil
     ) async throws -> String {
+        try await transcribe(audioPath: audioPath, vocabulary: vocabularyProvider(), progress: progress)
+    }
+
+    func scoped(to vocabulary: ParakeetVocabularyStore) -> any AudioTranscribing {
+        VocabularyScopedParakeetTranscriber(parent: self, vocabulary: vocabulary)
+    }
+
+    fileprivate func transcribe(samples: [Float], vocabulary: ParakeetVocabularyStore) async throws -> String {
+        await operationLock.wait()
+        defer { operationLock.signal() }
+        try Task.checkCancellation()
         try await loadIfNeeded()
-        await refreshVocabularyBoostingIfNeeded()
-        let url = URL(fileURLWithPath: audioPath)
-        let result = try await runtime.transcribe(audioURL: url)
-        // Emit a single progress update with the full result
+        await refreshVocabularyBoostingIfNeeded(vocabulary)
+        return try await runtime.transcribe(samples: samples)
+    }
+
+    fileprivate func transcribe(
+        audioPath: String,
+        vocabulary: ParakeetVocabularyStore,
+        progress: (@Sendable (TranscriberProgress) -> Void)?
+    ) async throws -> String {
+        await operationLock.wait()
+        defer { operationLock.signal() }
+        try Task.checkCancellation()
+        try await loadIfNeeded()
+        await refreshVocabularyBoostingIfNeeded(vocabulary)
+        let result = try await runtime.transcribe(audioURL: URL(fileURLWithPath: audioPath))
         progress?(TranscriberProgress(text: result, windowId: 0))
         return result
     }
 }
 
 private extension ParakeetTranscriber {
-    func refreshVocabularyBoostingIfNeeded() async {
-        let vocabularyStore = vocabularyProvider()
+    func refreshVocabularyBoostingIfNeeded(_ vocabularyStore: ParakeetVocabularyStore) async {
         let currentState = lock.withLock { vocabularyBoostingState }
 
         if currentState.matches(vocabularyStore) {
@@ -145,5 +165,28 @@ private extension ParakeetTranscriber {
             }
             print("[Fala] Parakeet vocabulary boosting unavailable: \(error)")
         }
+    }
+}
+
+private struct VocabularyScopedParakeetTranscriber: AudioTranscribing {
+    let parent: ParakeetTranscriber
+    let vocabulary: ParakeetVocabularyStore
+    let supportsTranslation = false
+
+    func loadState() async -> TranscriberLoadState { await parent.loadState() }
+
+    func loadIfNeeded(progress: (@Sendable (Double) -> Void)?) async throws {
+        try await parent.loadIfNeeded(progress: progress)
+    }
+
+    func transcribe(samples: [Float], task: String) async throws -> String {
+        try await parent.transcribe(samples: samples, vocabulary: vocabulary)
+    }
+
+    func transcribe(
+        audioPath: String, task: String,
+        progress: (@Sendable (TranscriberProgress) -> Void)?
+    ) async throws -> String {
+        try await parent.transcribe(audioPath: audioPath, vocabulary: vocabulary, progress: progress)
     }
 }

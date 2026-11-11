@@ -88,7 +88,7 @@ public enum BatchMode {
             ParakeetTranscriber(
                 runtime: DefaultParakeetRuntimeManager(model: parakeetModel),
                 vocabularyProvider: {
-                    config.parakeetVocabularyStore
+                    config.effectiveVocabularyContext.store
                 }
             )
         } else {

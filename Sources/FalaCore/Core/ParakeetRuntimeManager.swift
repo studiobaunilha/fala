@@ -95,7 +95,7 @@ final class DefaultParakeetRuntimeManager: ParakeetRuntimeManaging, @unchecked S
 
 /// A simple async semaphore for serializing access to a shared resource.
 /// Used as a mutual-exclusion lock (value: 1) to prevent concurrent AsrManager operations.
-private final class AsyncSemaphore: @unchecked Sendable {
+final class AsyncSemaphore: @unchecked Sendable {
     private var permits: Int
     private var waiters: [CheckedContinuation<Void, Never>] = []
     private let lock = NSLock()

@@ -54,20 +54,6 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(recorder.startCallCount, 1, "Should not start a second recording")
     }
 
-    func testStartRecordingTriggersTranscriberPrewarm() async {
-        let waitTask = Task {
-            await prewarmer.waitForFirstCall()
-        }
-        await mode.startRecording()
-        await waitTask.value
-
-        let callCount = await prewarmer.callCount()
-        let lastTemplate = await prewarmer.lastTemplate()
-
-        XCTAssertEqual(callCount, 1)
-        XCTAssertEqual(lastTemplate, .raw)
-    }
-
     // MARK: – stopAndTranscribe
 
     func testStopAndTranscribeCallsStopOnRecorder() async throws {
@@ -261,6 +247,105 @@ final class DictationModeTests: XCTestCase, @unchecked Sendable {
 
         XCTAssertTrue(inserter.insertedTexts.isEmpty)
         XCTAssertEqual(inserter.savedToClipboardTexts, ["Texto final do ditado"])
+    }
+}
+
+extension DictationModeTests {
+    @MainActor
+    func testRecordingKeepsInitialVocabularyButUsesCurrentGlobalRules() async throws {
+        let url = try makeWAVWithTone(seconds: 0.1)
+        recorder.stopResult = .success(url)
+        defer { try? FileManager.default.removeItem(at: url) }
+        await transcriber.setResult("Eu falo com Nico")
+        var liveConfig = AppConfig()
+        liveConfig.selectedDictationTemplate = .raw
+        liveConfig.parakeetVocabularyTerms = [ParakeetVocabularyTerm(text: "Niko")]
+        var observedTerms: [ParakeetVocabularyTerm] = []
+        mode = DictationMode(
+            recorder: recorder,
+            transcriber: transcriber,
+            inserter: inserter,
+            configProvider: { liveConfig },
+            transcriberResolver: { config in
+                observedTerms = config.parakeetVocabularyTerms
+                return self.transcriber
+            }
+        )
+        await mode.startRecording()
+        liveConfig.parakeetVocabularyTerms = [ParakeetVocabularyTerm(text: "Nicolau")]
+        liveConfig.replacementRules = [ReplacementRule(variants: ["Nico"], replacement: "Nicolau")]
+        await mode.stopAndTranscribe()
+        XCTAssertEqual(observedTerms, [ParakeetVocabularyTerm(text: "Niko")])
+        XCTAssertEqual(inserter.insertedTexts, ["Eu falo com Nicolau"])
+    }
+
+}
+
+extension DictationModeTests {
+    @MainActor
+    func testSnapshotClearsOnSilentAndFailedStop() async throws {
+        let audio = try makeSilentWAV()
+        recorder.stopResult = .success(audio)
+        await mode.startRecording()
+        XCTAssertNotNil(mode.recordingVocabularyConfig)
+        await mode.stopAndTranscribe()
+        XCTAssertNil(mode.recordingVocabularyConfig)
+        recorder.stopResult = .failure(VocabularyRecordingFailure.failed)
+        await mode.startRecording()
+        XCTAssertNotNil(mode.recordingVocabularyConfig)
+        await mode.stopAndTranscribe()
+        XCTAssertNil(mode.recordingVocabularyConfig)
+    }
+
+    @MainActor
+    func testCancelledStartClearsSnapshotWithoutStartingAudio() async {
+        let task = Task { await mode.startRecording() }
+        task.cancel()
+        await task.value
+        XCTAssertEqual(recorder.startCallCount, 0)
+        XCTAssertFalse(mode.isRecording)
+        XCTAssertNil(mode.recordingVocabularyConfig)
+    }
+
+    @MainActor
+    func testFailedStartClearsSnapshot() async {
+        let failed = DictationMode(
+            recorder: FailingVocabularyRecorder(), transcriber: transcriber, inserter: inserter, config: AppConfig()
+        )
+        await failed.startRecording()
+        XCTAssertFalse(failed.isRecording)
+        XCTAssertNil(failed.recordingVocabularyConfig)
+    }
+}
+
+private enum VocabularyRecordingFailure: Error { case failed }
+
+private struct FailingVocabularyRecorder: AudioRecording {
+    func startRecording() throws { throw VocabularyRecordingFailure.failed }
+    func stopRecording() throws -> URL { throw VocabularyRecordingFailure.failed }
+    func setRMSHandler(_ handler: (@Sendable (Float) -> Void)?) {}
+}
+
+extension DictationModeTests {
+    func testStartRecordingTriggersTranscriberPrewarm() async {
+        let prewarmCalled = expectation(description: "transcriber prewarm")
+        await MainActor.run {
+            var config = AppConfig()
+            config.selectedDictationTemplate = .raw
+            mode = DictationMode(
+                recorder: recorder, transcriber: transcriber, inserter: inserter, config: config,
+                transcriberPrewarmer: { config in
+                    await self.prewarmer.record(config: config)
+                    prewarmCalled.fulfill()
+                }
+            )
+        }
+        await mode.startRecording()
+        await fulfillment(of: [prewarmCalled], timeout: 1)
+        let callCount = await prewarmer.callCount()
+        let lastTemplate = await prewarmer.lastTemplate()
+        XCTAssertEqual(callCount, 1)
+        XCTAssertEqual(lastTemplate, .raw)
     }
 }
 

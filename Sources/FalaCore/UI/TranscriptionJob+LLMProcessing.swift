@@ -5,11 +5,6 @@ struct LLMApplicationOutcome: Sendable {
     let warning: BatchProcessingWarning?
 }
 
-struct BatchProcessingResult: Sendable {
-    let fullConfirmedText: String
-    let warning: BatchProcessingWarning?
-}
-
 private struct PreparedLLMRequest {
     let provider: String
     let model: String

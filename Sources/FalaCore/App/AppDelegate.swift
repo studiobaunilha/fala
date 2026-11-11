@@ -85,7 +85,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         let transcriberServices = DictationTranscriberServices(
             resolve: { runtimeConfig in
                 if runtimeConfig.transcriptionEngine == "parakeet" {
-                    return parakeetTranscriber as any AudioTranscribing
+                    return parakeetTranscriber.scoped(to: runtimeConfig.effectiveVocabularyContext.store)
                 }
                 return whisperTranscriber as any AudioTranscribing
             },

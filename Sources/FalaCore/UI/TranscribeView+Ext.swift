@@ -9,7 +9,7 @@ extension TranscribeView {
     }
 
     private var batchReadinessIssue: ReadinessIssue? {
-        job.appSettings.readiness.primaryIssueForBatch(batchPrompt: job.batchPostPrompt)
+        job.readinessIssueForNextRun
     }
     
     private var defaultModelLabel: String {

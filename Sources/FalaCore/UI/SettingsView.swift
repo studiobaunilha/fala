@@ -59,6 +59,8 @@ struct SettingsView: View {
                     switch panel {
                     case .general:
                         generalView
+                    case .contexts:
+                        VocabularyContextsView(settings: settings)
                     case .models:
                         modelsView
                     case .llm:

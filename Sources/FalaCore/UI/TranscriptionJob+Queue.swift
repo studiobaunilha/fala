@@ -23,6 +23,16 @@ extension TranscriptionJob {
         queue.contains { $0.status.isRetryable }
     }
 
+    var canRetryWithoutTranscription: Bool {
+        let retryable = queue.filter { $0.status.isRetryable }
+        return !retryable.isEmpty && retryable.allSatisfy { $0.retainedTranscript != nil }
+    }
+
+    var readinessIssueForNextRun: ReadinessIssue? {
+        if canRetryWithoutTranscription { return nil }
+        return appSettings.readiness.primaryIssueForBatch(batchPrompt: batchPostPrompt)
+    }
+
     var completedQueueCount: Int {
         queue.reduce(into: 0) { total, item in
             if case .done = item.status {
@@ -106,6 +116,12 @@ extension TranscriptionJob {
         NSWorkspace.shared.selectFile(outputURL.path, inFileViewerRootedAtPath: "")
     }
 
+    func copyRecoveredTranscript(for itemID: BatchQueueItem.ID) {
+        guard let text = queue.first(where: { $0.id == itemID })?.recoverableText else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+    }
+
     func revealOutputDirectory() {
         guard let completedOutputDirectory else { return }
         NSWorkspace.shared.selectFile(completedOutputDirectory.path, inFileViewerRootedAtPath: "")
@@ -135,6 +151,7 @@ extension TranscriptionJob {
 extension TranscriptionJob {
     func preparationConfig() -> AppConfig {
         var config = appSettings.snapshotConfig()
+        config.applyVocabularySnapshot(from: vocabularyRunConfig)
         let selectedWhisperModel = overrideModel ?? config.activeWhisperModel
         config.dictationModel = selectedWhisperModel
         config.batchModel = selectedWhisperModel
@@ -191,7 +208,7 @@ extension TranscriptionJob {
             .appendingPathComponent(stem)
             .appendingPathExtension(format)
 
-        while reservedOutputURLs.contains(candidate.standardizedFileURL) {
+        while outputIsReserved(candidate, among: reservedOutputURLs) {
             suffix += 1
             candidate = baseDirectory
                 .appendingPathComponent("\(stem)-\(suffix)")
@@ -215,7 +232,9 @@ extension TranscriptionJob {
     }
 
     func runQueueTask(itemIDs: [BatchQueueItem.ID]) async {
-        var summary = QueueRunSummary()
+        var summary = QueueRunSummary(
+            reservedOutputURLs: Set(queue.compactMap(\.status.outputURL).map(\.standardizedFileURL))
+        )
 
         for (index, itemID) in itemIDs.enumerated() {
             guard let workItem = makeQueueWorkItem(
@@ -226,12 +245,19 @@ extension TranscriptionJob {
             }
 
             do {
-                let warning = try await runQueueItem(
-                    itemID: workItem.itemID,
-                    inputURL: workItem.inputURL,
-                    ext: workItem.ext,
-                    outputURL: workItem.outputURL
-                )
+                let warning: BatchProcessingWarning?
+                if let retained = queue.first(where: { $0.id == itemID })?.retainedTranscript {
+                    try Task.checkCancellation()
+                    try saveRetainedTranscript(retained, to: workItem.outputURL)
+                    warning = retained.warning
+                } else {
+                    warning = try await runQueueItem(
+                        itemID: workItem.itemID,
+                        inputURL: workItem.inputURL,
+                        ext: workItem.ext,
+                        outputURL: workItem.outputURL
+                    )
+                }
                 recordQueueSuccess(
                     itemID: itemID,
                     outputURL: workItem.outputURL,
@@ -283,6 +309,9 @@ extension TranscriptionJob {
         summary: inout QueueRunSummary
     ) {
         processingWarning = warning
+        if let index = queue.firstIndex(where: { $0.id == itemID }) {
+            queue[index].retainedTranscript = nil
+        }
         updateQueueItemStatus(itemID, status: .done(outputURL, warning: warning))
         updateQueueItemMetrics(itemID, metrics: lastExecutionMetrics)
         summary.lastCompletedOutputPath = outputURL.path

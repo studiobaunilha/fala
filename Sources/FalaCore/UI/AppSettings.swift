@@ -26,7 +26,10 @@ public final class AppSettings: ObservableObject {
     @Published public var batchTemperature: Float
     @Published public var replacements: [String: String]
     @Published public var replacementRules: [ReplacementRule]
-    @Published var parakeetVocabularyTerms: [ParakeetVocabularyTerm]
+    @Published var parakeetVocabularyTerms: [ParakeetVocabularyTerm] = []
+    @Published var vocabularyContextsEnabled = false
+    @Published var vocabularyContexts: [VocabularyContext] = []
+    @Published var selectedVocabularyContextID: UUID?
     @Published public var defaultExportPath: String
     @Published public var forceWhisperNeuralEngine: Bool
 
@@ -71,6 +74,7 @@ public final class AppSettings: ObservableObject {
 
     let transcriber: Transcriber
     let parakeetTranscriber: ParakeetTranscriber
+    var persistVocabularyConfiguration: (AppConfig) -> Void = { $0.save() }
     var config: AppConfig
     var openSettingsSelection: ((SettingsSelection) -> Void)?
 
@@ -105,7 +109,6 @@ public final class AppSettings: ObservableObject {
         self.batchTemperature = normalizedConfig.batchTemperature
         self.replacements = normalizedConfig.replacements
         self.replacementRules = normalizedConfig.replacementRules
-        self.parakeetVocabularyTerms = normalizedConfig.parakeetVocabularyTerms
         self.defaultExportPath = normalizedConfig.defaultExportPath
         self.forceWhisperNeuralEngine = normalizedConfig.forceWhisperNeuralEngine
         self.selectedDictationTemplate = normalizedConfig.selectedDictationTemplate
@@ -134,6 +137,7 @@ public final class AppSettings: ObservableObject {
         self.restartCoordinator = restartCoordinator
         self.permissionProvider = permissionProvider
         self.updater = updater
+        loadVocabularyContexts(from: normalizedConfig)
 
         if normalization.didChange || didNormalizeWhisperSelection {
             normalizedConfig.save()
@@ -253,6 +257,9 @@ public extension AppSettings {
         snapshot.replacements = replacements
         snapshot.replacementRules = replacementRules
         snapshot.parakeetVocabularyTerms = parakeetVocabularyTerms
+        snapshot.vocabularyContextsEnabled = vocabularyContextsEnabled
+        snapshot.vocabularyContexts = vocabularyContexts
+        snapshot.selectedVocabularyContextID = selectedVocabularyContextID
         snapshot.defaultExportPath = defaultExportPath
         snapshot.forceWhisperNeuralEngine = forceWhisperNeuralEngine
         snapshot.selectedDictationTemplate = selectedDictationTemplate

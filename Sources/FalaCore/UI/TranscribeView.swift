@@ -13,7 +13,14 @@ struct TranscribeView: View {
     }
 
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            VocabularyContextPicker(settings: job.appSettings)
+                .padding(.horizontal)
+                .disabled(isWorking)
+            if isWorking {
+                Text(L10n("Contexto desta execução:") + " " + job.vocabularyContextDisplayName)
+                    .font(.caption).foregroundStyle(.secondary).padding(.horizontal)
+            }
             if job.queue.isEmpty {
                 emptyStateView
             } else {
