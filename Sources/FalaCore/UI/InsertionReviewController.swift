@@ -230,7 +230,9 @@ extension InsertionReviewController {
             presentProposal(proposal)
         } else {
             let panel = makePanel()
-            panel.contentView = NSHostingView(rootView: proposal)
+            let hostingView = NSHostingView(rootView: proposal)
+            hostingView.sizingOptions = []
+            panel.contentView = hostingView
             position(panel: panel, size: InsertionReviewPlacement.proposalSize)
             self.panel = panel
             panel.makeKeyAndOrderFront(nil)

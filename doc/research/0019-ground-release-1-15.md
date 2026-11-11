@@ -53,3 +53,14 @@ This is a preparation method and claim ledger, not evidence that1.15 is built/re
 ## Audit path
 
 Validate this ground structure, inspect exact code/test/runtime/notes hashes, record all independent findings/dispositions, run the real checker only against final notes and retain its actual result. Finish the concrete candidate before surfacing any last external blocker.
+
+## Native proposal geometry diagnosis
+
+The assembled default controller produced real panel heights of 965pt (pt-BR), 867pt (en), 979pt (es), and 1091pt (fr), despite the declared 400×280pt proposal size. The panels extended below the screen. A real-controller tracer added the pre-existing height contract before changing production; its failures are retained in `.agentic/reviews/release-1.15-native-sizing-red.log`. Callback success alone is insufficient evidence of usable geometry.
+
+- Official API: [NSHostingView.sizingOptions](https://developer.apple.com/documentation/swiftui/nshostingview/sizingoptions) documents that a top-level hosting view updates its window minimum/maximum constraints. An empty option set disables those constraints for an explicitly sized host. Accessed 2026-11-10.
+- Implementation reference: [Use SwiftUI with AppKit, WWDC22](https://developer.apple.com/videos/play/wwdc2022/10075/) demonstrates hosting-window sizing ownership and explicit sizing options. This supports letting the existing panel placement own its fixed frame rather than inventing a second layout engine.
+- In-repo: `Sources/FalaCore/UI/DictationFeedbackController.swift` wraps its hosting view in an explicitly sized container, separating SwiftUI sizing from window geometry. `InsertionReviewPlacement.proposalSize` already declares 400×280pt; preserve that contract.
+- History: commit `c541f8d156977c4450fb7242389d51ae55607a57` adds the proposal as a direct window content host, while `82f9850` preserves destination behavior. The narrow correction changes only the proposal host's sizing ownership and preserves all callbacks and activation behavior.
+
+Decision before production edit: construct the proposal NSHostingView, set `sizingOptions = []`, then attach it to the existing panel. Proceed with mitigation: require four-language real panel height/frame, visible action controls, captured PNG inspection, unchanged frontmost application, protected preferences, and independent delta review. No microphone, real editing target, or clipboard is used. Evidence strength is measured failure plus primary API/reference; confidence in the fix remains conditional until the deciding run.
