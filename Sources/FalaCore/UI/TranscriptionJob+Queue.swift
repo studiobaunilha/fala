@@ -116,10 +116,10 @@ extension TranscriptionJob {
         NSWorkspace.shared.selectFile(outputURL.path, inFileViewerRootedAtPath: "")
     }
 
-    func copyRecoveredTranscript(for itemID: BatchQueueItem.ID) {
+    func copyRecoveredTranscript(for itemID: BatchQueueItem.ID, to pasteboard: NSPasteboard = .general) {
         guard let text = queue.first(where: { $0.id == itemID })?.recoverableText else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
     }
 
     func revealOutputDirectory() {
