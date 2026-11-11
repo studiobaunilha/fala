@@ -13,9 +13,9 @@
 	<key>CFBundleName</key>
 	<string>Fala</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.14</string>
+	<string>1.15</string>
 	<key>CFBundleVersion</key>
-	<string>35</string>
+	<string>36</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>27.2.1</string>
 	<key>LSUIElement</key>

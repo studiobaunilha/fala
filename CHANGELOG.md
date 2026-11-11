@@ -2,6 +2,16 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.15] - 2026-11-10
+
+### Changed
+
+- Organize Parakeet vocabulary into named contexts you select manually.
+- Approve suggested corrections before saving them as global replacements.
+- File transcription reports save failures and keeps completed text in the current queue for copying or retrying the save.
+- Undo and edit preserve the destination app and skip unavailable targets.
+- Requires macOS 27.2.1 or later on Apple Silicon.
+
 ## [1.14] - 2026-11-10
 
 ### Changed

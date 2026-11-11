@@ -1,6 +1,40 @@
 {
   "releases": [
     {
+      "version": "1.15",
+      "date": "2026-11-10",
+      "highlights": {
+        "en": [
+          "Organize Parakeet vocabulary into named contexts you select manually.",
+          "Approve suggested corrections before saving them as global replacements.",
+          "File transcription reports save failures and keeps completed text in the current queue for copying or retrying the save.",
+          "Undo and edit preserve the destination app and skip unavailable targets.",
+          "Requires macOS 27.2.1 or later on Apple Silicon."
+        ],
+        "pt-BR": [
+          "Organize o vocabulário do Parakeet em contextos com nomes que você seleciona manualmente.",
+          "Aprove as correções sugeridas antes de salvá-las como substituições globais.",
+          "A transcrição de arquivos informa falhas ao salvar e mantém o texto concluído na fila atual para copiar ou tentar salvar novamente.",
+          "Desfazer e editar preservam o aplicativo de destino e não enviam alterações se ele estiver indisponível.",
+          "Requer macOS 27.2.1 ou superior em Apple Silicon."
+        ],
+        "es": [
+          "Organiza el vocabulario de Parakeet en contextos con nombre que seleccionas manualmente.",
+          "Aprueba las correcciones sugeridas antes de guardarlas como sustituciones globales.",
+          "La transcripción de archivos informa de los errores al guardar y conserva el texto completado en la cola actual para copiarlo o volver a guardarlo.",
+          "Deshacer y editar conservan la aplicación de destino y omiten los destinos no disponibles.",
+          "Requiere macOS 27.2.1 o posterior en Apple Silicon."
+        ],
+        "fr": [
+          "Organisez le vocabulaire de Parakeet en contextes nommés que vous sélectionnez manuellement.",
+          "Approuvez les corrections proposées avant de les enregistrer comme remplacements globaux.",
+          "La transcription de fichiers signale les erreurs d’enregistrement et conserve le texte terminé dans la file actuelle pour le copier ou réessayer de l’enregistrer.",
+          "Annuler et modifier conservent l’application de destination et ignorent les destinations indisponibles.",
+          "Nécessite macOS 27.2.1 ou version ultérieure sur Apple Silicon."
+        ]
+      }
+    },
+    {
       "version": "1.14",
       "date": "2026-11-10",
       "highlights": {
