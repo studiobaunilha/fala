@@ -1,6 +1,24 @@
 {
   "releases": [
     {
+      "version": "1.15.1",
+      "date": "2026-11-11",
+      "highlights": {
+        "en": [
+          "Parakeet vocabulary corrections now require a matching configured spelling or alias. Listed aliases remain supported."
+        ],
+        "pt-BR": [
+          "As correções de vocabulário do Parakeet agora exigem uma grafia ou um alias configurado. Os aliases cadastrados continuam disponíveis."
+        ],
+        "es": [
+          "Las correcciones de vocabulario de Parakeet ahora requieren una grafía o un alias configurado. Los alias registrados siguen disponibles."
+        ],
+        "fr": [
+          "Les corrections du vocabulaire de Parakeet exigent désormais une graphie ou un alias configuré. Les alias enregistrés restent pris en charge."
+        ]
+      }
+    },
+    {
       "version": "1.15",
       "date": "2026-11-10",
       "highlights": {

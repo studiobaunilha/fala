@@ -2,6 +2,12 @@
 
 Todas as mudanças notáveis do Fala serão documentadas aqui.
 
+## [1.15.1] - 2026-11-11
+
+### Fixed
+
+- Parakeet vocabulary corrections now require a matching configured spelling or alias. Listed aliases remain supported.
+
 ## [1.15] - 2026-11-10
 
 ### Changed
