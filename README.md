@@ -18,11 +18,11 @@ O aplicativo precisa das permissões de microfone e acessibilidade para ditado e
 
 Consulte o [site oficial](https://studio.baunilha.dev/fala) para o pacote de instalação. Use o DMG oficial para instalar em `Applications`. As atualizações são distribuídas pelo atualizador Sparkle integrado.
 
-Requisitos desta base: macOS 14 ou superior e Apple Silicon. O consumo de memória e o tamanho dos downloads variam com os modelos selecionados.
+Requisitos desta base: macOS 27.2.1 ou superior e Apple Silicon. O consumo de memória e o tamanho dos downloads variam com os modelos selecionados.
 
 ## Compilar e verificar
 
-Use Xcode com Swift 6.2 ou superior, as ferramentas de linha de comando e o componente Metal, além do SwiftLint. Confira os termos dos modelos antes de redistribuir seus arquivos.
+Use Xcode com SDK do macOS 27 ou superior, as ferramentas de linha de comando e o componente Metal, além do SwiftLint. O manifesto declara `swift-tools-version: 6.2`; as APIs de áudio exigem o SDK 27, independentemente dessa declaração. As [verificações focadas de áudio](doc/research/0013-ground-audio-tap-sdk27.md) usaram Xcode 27.2, SDK 27.2 e Apple Swift 6.4.2. Confira os termos dos modelos antes de redistribuir seus arquivos.
 
 ```bash
 git clone https://github.com/studiobaunilha/fala.git

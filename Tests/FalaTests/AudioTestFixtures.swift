@@ -3,7 +3,6 @@ import XCTest
 
 private enum AudioFixtureError: Error {
     case exportSessionUnavailable
-    case exportIncomplete(AVAssetExportSession.Status)
 }
 
 func makeSilentAudioFile(
@@ -11,7 +10,7 @@ func makeSilentAudioFile(
     durationSeconds: Double,
     channels: AVAudioChannelCount = 1,
     fileExtension: String
-) throws -> URL {
+) async throws -> URL {
     if fileExtension == "m4a" {
         let sourceURL = try makeSilentPCMFile(
             sampleRate: sampleRate,
@@ -24,7 +23,7 @@ func makeSilentAudioFile(
             .appendingPathComponent("test-\(UUID().uuidString)")
             .appendingPathExtension("m4a")
         defer { try? FileManager.default.removeItem(at: sourceURL) }
-        try exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
+        try await exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
         return outputURL
     }
 
@@ -37,9 +36,10 @@ func makeSilentAudioFile(
 }
 
 func makeSilentWAV(sampleRate: Double, durationSeconds: Double) throws -> URL {
-    try makeSilentAudioFile(
+    try makeSilentPCMFile(
         sampleRate: sampleRate,
         durationSeconds: durationSeconds,
+        channels: 1,
         fileExtension: "wav"
     )
 }
@@ -47,10 +47,8 @@ func makeSilentWAV(sampleRate: Double, durationSeconds: Double) throws -> URL {
 func makeExportedAACM4A(
     sampleRate: Double,
     durationSeconds: Double,
-    channels: AVAudioChannelCount = 2,
-    testCase: XCTestCase
-) throws -> URL {
-    _ = testCase
+    channels: AVAudioChannelCount = 2
+) async throws -> URL {
     let sourceURL = try makeSilentPCMFile(
         sampleRate: sampleRate,
         durationSeconds: durationSeconds,
@@ -63,11 +61,11 @@ func makeExportedAACM4A(
         .appendingPathExtension("m4a")
 
     defer { try? FileManager.default.removeItem(at: sourceURL) }
-    try exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
+    try await exportAudioAssetToM4A(sourceURL: sourceURL, outputURL: outputURL)
     return outputURL
 }
 
-func exportAudioAssetToM4A(sourceURL: URL, outputURL: URL) throws {
+func exportAudioAssetToM4A(sourceURL: URL, outputURL: URL) async throws {
     let asset = AVURLAsset(url: sourceURL)
     guard let session = AVAssetExportSession(
         asset: asset,
@@ -76,22 +74,7 @@ func exportAudioAssetToM4A(sourceURL: URL, outputURL: URL) throws {
         throw AudioFixtureError.exportSessionUnavailable
     }
 
-    session.outputURL = outputURL
-    session.outputFileType = .m4a
-
-    let semaphore = DispatchSemaphore(value: 0)
-    session.exportAsynchronously {
-        semaphore.signal()
-    }
-    semaphore.wait()
-
-    if let error = session.error {
-        throw error
-    }
-
-    guard session.status == .completed else {
-        throw AudioFixtureError.exportIncomplete(session.status)
-    }
+    try await session.export(to: outputURL, as: .m4a)
 }
 
 private func makeSilentPCMFile(

@@ -11,7 +11,7 @@ private final class AudioWriter: @unchecked Sendable {
         lock.withLock { file = audioFile }
     }
 
-    func write(_ buffer: AVAudioPCMBuffer) {
+    func write(_ buffer: AVReadOnlyAudioPCMBuffer) {
         lock.withLock { try? file?.write(from: buffer) }
     }
 
@@ -54,13 +54,23 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
             tmpURL = url
 
             try writer.open(url: url, settings: format.settings)
+            var tapInstalled = false
+            defer {
+                if !running {
+                    if tapInstalled { inputNode.removeTap(onBus: 0) }
+                    engine.stop()
+                    writer.close()
+                    try? FileManager.default.removeItem(at: url)
+                    tmpURL = nil
+                }
+            }
 
             // Capture only `writer` and `weak self` — Core Audio calls this on its own thread.
-            inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [writer, weak self] buffer, _ in
+            try inputNode.installAudioTap(onBus: 0, bufferSize: 4096, format: format) { [writer, weak self] buffer, _ in
                 writer.write(buffer)
                 // Compute RMS for waveform visualization (~85ms cadence at 48kHz)
                 let count = Int(buffer.frameLength)
-                guard count > 0, let data = buffer.floatChannelData?[0] else { return }
+                guard count > 0, case .float(let data) = buffer.channelData(0) else { return }
                 var sum: Float = 0
                 for idx in 0..<count { sum += data[idx] * data[idx] }
                 let rms = sqrt(sum / Float(count))
@@ -69,6 +79,7 @@ public final class AudioEngine: @unchecked Sendable, AudioRecording {
                 }
             }
 
+            tapInstalled = true
             engine.prepare()
             try engine.start()
             running = true

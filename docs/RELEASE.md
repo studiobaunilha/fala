@@ -27,6 +27,12 @@ graph LR
 
 ---
 
+## Versão mínima do macOS
+
+As próximas compilações desta base exigem macOS 27.2.1 ou superior em Apple Silicon. `Package.swift` e `LSMinimumSystemVersion` devem concordar; o build usa o valor do plist e verifica o mínimo gravado no executável. A geração do appcast lê o mesmo plist para definir `sparkle:minimumSystemVersion`. Execute `python3 scripts/test-platform-policy.py` para conferir manifesto, plist, template do feed e suporte do compilador ao mínimo com patch.
+
+A distribuição já publicada do Fala 1.14 (35) mantém seus artefatos e metadados originais. Esta política vale para compilações posteriores; não autoriza sobrescrever instaladores ou feeds anteriores. O mínimo declarado não comprova execução em todas as versões posteriores do macOS.
+
 ## Versionamento
 
 Seguimos [Semantic Versioning](https://semver.org/) simplificado:

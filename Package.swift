@@ -50,7 +50,7 @@ let macOSXCTestLinkerSettings: [LinkerSetting] = [
 let package = Package(
     name: "Fala",
     defaultLocalization: "pt-BR",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("27.2.1")],
     dependencies: [
         .package(url: "https://github.com/argmaxinc/WhisperKit.git", from: "0.9.0"),
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts.git", exact: "1.15.0"),

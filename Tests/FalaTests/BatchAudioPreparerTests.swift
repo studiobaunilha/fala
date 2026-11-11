@@ -7,13 +7,12 @@ final class BatchAudioPreparerTests: XCTestCase {
         sampleRate: Double,
         durationSeconds: Double,
         fileExtension: String
-    ) throws -> URL {
+    ) async throws -> URL {
         if fileExtension == "m4a" {
-            return try makeExportedAACM4A(
+            return try await makeExportedAACM4A(
                 sampleRate: sampleRate,
                 durationSeconds: durationSeconds,
-                channels: 1,
-                testCase: self
+                channels: 1
             )
         }
 
@@ -38,8 +37,8 @@ final class BatchAudioPreparerTests: XCTestCase {
         return url
     }
 
-    func testPrepareTranscriptionInputReturnsOriginalWAVWithoutCleanup() throws {
-        let wavURL = try makeSilentAudioFile(
+    func testPrepareTranscriptionInputReturnsOriginalWAVWithoutCleanup() async throws {
+        let wavURL = try await makeSilentAudioFile(
             sampleRate: 16_000,
             durationSeconds: 0.2,
             fileExtension: "wav"
@@ -53,8 +52,8 @@ final class BatchAudioPreparerTests: XCTestCase {
         XCTAssertEqual(prepared.mode, .passthrough)
     }
 
-    func testPrepareTranscriptionInputReturnsSamplesForNonWAVInput() throws {
-        let sourceURL = try makeSilentAudioFile(
+    func testPrepareTranscriptionInputReturnsSamplesForNonWAVInput() async throws {
+        let sourceURL = try await makeSilentAudioFile(
             sampleRate: 44_100,
             durationSeconds: 0.25,
             fileExtension: "m4a"
@@ -75,8 +74,8 @@ final class BatchAudioPreparerTests: XCTestCase {
         XCTAssertFalse(extractedSamples.isEmpty)
     }
 
-    func testPrepareTranscriptionInputCancellation() throws {
-        let sourceURL = try makeSilentAudioFile(
+    func testPrepareTranscriptionInputCancellation() async throws {
+        let sourceURL = try await makeSilentAudioFile(
             sampleRate: 44_100,
             durationSeconds: 1.0,
             fileExtension: "m4a"

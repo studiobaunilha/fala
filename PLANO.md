@@ -32,8 +32,7 @@
 - O histórico textual do produto é `opt-in`.
 - Métricas e estatísticas ficam locais no dispositivo.
 - O produto não terá telemetria remota como parte deste roadmap.
-- A captura de áudio do sistema para reuniões fica disponível apenas em macOS `14.2+`.
-- Em macOS abaixo de `14.2`, o `Meeting Mode` funciona apenas com microfone.
+- O `Meeting Mode` segue o mínimo de plataforma do projeto: macOS `27.2.1+` em Apple Silicon.
 - `Command Mode` não faz parte deste roadmap atual.
 - Busca em base de conhecimento e sugestões durante reunião ficam fora do escopo imediato.
 - `Arquitetura e qualidade` é uma frente transversal e deve acompanhar as próximas entregas sem bloquear refactors totais antes de evolução de produto.

@@ -25,6 +25,7 @@ SPARKLE_BIN=".build/artifacts/sparkle/Sparkle/bin"
 BUCKET="fala-updates"
 R2_URL="https://pub-e4238720a12f45f68eff0a79f3dda647.r2.dev"
 PLIST="Sources/Fala/Resources/Info.plist"
+MIN_MACOS_VERSION=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$REPO_DIR/$PLIST")
 APP_NAME="Fala"
 TMP_DIR=$(mktemp -d)
 DRY_RUN=false
@@ -205,7 +206,7 @@ cat > "$APPCAST_PATH" <<EOF
       <pubDate>${PUB_DATE}</pubDate>
       <sparkle:version>${BUILD}</sparkle:version>
       <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>${MIN_MACOS_VERSION}</sparkle:minimumSystemVersion>
       <enclosure
         url="${R2_URL}/${DMG_NAME}"
         sparkle:edSignature="${ED_SIGNATURE}"

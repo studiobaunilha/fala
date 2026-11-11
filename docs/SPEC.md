@@ -39,7 +39,7 @@ O texto bruto pode ser roteado para LLMs para formatação. A aplicação atua r
 ---
 
 ## 4. Arquitetura e Tecnologia (Stack)
-- **Plataforma:** macOS 14.0+
+- **Plataforma:** macOS 27.2.1+
 - **Linguagem / UI:** Swift 6.0 / SwiftUI (Arquitetura orientada a Actors, MVVM)
 - **Integração Local:** MenuBar Extra (ícone de bandeja).
 - **Dependências Chave:**

@@ -48,6 +48,7 @@ case "$MODE" in
 esac
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MIN_MACOS_VERSION=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$REPO_DIR/Sources/Fala/Resources/Info.plist")
 DEVELOPER_DIR_VALUE="${DEVELOPER_DIR:-$(bash "$REPO_DIR/scripts/xcode-dir.sh")}"
 CODESIGN_IDENTITY="$(bash "$REPO_DIR/scripts/codesign-identity.sh" "${MODE}")"
 PRODUCTS_DIR="$REPO_DIR/$DERIVED_DATA/Build/Products/$CONFIGURATION"
@@ -92,6 +93,8 @@ for raw_line in sys.stdin:
             -configuration "$CONFIGURATION" \
             -destination "platform=macOS" \
             -derivedDataPath "$DERIVED_DATA" \
+            MACOSX_DEPLOYMENT_TARGET="$MIN_MACOS_VERSION" \
+            MTL_LANGUAGE_REVISION=Metal32 \
             GCC_TREAT_WARNINGS_AS_ERRORS=YES \
             CLANG_TREAT_WARNINGS_AS_ERRORS=YES \
             build >"$log_file" 2>&1; then
@@ -136,6 +139,14 @@ assert_staged_path_exists() {
 verify_staged_bundle_contents() {
     assert_staged_path_exists "$APP/Contents/MacOS/Fala" "binário principal"
     assert_staged_path_exists "$APP/Contents/Info.plist" "Info.plist"
+
+    local binary_minimum
+    binary_minimum="$(xcrun vtool -show-build "$BUNDLE_BINARY" | awk '$1 == "minos" { print $2; exit }')"
+    if [[ "$binary_minimum" != "$MIN_MACOS_VERSION" ]]; then
+        echo "error: mínimo macOS do binário ($binary_minimum) difere do app ($MIN_MACOS_VERSION)" >&2
+        exit 1
+    fi
+
     assert_staged_path_exists "$APP/Contents/Resources/AppIcon.icns" "ícone do app"
     assert_staged_path_exists "$APP/Contents/Resources/Fala_FalaCore.bundle" "bundle de recursos FalaCore"
     assert_staged_path_exists "$APP/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib" "metallib do runtime MLX"
@@ -172,6 +183,8 @@ stage_bundle() {
     done
 
     install_name_tool -add_rpath @executable_path/../Frameworks "$BUNDLE_BINARY" 2>/dev/null || true
+
+    verify_staged_bundle_contents
 
     local entitlements_path="$REPO_DIR/scripts/Fala.entitlements"
 

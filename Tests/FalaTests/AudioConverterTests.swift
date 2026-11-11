@@ -58,8 +58,8 @@ final class AudioConverterTests: XCTestCase {
         XCTAssertThrowsError(try AudioConverter.toFloat16k(from: url))
     }
 
-    func testStereoAACM4AProducesOutputAt16kHzMono() throws {
-        let url = try makeSilentAudioFile(
+    func testStereoAACM4AProducesOutputAt16kHzMono() async throws {
+        let url = try await makeSilentAudioFile(
             sampleRate: 48_000,
             durationSeconds: 0.5,
             channels: 2,
@@ -74,8 +74,8 @@ final class AudioConverterTests: XCTestCase {
         XCTAssertTrue(samples.allSatisfy { $0 == 0.0 }, "Silent input must produce all-zero output")
     }
 
-    func testWrite16kMonoWAVSupportsStereoAACM4AInput() throws {
-        let sourceURL = try makeSilentAudioFile(
+    func testWrite16kMonoWAVSupportsStereoAACM4AInput() async throws {
+        let sourceURL = try await makeSilentAudioFile(
             sampleRate: 48_000,
             durationSeconds: 0.5,
             channels: 2,
@@ -96,11 +96,10 @@ final class AudioConverterTests: XCTestCase {
         XCTAssertEqual(file.processingFormat.channelCount, 1)
     }
 
-    func testExportedAACM4AProducesOutputAt16kHzMono() throws {
-        let url = try makeExportedAACM4A(
+    func testExportedAACM4AProducesOutputAt16kHzMono() async throws {
+        let url = try await makeExportedAACM4A(
             sampleRate: 48_000,
-            durationSeconds: 0.5,
-            testCase: self
+            durationSeconds: 0.5
         )
         defer { try? FileManager.default.removeItem(at: url) }
 
@@ -111,11 +110,10 @@ final class AudioConverterTests: XCTestCase {
         XCTAssertTrue(samples.allSatisfy { $0 == 0.0 }, "Silent input must produce all-zero output")
     }
 
-    func testWrite16kMonoWAVSupportsExportedAACM4AInput() throws {
-        let sourceURL = try makeExportedAACM4A(
+    func testWrite16kMonoWAVSupportsExportedAACM4AInput() async throws {
+        let sourceURL = try await makeExportedAACM4A(
             sampleRate: 48_000,
-            durationSeconds: 0.5,
-            testCase: self
+            durationSeconds: 0.5
         )
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("exported-converted-\(UUID().uuidString)")

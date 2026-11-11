@@ -28,12 +28,11 @@ final class BatchCLIIntegrationTests: XCTestCase {
         return executable
     }
 
-    func testPrepareOnlyCLIHandlesExportedAACInput() throws {
+    func testPrepareOnlyCLIHandlesExportedAACInput() async throws {
         let executableURL = try builtCLIURL()
-        let inputURL = try makeExportedAACM4A(
+        let inputURL = try await makeExportedAACM4A(
             sampleRate: 48_000,
-            durationSeconds: 0.5,
-            testCase: self
+            durationSeconds: 0.5
         )
         defer { try? FileManager.default.removeItem(at: inputURL) }
 
