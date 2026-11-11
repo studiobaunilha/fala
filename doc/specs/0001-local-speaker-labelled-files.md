@@ -28,7 +28,7 @@ Recorded conversations need an accurate account of who spoke when, attached to t
 
 - Do not upload recordings or reference transcripts to external inference services.
 - Keep the application MIT licence distinct from each model/component licence; verify exact distribution terms and asset access before integration.
-- Preserve macOS 14 support in the existing path; report candidate incompatibility explicitly.
+- Follow the separately governed minimum-OS policy for future builds; the owner-directed baseline is macOS27.2.1 (the current Mac's version), with `doc/adr/0002-macos-support-baseline.md` being prepared by the platform delivery. Report candidate incompatibility explicitly. This supersedes the earlier macOS14 requirement; it does not imply that macOS14 runtime was tested or change published1.14 artifacts.
 
 ## Success Criteria
 
@@ -57,3 +57,7 @@ Production rollout, a default-on speaker feature, speaker enrolment or biometric
 - ADRs: `doc/adr/0001-free-open-source.md`
 - Tasks: `doc/tasks/0004-evaluate-speaker-labelled-files.md`
 - Depends on: selected-model integration in `doc/tasks/0001-selectable-parakeet-ultra.md`
+
+## Current platform-policy integration
+
+ADR0002 is accepted and integrated for subsequent source builds at macOS27.2.1; the earlier note that it was being prepared is superseded. This policy does not implement speaker-labelled files, change this spec’s success criteria, validate real microphone/focus behavior or alter the published1.14 installer.

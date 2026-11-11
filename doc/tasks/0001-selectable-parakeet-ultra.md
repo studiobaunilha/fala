@@ -1,6 +1,6 @@
 # Task 0001: Add selectable Parakeet Ultra as the default
 
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-11-10
 **Scope ref:** README.md
 **Evidence ref:** doc/research/0006-ground-parakeet-ultra.md
@@ -22,6 +22,8 @@ Users need a newer local speech model without losing access to the previous work
 - [x] Model-download failures are reported rather than silently substituting another model.
 - [ ] Vocabulary support and serialized access remain covered; macOS 14 compatibility and notices for newly linked components are verified.
 - [x] A packaged local transcription succeeds with the selected candidate, with the actual model and hardware recorded; no unmeasured performance claim is added.
+
+The unchecked historical bundled criterion above is retired solely for its macOS14 runtime requirement by the owner's 2026-11-10 scope decision; it is not recorded as a passed test. Vocabulary, serialized access and notices have the retained execution/review evidence below. Future platform support is a separate change, not an additional condition on the already published Ultra milestone.
 
 ## Plan
 
@@ -47,6 +49,10 @@ Users need a newer local speech model without losing access to the previous work
 - Final independent integration delta audits at `fdcc5469aa7dcff2f88f54136d6e146372850cb0`: baseline gpt-6.1-sol and gpt-6-astra in-host proxy report no findings; all eight CV rules accounted. Earlier F1 (CV.1/CV.5 active-rule AI-failure sink), F2 (CV.5 offline invocation evidence) and F3 (CV.7 generic temporal wording) are resolved by the observed test, recorded execution wrapper and narrowed wording respectively. HK.1 passed and HK.2 was N/A; source/gate coverage remained closed. The real process-checker FAIL was retained; publication used an explicitly approved host-recognition exception limited to this delivery's native Codex evidence. No checker was changed or PASS fabricated.
 - Release milestone published. Task remains in-progress solely for the unverified macOS14 runtime portion of the compatibility criterion; deployment/Mach-O minimum14.0 are measured, but are not runtime testing. No source/model/version change is pending for the published milestone. Earlier publication/audit-pending entries are superseded by this record.
 
+- 2026-11-10 — Closed by explicit scope withdrawal, not a new compatibility PASS: the owner removed macOS14 from required support and directed future builds to the current Mac's OS or later. Platform delivery observed `sw_vers`: macOS27.2.1/build26B131. Published1.14 remains unchanged. The historical macOS14 runtime checkbox remains unchecked and is retired; no macOS14 execution is claimed. All other Ultra/model-selection, vocabulary, notice, offline smoke, review and publication evidence is retained above. The separate platform delivery owns ADR0002/configuration/build changes (`doc/adr/0002-macos-support-baseline.md`, proposed in its isolated worktree; `doc/research/0012-ground-platform-floor.md`). Those records are pending integration here. This supersedes the prior task-open status; no further source/model/version work is required to close this task's published milestone.
+
+- Current local integration: ADR0002 is accepted and integrated for NEXT builds (macOS27.2.1), superseding earlier “being prepared/pending integration” references. The isolated app assembled with Info/Mach-O27.2.1, strict signature and CLIhelp; bounded offline JFK transcription and one packaged Metal kernel passed. This is local validation, not a new release, live microphone test, focus test or quality benchmark. Published1.14 remains unchanged. Task0005's controller correction is locally implemented/reviewed/validated; proposed task0003/task0004 criteria remain unchanged and unexecuted. Priority draft `doc/research/0010-gain-effort-priorities.md` remains local and unpublished.
+
 ## Definition of Done
 
 All Acceptance Criteria checked, plus:
@@ -54,4 +60,4 @@ All Acceptance Criteria checked, plus:
 - [x] Local tests pass (or N/A documented in Notes)
 - [x] Code review completed (human or fresh-context reviewer per WORKFLOW §10)
 - [x] No orphan `TODO`/`FIXME` introduced
-- [ ] Status updated to `done` and Notes log closes the task
+- [x] Status updated to `done` and Notes log closes the task

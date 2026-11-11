@@ -32,6 +32,10 @@ Speaker labelling was removed from the published application, while separate loc
 
 ## Notes
 
+- 2026-11-10 — Gain/effort comparison `doc/research/0010-gain-effort-priorities.md` keeps this evaluation proposed after smaller dictation/file reliability slices. High benefit for conversations remains a hypothesis; model assets, reference annotation and word/speaker alignment add uncertainty even to the first evaluation. Reconcile existing local work before building another pipeline. No acceptance criterion was changed or represented as executed.
+
+- Current local integration: ADR0002 is accepted and integrated for NEXT builds (macOS27.2.1), superseding earlier “being prepared/pending integration” references. The isolated app assembled with Info/Mach-O27.2.1, strict signature and CLIhelp; bounded offline JFK transcription and one packaged Metal kernel passed. This is local validation, not a new release, live microphone test, focus test or quality benchmark. Published1.14 remains unchanged. Task0005's controller correction is locally implemented/reviewed/validated; proposed task0003/task0004 criteria remain unchanged and unexecuted. Priority draft `doc/research/0010-gain-effort-priorities.md` remains local and unpublished.
+
 ## Definition of Done
 
 All Acceptance Criteria checked, plus:

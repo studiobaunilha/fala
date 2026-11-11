@@ -32,6 +32,10 @@ Batch transcription already supports a queue, per-file states, cancellation, ret
 
 ## Notes
 
+- 2026-11-10 — Priority reassessed against gain/effort in `doc/research/0010-gain-effort-priorities.md`. This remains proposed; task readiness does not put it ahead of a smaller, higher-benefit insertion/review correction if independently reproduced. Nearest candidate is truthful save-failure/item-retry behavior, reusing this queue; structured timed export is a separate larger proposal. Acceptance criteria above are unchanged and unexecuted by the prioritization study.
+
+- Current local integration: ADR0002 is accepted and integrated for NEXT builds (macOS27.2.1), superseding earlier “being prepared/pending integration” references. The isolated app assembled with Info/Mach-O27.2.1, strict signature and CLIhelp; bounded offline JFK transcription and one packaged Metal kernel passed. This is local validation, not a new release, live microphone test, focus test or quality benchmark. Published1.14 remains unchanged. Task0005's controller correction is locally implemented/reviewed/validated; proposed task0003/task0004 criteria remain unchanged and unexecuted. Priority draft `doc/research/0010-gain-effort-priorities.md` remains local and unpublished.
+
 ## Definition of Done
 
 All Acceptance Criteria checked, plus:
