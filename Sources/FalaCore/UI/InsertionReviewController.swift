@@ -10,6 +10,9 @@ private final class InsertionReviewPanel: NSPanel {
 public final class InsertionReviewController: InsertionReviewPresenting {
     private let analyzer = CorrectionLearningAnalyzer()
     private let learnCorrection: (String, String) -> Void
+    private let targetApplicationProvider: () -> NSRunningApplication?
+    private let reactivateApplication: (NSRunningApplication) async -> Bool
+    private let presentReview: ((InsertionReviewView) -> Void)?
 
     private var panel: NSPanel?
     private var dismissWorkItem: DispatchWorkItem?
@@ -17,8 +20,30 @@ public final class InsertionReviewController: InsertionReviewPresenting {
     private var currentInsertedText = ""
     private var currentInserter: (any TextInserting)?
 
-    public init(learnCorrection: @escaping (String, String) -> Void) {
+    public convenience init(learnCorrection: @escaping (String, String) -> Void) {
+        self.init(
+            learnCorrection: learnCorrection,
+            targetApplicationProvider: { NSWorkspace.shared.frontmostApplication },
+            reactivateApplication: { application in
+                let activated = application.activate(options: [])
+                try? await Task.sleep(nanoseconds: 120_000_000)
+                return activated
+                    && NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
+            },
+            presentReview: nil
+        )
+    }
+
+    init(
+        learnCorrection: @escaping (String, String) -> Void,
+        targetApplicationProvider: @escaping () -> NSRunningApplication?,
+        reactivateApplication: @escaping (NSRunningApplication) async -> Bool,
+        presentReview: ((InsertionReviewView) -> Void)?
+    ) {
         self.learnCorrection = learnCorrection
+        self.targetApplicationProvider = targetApplicationProvider
+        self.reactivateApplication = reactivateApplication
+        self.presentReview = presentReview
     }
 
     public func present(insertedText: String, using inserter: any TextInserting) {
@@ -31,33 +56,35 @@ public final class InsertionReviewController: InsertionReviewPresenting {
 
         currentInsertedText = trimmedText
         currentInserter = inserter
-        targetApplication = NSWorkspace.shared.frontmostApplication
+        targetApplication = targetApplicationProvider()
 
-        let panel = makePanel()
-        panel.contentView = NSHostingView(
-            rootView: InsertionReviewView(
+        let review = InsertionReviewView(
                 insertedText: trimmedText,
                 onUndo: { [weak self] in
-                    self?.handleUndo()
+            self?.handleUndo()
                 },
                 onApplyEdit: { [weak self] editedText in
-                    self?.handleApplyEdit(editedText)
+            self?.handleApplyEdit(editedText)
                 },
                 onDismiss: { [weak self] in
-                    self?.dismiss()
+            self?.dismiss()
                 },
                 onHoverChanged: { [weak self] hovering in
-                    self?.handleHoverChanged(hovering)
+            self?.handleHoverChanged(hovering)
                 },
                 onEditingChanged: { [weak self] editing in
-                    self?.handleEditingChanged(editing)
+            self?.handleEditingChanged(editing)
                 }
-            )
         )
-        position(panel: panel, size: InsertionReviewPlacement.collapsedSize)
-        self.panel = panel
-        panel.orderFrontRegardless()
-
+        if let presentReview {
+            presentReview(review)
+        } else {
+            let panel = makePanel()
+            panel.contentView = NSHostingView(rootView: review)
+            position(panel: panel, size: InsertionReviewPlacement.collapsedSize)
+            self.panel = panel
+            panel.orderFrontRegardless()
+        }
         scheduleDismiss(after: 6.0)
     }
 
@@ -104,10 +131,11 @@ public final class InsertionReviewController: InsertionReviewPresenting {
             return
         }
 
+        let targetApplication = targetApplication
         dismiss()
 
         Task { @MainActor in
-            await reactivateTargetApplication()
+            guard await reactivateTargetApplication(targetApplication) else { return }
             await inserter.undoLastInsertion()
         }
     }
@@ -123,10 +151,11 @@ public final class InsertionReviewController: InsertionReviewPresenting {
             in: .whitespacesAndNewlines
         )
 
+        let targetApplication = targetApplication
         dismiss()
 
         Task { @MainActor in
-            await reactivateTargetApplication()
+            guard await reactivateTargetApplication(targetApplication) else { return }
             await inserter.replaceLastInsertion(with: trimmedEditedText)
 
             if let learned = analyzer.learnedCorrection(
@@ -139,10 +168,9 @@ public final class InsertionReviewController: InsertionReviewPresenting {
         }
     }
 
-    private func reactivateTargetApplication() async {
-        guard let targetApplication else { return }
-        targetApplication.activate(options: [])
-        try? await Task.sleep(nanoseconds: 120_000_000)
+    private func reactivateTargetApplication(_ targetApplication: NSRunningApplication?) async -> Bool {
+        guard let targetApplication else { return false }
+        return await reactivateApplication(targetApplication)
     }
 
     private func scheduleDismiss(after seconds: TimeInterval) {
