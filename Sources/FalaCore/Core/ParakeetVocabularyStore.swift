@@ -39,7 +39,9 @@ struct ParakeetVocabularyStore: Sendable, Equatable {
             CustomVocabularyTerm(
                 text: term.text,
                 weight: term.weight,
-                aliases: term.aliases.isEmpty ? nil : term.aliases
+                aliases: term.aliases.isEmpty ? nil : term.aliases,
+                // Declared spellings authorize corrections; similar ordinary words do not.
+                minSimilarity: 1
             )
         }
         return CustomVocabularyContext(terms: vocabularyTerms)
